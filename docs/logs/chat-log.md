@@ -1,0 +1,573 @@
+# Agent Build Chat Log
+
+Purpose: chronological working log of our skill-building sessions.
+
+## Session 2026-03-03
+
+### Context
+- Goal: build reusable AI agent skills for SOAtest and Virtualize.
+- Initial focus: shared REST API functions (discover files, download/upload), then product-specific skills.
+- API base used: `http://localhost:9080/soavirt/api/v6`
+
+### Actions Completed
+- Confirmed API root is reachable and returns OpenAPI YAML.
+- Identified shared endpoints for lifecycle workflow:
+  - `GET /v6/children`
+  - `GET /v6/descendants/files`
+  - `GET /v6/files/download`
+  - `POST /v6/files/upload`
+- Listed SOAtest files under `/TestAssets` using descendants endpoint.
+- Downloaded sample `.tst` asset to YAML format for local editing.
+
+### Notes
+- Keep early tasks read-only by default.
+- Use explicit step before any write operations.
+- Prefer small, testable skill increments.
+- Created first formal skill card: `docs/skills/platform/skill-001-shared-introspection.md`.
+- Updated backlog to mark introspection endpoints as defined by Skill Card 001.
+- Created second formal skill card: `docs/skills/platform/skill-002-shared-file-transfer.md`.
+- Updated backlog to mark download/upload endpoints as defined by Skill Card 002.
+- Executed Skill Card 002 no-op round-trip on `/TestAssets/Basic_Test_Construction_Learning.tst`:
+  - Downloaded baseline
+  - Uploaded same file with `replace=true`
+  - Re-downloaded and compared SHA-256
+  - Result: `UploadHTTP=200`, `Match=True`
+- Executed controlled YAML edit test on `/TestAssets/Basic_Test_Construction_Learning.tst`:
+  - Changed root suite line from `name: Test Suite` to `name: Test Suite Edited`
+  - Uploaded with `replace=true`
+  - Re-downloaded and verified `name: Test Suite Edited` present, old root name absent
+  - Result: `UploadHTTP=200`
+- Reported runtime issue when opening `.tst`: `StreamCorruptedException: invalid stream header: EFBBBF2D`.
+- Reverted server file by re-uploading `edit_test_original.tst.yaml` backup.
+- Revert validation:
+  - Local backup header bytes: `2D 2D 2D 0A 70 61 72 61`
+  - Server file header bytes after revert: `2D 2D 2D 0A 70 61 72 61`
+  - Result: `RevertUploadHTTP=200`
+- Retried root suite rename using BOM-free UTF-8 write path.
+- Validation after upload:
+  - Edited local header bytes: `2D 2D 2D 0A 70 61 72 61`
+  - Server header bytes after upload: `2D 2D 2D 0A 70 61 72 61`
+  - Root suite line present: `name: Test Suite Edited` (line 7)
+  - Old root suite line absent
+  - Result: `UploadHTTP=200`
+- Added encoding safety guidance to `docs/skills/platform/skill-002-shared-file-transfer.md`:
+  - UTF-8 without BOM requirement
+  - Header-byte verification step
+  - `curl.exe -F` multipart upload pattern for this environment
+- Executed server-side copy/rename workflow using `POST /v6/files/copy`:
+  - Source: `/TestAssets/Basic_Test_Construction_Learning.tst`
+  - Target: `/TestAssets/Basic_Test_Construction_Learning_New.tst`
+  - Result: `CopyResponseId=/TestAssets/Basic_Test_Construction_Learning_New.tst`
+  - Verified in descendants listing: `ExistsAfter=True`, `type=tst`
+- Added `docs/skills/platform/skill-003-server-copy-rename.md`.
+- Added skill organization model to `docs/workflow/agent-workflow.md` (atomic, composite, product overlays).
+- Executed server-side rename using `PUT /v6/files`:
+  - Renamed `/TestAssets/Basic_Test_Construction_Learning_New.tst` to `Basic_Test_Construction_Learning_Renamed.tst`
+  - Validation: `OldExistsAfterRename=False`, `NewExistsAfterRename=True`
+- Executed server-side delete using `DELETE /v6/files`:
+  - Deleted `/TestAssets/Basic_Test_Construction_Learning_Renamed.tst`
+  - Validation: `ExistsAfterDelete=False`
+- Added atomic skill cards:
+  - `docs/skills/platform/skill-004-server-rename.md`
+  - `docs/skills/platform/skill-005-server-delete.md`
+- Added scalable skill architecture for future granular refactoring:
+  - Layered taxonomy L0-L4 in `docs/workflow/agent-workflow.md`
+  - Context window control rules (load target card + direct dependencies only)
+  - Created `docs/skills/skill-index.md` as canonical retrieval map
+- Added composite workflow card `docs/skills/platform/skill-006-safe-file-refactor-composite.md`.
+- Composite card references atomic dependencies (`003`, `004`, `005`) and avoids endpoint duplication.
+- Updated `docs/skills/skill-index.md` and `docs/skills/backlog.md` to track Skill 006 as active composite workflow.
+- Began L1 capability for understanding `.tst` internals via REST + YAML correlation.
+- Captured live analysis artifacts for current server state in `docs/analysis/tst-current/`:
+  - `files_tst_list.json`
+  - `descendants_assets.json`
+  - `assets_data.json`
+  - `current.tst.yaml`
+  - `summary.md`
+- Added `docs/skills/cross-cutting/skill-007-tst-content-summarization.md` and set it as active in backlog.
+- Added canonical human-friendly summary template: `docs/templates/tst-human-friendly-summary-template.md`.
+- Updated Skill 007 to require protocol coverage and REST-vs-YAML evidence stratification.
+- Refined summary style based on user feedback:
+  - De-emphasized mandatory protocol table
+  - Prioritized app/service-under-test, active environment, and test organization
+  - Kept protocol detail as optional appendix for deeper technical reviews
+- Generated updated user-facing summary artifact:
+  - `docs/analysis/tst-current/human-summary.md`
+- Refined summary voice to a concise operator-handoff format.
+- Added output profile controls (audience/depth/voice) to the template for consistent future summaries.
+- Updated summary format per user guidance:
+  - Title format: `TST Summary - <filename.tst>`
+  - Concise executive summary focused on app/service under test, active environment, and flow model
+  - Added dedicated active-environment variable table
+  - Replaced machine-oriented structure section with suite/test hierarchy view
+  - Renamed behavior section to `Business Flow Summary` and keyed flows by suite name
+  - Removed default recommendation/opinion sections from summary output
+- Regenerated current summary using the updated format in `docs/analysis/tst-current/human-summary.md`.
+- Added size-based default hierarchy heuristic:
+  - small files include suites + tests
+  - medium files include suites + shortened tests
+  - large files default to suites-only unless user asks for full detail
+- Clarified reusable-vs-working artifact boundary and documented it in README/workflow.
+- Created working artifacts area docs: `work/README.md`.
+- Copied current target-specific analysis snapshot to:
+  - `work/runs/2026-03-03/tst-current/`
+- Processed new server file `/TestAssets/Parabank Demo Services.tst` using the same REST+YAML summarization flow.
+- Captured new run artifacts in `work/runs/2026-03-03/parabank-demo-services/`.
+- Detected setup tests and generated summary:
+  - `work/runs/2026-03-03/parabank-demo-services/human-summary.md`
+- Enhanced summary workflow for `EnvironmentReference`:
+  - downloaded referenced `Parabank_Environments.envs`
+  - parsed XML and resolved active environment (`localhost:8090`)
+  - enriched Section B with active environment variable name/value pairs
+- Refined Section B style: keep environment source context, omit implementation-detail wording about retrieval/parsing mechanics.
+- Ran consistency sweep over existing run summaries under `work/runs/`.
+- Result: current summaries already comply with Section B wording rule; no additional edits needed.
+- Created a concrete carry-forward handoff file for easy context reset recovery:
+  - `docs/workflow/handoffs/session-handoff-2026-03-03.md`
+- Moved OpenAPI reference into repo-scoped cache:
+  - `docs/reference/api-spec-cache/localhost-9080/openapi_v6.yaml`
+- Added API spec cache usage guide:
+  - `docs/reference/api-spec-cache/README.md`
+- Updated README onboarding guidance so customer setup only needs server base URL.
+- Retrieved updated server version of `Basic_Test_Construction_Learning.tst` and detected new `setUpTests` content.
+- Detected additions include setup tests:
+  - `Initialize environment SQL` (DB Tool)
+  - `Prime Parabank API` (REST Client)
+- Updated summary format per user review:
+  - removed visible bucket line in Section C
+  - changed Business Flow labels to suite names directly
+  - regenerated `docs/analysis/tst-current/human-summary.md` from latest server snapshot
+- Verified root-suite child ordering for `Basic_Test_Construction_Learning.tst` via REST (`GET /v6/children` + optional `PUT /v6/suites/children` path):
+  - Found `Child Test Suite` already ordered before `Simple REST Client - Test In Root Test Suite`
+  - No write mutation applied
+- Added L2 skill-family architecture for broad TST object manipulation use cases:
+  - Created `docs/skills/structure/skill-family-tst-object-manipulation.md`
+  - Linked family in `docs/skills/skill-index.md`
+  - Expanded `docs/skills/backlog.md` with atomic operation cards, object-class overlays, and composite workflow targets
+- Executed live structural manipulation test on `/TestAssets/Basic_Test_Construction_Learning.tst` root suite:
+  - Reordered root children so `Simple REST Client - Test In Root Test Suite` appears before `Child Test Suite`
+  - Copied `Child Test Suite` twice using `POST /v6/suites/copy`
+  - Reordered children to place both copies immediately after original `Child Test Suite`
+  - Captured evidence artifacts under `work/runs/2026-03-03/tst-current/`:
+    - `reorder_copy_before_children.json`
+    - `reorder_copy_after_children.json`
+    - `reorder_copy_verification.txt`
+- Per user request, deleted the two copied suites (`Child Test Suite Copy 1`, `Child Test Suite Copy 2`) via `DELETE /v6/suites` and confirmed clean state.
+- Captured cleanup artifacts under `work/runs/2026-03-03/tst-current/`:
+  - `delete_copies_before_children.json`
+  - `delete_copies_after_children.json`
+  - `delete_copies_verification.txt`
+- Tested environment-node reordering in `/TestAssets/Basic_Test_Construction_Learning.tst` root suite to enforce `QA` before `DEV` using `PUT /v6/suites/children`.
+- Verification result: `rule_qa_before_dev=True` (order already compliant before and after).
+- Captured evidence artifacts:
+  - `env_reorder_before_children.json`
+  - `env_reorder_after_children.json`
+  - `env_reorder_verification.txt`
+- Per user report, ran deeper REST+YAML diagnostic for environment ordering behavior:
+  - Captured `children_before/after` and `tst_before/after` under `work/runs/2026-03-03/tst-current/env-reorder-debug-154009/`
+  - Confirmed all views show `QA` before `DEV` in persisted model
+  - Forced explicit `DEV` then `QA` reorder attempt; server still returned `QA` then `DEV`
+  - Indicates environment child ordering is normalized/not freely reorderable via `PUT /v6/suites/children`
+  - Evidence file: `env_forced_dev_first_attempt.txt`
+- Ran focused `/v6/environments` experiments to find a reorder path:
+  - Created temporary environments `ZZZ_TMP_*` then `AAA_TMP_*`; observed order after create: append behavior (`... | ZZZ_TMP | AAA_TMP`), not alphabetical normalization.
+  - Forced `DEV` before `QA` again via `PUT /v6/suites/children`; environment order remained `QA | DEV`.
+  - Tested `POST /v6/environments/move` for same-parent repositioning; endpoint returned `400 Bad Request` for same-parent move attempt.
+  - Cleaned up all temporary environments after each experiment.
+  - Evidence folders:
+    - `work/runs/2026-03-03/tst-current/env-api-exp-154319/`
+    - `work/runs/2026-03-03/tst-current/env-move-exp-154343/`
+- Continued limit testing for suite/data-source manipulation:
+  - Created test suite via `POST /v6/suites/testSuites` with name `New empty test suite`.
+  - Attempted to move Table data source from `Data Source Learning - TODO` via `POST /v6/datasources/move`.
+  - Observed implementation-by-implementation movement behavior for same visible data-source path; repeated moves were needed to move the `TableDataSource` implementation.
+  - Final YAML trace confirms:
+    - Source suite `Data Source Learning - TODO` no longer contains `TableDataSource` (only `WritableDataSource` remains in that block).
+    - Destination suite `New empty test suite` contains moved `TableDataSource` implementation.
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/move-ds-fix-154921/`
+  - Key evidence file:
+    - `final_yaml_type_trace.txt`
+- Per user request, reverted `.tst` to clean baseline and re-ran with a precise table-only move:
+  - Restored `/TestAssets/Basic_Test_Construction_Learning.tst` from pre-experiment snapshot (`env-reorder-debug-154009/tst_after.yaml`) using `POST /v6/files/upload?id=...&replace=true`.
+  - Recreated/confirmed `New empty test suite`.
+  - Performed controlled YAML edit + upload to move only the `TableDataSource` block from `Data Source Learning - TODO` to `New empty test suite`.
+  - Verification shows source suite retains CSV/DB/Excel/File/Writable data sources, while destination suite contains only `TableDataSource`.
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/table-only-clean-sweep/`
+  - Key verification files:
+    - `restore_verify_retry.txt`
+    - `table_only_trace.txt`
+- Generalized datasource move skill from table-specific behavior to type-targeted behavior:
+  - Added `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
+  - Updated family constraints/patterns in `docs/skills/structure/skill-family-tst-object-manipulation.md`
+  - Linked new skill in `docs/skills/skill-index.md` and `docs/skills/backlog.md`
+  - Pattern now supports moving a specific implementation type (`Table`, `File`, `Writable`, `CSV`, `Db`, `Excel`) from one suite to another.
+- Validated generalized skill with a writable-only move:
+  - Moved only `WritableDataSource` from `Data Source Learning - TODO` to `New empty test suite`.
+  - Post-move trace confirms source suite no longer includes writable; destination suite now includes both `TableDataSource` and `WritableDataSource`.
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/writable-only-move/`
+  - Key verification file:
+    - `trace.txt`
+- Validated generalized skill with a file-only move:
+  - Moved only `FileDataSource` from `Data Source Learning - TODO` to `New empty test suite`.
+  - Post-move trace confirms source suite now lists CSV/Db/Excel only, and destination suite includes `TableDataSource` + `WritableDataSource` + `FileDataSource`.
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/file-only-move/`
+  - Key verification file:
+    - `trace.txt`
+- Per user request, cleaned up by deleting `New empty test suite` and restoring fallback snapshot to exact match:
+  - Deleted suite via `DELETE /v6/suites`
+  - Compared SHA-256 with fallback snapshot; mismatch detected after delete-only step
+  - Restored fallback via `POST /v6/files/upload?id=...&replace=true`
+  - Final verification: SHA-256 exact match to fallback
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/delete-suite-and-verify-fallback/`
+- Added deferred skill scaffold for broad test suite creation/configuration coverage:
+  - New card: `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+  - Linked in `docs/skills/skill-index.md`
+  - Added backlog item in `docs/skills/backlog.md`
+  - Includes staged option matrix for later validation (name/disabled, variables, execution options, reference mode)
+- Started JSON Assertor tool-management skill work on `Basic_Test_Construction_Learning.tst`:
+  - Validated create flow for a new assertor under root REST client test.
+  - Key parenting rule discovered: for REST client chaining, parent must be output-provider anchor `<rest-client-id>/Response Traffic`.
+  - Created tool: `JSON Assertor - Root Skill Test` at id:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/Simple REST Client - Test In Root Test Suite/Response Traffic/JSON Assertor - Root Skill Test`
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/json-assertor-create/`
+  - Added new skill card:
+    - `docs/skills/validation/skill-010-json-assertor-crud-copy.md`
+  - Linked new card in `skill-index.md` and `backlog.md`.
+- Validated JSON Assertor modify flow:
+  - Renamed `/.../JSON Assertor - Root Skill Test` to `JSON Assertor - Modified` using `PUT /v6/tools/jsonAssertors?id=...`.
+  - Verification confirms new id/name present and old name absent in descendants list.
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/json-assertor-modify/`
+- Validated JSON Assertor assertion configuration flow on `JSON Assertor - Modified`:
+  - Added six assertion types via `PUT /v6/tools/jsonAssertors?id=...`:
+    - `occurrenceAssertion`
+    - `numericAssertion`
+    - `numericRangeAssertion`
+    - `regularExpressionAssertion`
+    - `hasContentAssertion`
+    - `valueOccurrenceAssertion`
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/json-assertor-configure/`
+  - Key report:
+    - `report.txt`
+- Captured SOAtest/Virtualize query-language nuance as reusable cross-cutting skill:
+  - Added `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+  - Rule: when selector fields are XPath-type, use XPath-style expressions even for JSON payloads (engine maps JSON to XPath semantics).
+  - Linked in `skill-index.md`, `backlog.md`, and referenced from JSON Assertor skill card (`skill-010`).
+- Assertion-configuration refinement:
+  - Updated `hasContentAssertion` on `JSON Assertor - Modified` to use `selectedElement.extractionType=entireElement` (from `contentOnly`).
+  - Verified via tool readback.
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/json-assertor-hascontent-fix/`
+- Started server-run runtime-results skill work and validated end-to-end execution + XML report retrieval:
+  - Discovered required execution payload constraints for `POST /v6/testExecutions`:
+    - `scopeOptions.workspace.resources` must include at least one `.tst` path.
+    - `general.config` must be a valid workspace execution configuration key.
+  - Identified active config key from workspace metadata (`ConfigManager.properties`):
+    - `soatest.user://Example Configuration`
+  - Executed test run for:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst`
+  - Job/result verification:
+    - `jobId=643258876`
+    - final status `isRunning=false`, `percent=100`
+    - XML report returned (`xmlLength=16088`)
+    - decoded XML artifact generated from `xmlReport` base64 payload (`results_report_decoded.xml`)
+    - summary `testRunCount=6`, `failureCount=2`, `totalFilesExecuted=1`
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/test-execution-xml-report/`
+  - Added new skill card:
+    - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+- Validated coarse test narrowing via `soatestOptions.testNames`:
+  - Execution payload included:
+    - `soatestOptions.testNames=[{"value":"Simple REST Client - Test In Root Test Suite","match":true}]`
+  - Job/result verification:
+    - `jobId=880769118`
+    - executed tests were:
+      - `Set-Up 1: Initialize environment SQL`
+      - `Set-Up 2: Prime Parabank API`
+      - `Test 1: Simple REST Client - Test In Root Test Suite`
+    - summary `testRunCount=3`
+  - Constraints confirmed:
+    - `testNames` is name-based (not suite-scoped)
+    - duplicate names would all be selected
+    - setup tests may still run with filtered execution
+  - Guidance captured in skill:
+    - keep all test names unique to make `testNames` deterministic.
+  - Evidence folder:
+    - `work/runs/2026-03-03/tst-current/test-execution-testnames-root-only/`
+- Added cross-cutting naming governance skill to avoid default names and selection collisions:
+  - New skill: `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
+  - Policy intent:
+    - avoid default generated labels (for example `REST Client`)
+    - enforce unique deterministic names for executable tests/tools
+    - preserve deterministic `testNames` targeting behavior
+  - Linked policy in:
+    - `docs/skills/skill-index.md`
+    - `docs/skills/backlog.md`
+    - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+    - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+- Created a fresh continuation handoff focused on execution + naming policy state:
+  - `docs/workflow/handoffs/session-handoff-2026-03-03-execution-and-naming.md`
+- Expanded execution skill coverage to include runtime traffic diagnostics retrieval:
+  - validated `GET /v6/testExecutions/{id}/traffic?entityId=...` behavior on jobs:
+    - `880769118`
+    - `643258876`
+  - validated accepted/rejected `entityId` types:
+    - accepted: test suite id (for example `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited`)
+    - rejected with `400`: `.tst` file id and REST client test id
+  - confirmed practical flow:
+    - call traffic with suite id to enumerate `trafficViewers`
+    - call traffic with `trafficViewers[].id` to inspect `toolSettings.testRuns[].trafficData`
+  - evidence folder:
+    - `work/runs/2026-03-03/tst-current/test-execution-traffic-diagnostics/`
+  - codified in:
+    - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md` (scope/procedure/failure modes/8.2)
+- Ran focused failing execution for collaborative diagnostics baseline:
+  - target test filter:
+    - `soatestOptions.testNames=[{"value":"Simple REST Client - Test In Root Test Suite","match":true}]`
+  - job/result summary:
+    - `jobId=1795602334`
+    - `testRunCount=3`
+    - `failureCount=4`
+  - traffic evidence for target test:
+    - request: `GET /parabank/services/bank/customers/12213/accounts`
+    - response: `HTTP 400`, body `Could not find customer #12213`
+  - XML violation evidence includes:
+    - `Received HTTP Response Code 400`
+    - `Invalid JSON: unable to find a JSON object, JSON array or a JSON primitive value`
+  - diagnosis starter:
+    - probable setup/data mismatch for customer `12213`, causing non-JSON error payload and downstream parser/assertion failure
+  - evidence folder:
+    - `work/runs/2026-03-03/tst-current/test-failure-diagnostics-root-rest/`
+- Added dedicated diagnostics skill card:
+  - `docs/skills/execution-diagnostics/skill-014-test-failure-diagnostics-from-traffic.md`
+- Refined Skill 014 to be general-purpose (not tied to a single training `.tst` snapshot):
+  - replaced run-specific framing with reusable `Validation Evidence Pattern`
+  - retained prior run details as `Example Snapshot (Non-Normative)`
+  - expanded diagnosis workflow to include:
+    - REST Client config inspection via `GET /v6/tools/restClients?id=...`
+    - `misc.validHttpResponseCodes` check before classifying status-code failures
+    - chained-tool inventory/inspection (`jsonAssertors`, `jsonValidators`, `diffTools`)
+    - optional service-definition retrieval (for example OpenAPI) and spec-vs-runtime comparison
+- Captured live REST Client config context for failing root-test run:
+  - artifact: `work/runs/2026-03-03/tst-current/test-failure-diagnostics-root-rest/rest_client_config.json`
+  - confirms:
+    - `resource.type=swagger` (service-definition-aware client)
+    - `misc.validHttpResponseCodes` present in REST Client config
+    - chained children discoverable via `relationships.childrenRel` (includes `JSON Assertor - Modified`)
+- Captured chained JSON Assertor configuration for the same failing run:
+  - artifact: `work/runs/2026-03-03/tst-current/test-failure-diagnostics-root-rest/json_assertor_modified.json`
+  - contains six assertions (occurrence, numeric, numeric-range, regex, has-content, value-occurrence)
+  - confirms potential secondary failures when upstream response is non-JSON/plain-text.
+- Refined Skill 014 diagnosis semantics for status-code and spec-aware defaults:
+  - codified `validHttpResponseCodes` interpretation:
+    - empty string defaults to expected `200`
+    - supports single value, range, and comma-separated unions (for example `302, 500-599`)
+  - changed spec-aware check from optional to default-when-configured behavior
+  - added fallback to decoded XML API coverage `definition-uri` when REST Client linkage is indirect
+- Added and validated DB Tool lifecycle capability:
+  - discovered/validated DB Tool endpoints:
+    - `POST/PUT/GET /v6/tools/dbTools`
+    - `POST /v6/tools/copy`
+    - `POST /v6/tools/move`
+    - `DELETE /v6/tools`
+    - `PUT /v6/suites/children` (for deterministic sibling positioning)
+  - created DB Tool at root suite and positioned between root REST client test and first child suite:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/DB Tool - Root Between Test And Child`
+  - created DB Tool inside first child suite:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/Child Test Suite/DB Tool - First Child Suite`
+  - both configured with:
+    - driver: `org.hsqldb.jdbcDriver`
+    - URL: `jdbc:hsqldb:hsql://localhost:9021/parabank`
+    - username: `sa`
+  - validated update/copy/move/delete cycle with cleanup of temporary moved copy.
+  - evidence folder:
+    - `work/runs/2026-03-03/tst-current/db-tool-skill-build/`
+- Added new skill card:
+  - `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
+- Updated both created DB Tools with validated SQL query configuration:
+  - `toolSettings.sqlQuery.value.fixed = select * from Account where ID=12345`
+  - confirmed persisted on:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/DB Tool - Root Between Test And Child`
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/Child Test Suite/DB Tool - First Child Suite`
+  - evidence artifacts:
+    - `update_DB_Tool_-_Root_Between_Test_And_Child_readback.json`
+    - `update_DB_Tool_-_First_Child_Suite_readback.json`
+  - folder:
+    - `work/runs/2026-03-03/tst-current/db-tool-skill-build/`
+- XML Assertor output-binding correction (per user review):
+  - identified valid DB output-provider anchor:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/DB Tool - Root Between Test And Child/Results as XML`
+  - moved XML Assertor from incorrect parent:
+    - from `/.../Traffic Object/XML Assertor - DB Row ID`
+    - to `/.../Results as XML/XML Assertor - DB Row ID`
+  - re-ran focused DB Tool execution and validated runtime improvement:
+    - job id: `362194849`
+    - summary: `failureCount=2`, `testRunCount=3`
+    - decoded XML result: `Test 2: DB Tool - Root Between Test And Child` status=`pass`
+    - prior parser error `Content is not allowed in prolog` no longer present
+  - evidence folder:
+    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/`
+- Added generalized XML-output skill card:
+  - `docs/skills/validation/skill-016-xml-output-assertor-workflow.md`
+- Captured user-provided SOAtest chaining model guidance (cross-cutting semantics):
+  - tools can be standalone under suites or chained to output channels of other tools
+  - output channels have different semantic roles (for example response/results vs traffic diagnostics)
+  - `Traffic Object` is diagnostics-first and primarily intended for `Traffic Viewer`
+  - default chaining guidance should prefer semantic outputs (for example `Response`, `Results as XML`) for assertor/validator composition
+- Added cross-cutting steering card:
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+- Linked new guidance into retrieval surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/workflow/agent-workflow.md` decision rules
+- Added living output map cheat-sheet for day-to-day chaining decisions:
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - includes validated defaults for REST Client and DB Tool outputs
+  - includes required maintenance protocol (update map whenever new tool/output behavior is validated)
+- Wired cheat-sheet as required workflow dependency:
+  - `docs/workflow/agent-workflow.md` now requires consulting this map before chaining writes
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md` references the map as companion lookup
+- Added and validated XML Data Bank as next common DB Tool XML chain:
+  - created tool:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/DB Tool - Root Between Test And Child/Results as XML/XML Data Bank - DB Result Fields`
+  - configured `toolSettings.selectedElements` extractions:
+    - `DB_ID` from `/results/resultSet/rows/row/ID/text()`
+    - `DB_BALANCE` from `/results/resultSet/rows/row/BALANCE/text()`
+  - datasource note:
+    - create payload required available data source `Untitled` for this object context
+  - runtime validation:
+    - job id: `1633921850`
+    - summary: `failureCount=2`, `testRunCount=3`
+    - DB Tool test status remains `pass`
+    - XML parser/prolog error absent
+  - evidence folder:
+    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/`
+- Added new skill card:
+  - `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
+- Updated living output map with XML Data Bank default chain location:
+  - DB Tool `Results as XML` => default for XML Data Bank extraction
+- Mirrored XML Data Bank pattern on child-suite DB Tool:
+  - created:
+    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/Child Test Suite/DB Tool - First Child Suite/Results as XML/XML Data Bank - Child DB Result Fields`
+  - configured extractions:
+    - `DB_ID` from `/results/resultSet/rows/row/ID/text()`
+    - `DB_BALANCE` from `/results/resultSet/rows/row/BALANCE/text()`
+  - runtime validation:
+    - job `318960184`
+    - summary `failureCount=2`, `testRunCount=3`
+    - child DB Tool test status `pass`
+    - XML prolog parser error absent
+  - evidence artifacts:
+    - `child_xml_databank_create.json`
+    - `child_xml_databank_get.json`
+    - `child-db-xml-databank-run-results-withxml-318960184.json`
+    - `child-db-xml-databank-run-results-withxml-318960184.decoded.xml`
+  - folder:
+    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/`
+- Environment-variable parameterization of DB Tool connection settings:
+  - reviewed both DB Tools and confirmed same connection values (driver/url/username).
+  - added environment variables to both `QA` and `DEV`:
+    - `DB_DRIVER = org.hsqldb.jdbcDriver`
+    - `DB_URL = jdbc:hsqldb:hsql://localhost:9021/parabank`
+    - `DB_USERNAME = sa`
+  - updated both DB Tools to use variable references:
+    - `toolSettings.connection.local.driver = ${DB_DRIVER}`
+    - `toolSettings.connection.local.url = ${DB_URL}`
+    - `toolSettings.connection.local.username = ${DB_USERNAME}`
+  - runtime validation (focused on both DB Tool names):
+    - job id: `1774261071`
+    - summary: `failureCount=2`, `testRunCount=4`
+    - both DB Tool tests status=`pass`
+  - evidence artifacts:
+    - `env_qa_after_put.json`
+    - `env_dev_after_put.json`
+    - `dbtools-envvars-validation-withxml-1774261071.json`
+  - folder:
+    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/`
+
+## Session 2026-03-04
+
+### Context
+- Goal: continue REST Client skill hardening in `Basic_Test_Construction_Learning.tst`.
+- User preference: prioritize unconstrained REST Client capability; constrained-mode experiments are no longer desired.
+
+### Actions Completed
+- Retired constrained REST Client path from active docs:
+  - removed references to Skills 026/027 from index/backlog and Skill 020 guidance.
+  - deleted files:
+    - `docs/skills/skill-026-rest-client-constrained-via-temp-scaffold.md`
+    - `docs/skills/skill-027-rest-client-constrained-via-yaml-surgery.md`
+- Added global BOM-free write guardrails:
+  - updated `docs/workflow/agent-workflow.md`
+  - updated `docs/skills/skill-card-template.md`
+- Implemented new REST Client scenario from OpenAPI contract:
+  - parsed `/billpay` requirements from `http://localhost:8090/parabank/services/bank/openapi.yaml`
+  - created REST Client: `POST /parabank/services/bank/billpay - Sample Payee`
+  - configured required query parameters (`accountId`, `amount`) and `Payee` JSON payload
+  - appended tool to end of `Test Suite Edited` ordering
+- Incorporated user payload-format feedback:
+  - set JSON payload mode via API (`payload.inputMode=formJSON`)
+  - confirmed persisted YAML shows `mode: Form JSON`
+  - applied beautified JSON payload block in YAML (`MessagingClient_LiteralMessage: |-`)
+- Baked JSON defaults into Skill 020:
+  - default JSON mode now `formJSON`
+  - default JSON literal payload now beautified
+  - documented API compaction caveat + YAML beautification fallback
+- Implemented workflow hardening updates requested from post-run hiccup review (recommendations 1-6):
+  - Added new cross-cutting preflight card:
+    - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+  - Enforced preflight usage and fallback-route policy in:
+    - `docs/workflow/agent-workflow.md`
+    - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+  - Registered and tracked Skill 050 in:
+    - `docs/skills/skill-index.md`
+    - `docs/skills/backlog.md`
+  - Added compatibility-safe `.tst` create/reuse and structure-read guidance in:
+    - `docs/skills/platform/skill-021-tst-create-empty.md`
+    - `docs/skills/platform/skill-001-shared-introspection.md`
+  - Normalized execution traffic retrieval flow (suite -> viewer id -> viewer payload) in:
+    - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+    - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - Added canonical mode-safe Diff Tool PUT payload examples in:
+    - `docs/skills/validation/skill-031-diff-tool-modes-workflow.md`
+  - Added mandatory expected-code calibration stage for negative/security tests in:
+    - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - Preserved repository policy to keep compatibility guidance in skills/workflow docs and avoid expanding `docs/reference/api-spec-cache` overlays.
+- Implemented root-cause hardening for ambiguous write retries after duplicate create incident:
+  - Added global ambiguous-write reconciliation-first policy in:
+    - `docs/workflow/agent-workflow.md`
+  - Hardened OpenAPI `.tst` generation fallback behavior in:
+    - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+  - Added orchestration guard to prevent blind re-create when same-name artifact exists in:
+    - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+  - Established handling rule:
+    - reconcile state via deterministic readback before any create retry,
+    - treat exact-name post-write presence as success,
+    - use reuse/delete-and-recreate/new-name path only when same-name collision is confirmed.
+
+### Notes
+- REST API response model does not expose all UI-only REST Client internals; YAML readback remains the reliable verification path for mode/format persistence details.
+- Evidence folder:
+  - `work/runs/2026-03-04/billpay-rest-client/`
+- Additional evidence folder:
+  - `work/runs/2026-03-04/new-demo/`
+
+---
+
+## Session Template
+
+### Context
+- 
+
+### Actions Completed
+- 
+
+### Notes
+- 

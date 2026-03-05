@@ -1,0 +1,201 @@
+# Skill 031: Diff Tool Modes Workflow (XML/JSON/Text/Binary)
+
+## 1) Skill Name
+Add and validate Diff Tool chained to live response output (multi-mode)
+
+## 2) Objective
+Create a reusable workflow for chaining a Diff Tool to a live response output and comparing runtime output against expected content, including mode-specific ignored-difference configuration.
+
+## 3) Scope
+- In scope:
+  - create Diff Tool via `POST /v6/tools/diffTools`
+  - configure Diff Tool via `PUT /v6/tools/diffTools?id=...`
+  - readback via `GET /v6/tools/diffTools?id=...`
+  - run focused execution and validate runtime behavior via:
+    - `POST /v6/testExecutions`
+    - `GET /v6/testExecutions/{id}/status`
+    - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
+  - validate and document mode-specific ignore settings for:
+    - XML mode
+    - JSON mode
+    - Text mode
+    - Binary mode
+- Out of scope:
+  - domain-specific expected-payload authoring strategies
+  - auto-remediation of response mismatches
+
+## 4) Inputs
+- Required:
+  - target output-provider parent id (typically response output)
+  - Diff Tool name
+  - expected response source/content
+- Optional:
+  - selected diff mode (`xml`, `json`, `text`, `binary`) when preselected by user
+  - ignore-difference settings (mode-specific)
+  - execution filter (`testNames`) for focused runtime checks
+
+## 5) Preconditions
+- API reachable and authenticated.
+- Parent output channel provides stable runtime response content.
+- Parent id resolves to an output-provider location that accepts chained tools.
+- For JSON mode where selector-like paths are used in ignore settings, load:
+  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+
+## 6) Procedure
+1. Construct the output-provider parent path for the target producer tool:
+  - REST Client: `<rest-client-id>/Response Traffic`
+  - DB Tool: `<db-tool-id>/Results as XML`
+  - Do NOT pass the producer tool id directly as `parent.id`; use the output-provider path.
+  - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for canonical patterns.
+2. Run baseline execution first and capture observed response payload + content type from traffic evidence.
+  - baseline source must be the executed test's response traffic payload (`/testExecutions/{id}/traffic` -> selected `Traffic Viewer`).
+  - do not seed expected values from ad-hoc external endpoint calls because headers/content negotiation may differ from the configured parent tool's run.
+3. Select diff mode from observed runtime payload type:
+  - XML response -> `xml`
+  - JSON response -> `json`
+  - plain text response -> `text`
+  - binary payload -> `binary`
+  - For JSON responses, Diff Tool is preferred when response data is mostly static (few volatile fields). If many response fields are dynamic (timestamps, generated ids, session tokens), consider JSON Assertor (Skill 010) instead — Diff Tool would require many ignored differences, reducing its value since those elements are not tested anyway.
+  - For XML responses, apply the same static/dynamic heuristic between Diff Tool XML mode and XML Assertor (Skill 016).
+4. Resolve Diff Tool identity before writes (idempotent upsert rule):
+  - derive deterministic target id as `<parent-id>/<diff-name>` for the selected comparison intent,
+  - if that id exists, update in place,
+  - create via `POST /v6/tools/diffTools` only when Diff Tool is absent,
+  - do not create another Diff Tool with the same intent/name in the same parent.
+5. Create Diff Tool when absent:
+   - `POST /v6/tools/diffTools` with `parent.id` and `name`.
+6. Configure base comparison settings:
+   - `PUT /v6/tools/diffTools?id=<diff-id>` with expected content/source and mode.
+  - set each tool's `diffMode.type` from that tool's own observed response media type; do not bulk-apply one mode to multiple tools.
+  - immediately read back the tool and verify persisted `diffMode.type` matches the intended mode for that endpoint.
+  - for plain-text responses, default expected value source to baseline live response captured in step 2, then refine only with explicit user intent.
+7. Read back tool and capture exact persisted config shape.
+8. Execute focused verification run and inspect mismatch/pass behavior.
+9. If diff fails, extract and summarize human-readable differences (field/XPath/property, expected vs actual, source tool context).
+10. Offer optional ignored-difference setup for reported volatile fields:
+  - apply only after user confirmation.
+  - keep strict comparison as default when user does not request ignores.
+11. If ignores were added, run focused verification again to confirm expected pass/fail behavior.
+12. Repeat steps 6-11 for each mode (`xml`, `json`, `text`, `binary`) and capture config + runtime evidence.
+
+### 6.2 Canonical PUT Payload Shapes (Mode-Safe)
+Use these minimal shapes when configuring expected content to avoid schema-shape drift.
+
+XML mode baseline:
+```json
+{
+  "name": "<diff-name>",
+  "toolSettings": {
+    "diffMode": {
+      "type": "xml",
+      "xml": {
+        "regressionControl": {
+          "type": "literal",
+          "literal": {
+            "type": "editor",
+            "editor": {
+              "text": "<expected-xml>"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+JSON mode baseline:
+```json
+{
+  "name": "<diff-name>",
+  "toolSettings": {
+    "diffMode": {
+      "type": "json",
+      "json": {
+        "regressionControl": {
+          "type": "literal",
+          "editor": {
+            "text": "<expected-json>"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Text mode baseline:
+```json
+{
+  "name": "<diff-name>",
+  "toolSettings": {
+    "diffMode": {
+      "type": "text",
+      "text": {
+        "regressionControl": {
+          "type": "editor",
+          "editor": {
+            "text": "<expected-text>"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## 7) Validation
+- Create/update/readback calls return `200` on valid payloads.
+- Runtime result indicates diff pass/fail aligned to expected content and ignore settings.
+- Repeat executions/update passes do not create additional Diff Tools for the same parent/name intent.
+- For each mode, persisted ignore settings are documented from real readback payloads.
+- Baseline run evidence confirms mode selection used observed payload type (not assumption).
+- Baseline expected content origin is traceable to the same test execution traffic payload used for media-type detection.
+- Per-tool readback confirms no unintended mode overwrite across sibling Diff Tools.
+- Post-config verification run is required before concluding skill success.
+
+## 8) Failure Modes
+- `400` invalid payload shape or unsupported mode/config fields.
+- `404` invalid tool id or parent id.
+- False failures when mode does not match actual response content type.
+- False failures when expected baseline is sourced outside runtime traffic (for example external call with different negotiation headers).
+- False negatives/positives when ignore-difference settings are misconfigured.
+- Cross-mode portability risk: ignore settings valid in one mode may not map directly to another mode.
+- Multi-endpoint overwrite risk: a bulk update can unintentionally set all Diff Tools to one mode (for example `text`).
+- Over-broad ignore risk: ignoring unstable fields without user confirmation can mask real regressions.
+- Skipping baseline capture for text mode can leave expected-value seed empty or stale.
+
+## 8.1) Plain-Text Fallback Rule
+- When validation intent is requested but observed runtime response is plain text:
+  1. do not attach JSON/XML assertor/validator by default,
+  2. create Diff Tool in `text` mode,
+  3. seed expected text from baseline live response,
+  4. run verification and present concise diff summary before any ignore changes.
+
+## 9) Safety / Rollback
+- Write skill (adds/modifies chained tool nodes).
+- Rollback:
+  - `DELETE /v6/tools?id=<diff-id>`, or
+  - restore prior config from saved GET snapshot.
+
+## 10) Reuse Notes
+- Applies to SOAtest: expected; runtime validation pending dedicated mode-matrix run.
+- Applies to Virtualize: not yet validated.
+- Cross-cutting dependencies:
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` (JSON mode selector semantics)
+
+### User Interaction Rule (Diff Failures)
+- On diff failure, provide a concise human-readable summary before any config mutation:
+  - where the difference occurred (field/property/XPath)
+  - expected value vs actual value
+  - whether difference appears volatile across runs
+- Ask user whether to add ignored differences for those specific fields.
+- Do not auto-apply ignores unless user explicitly confirms.
+
+## 11) Optional Mode-Matrix Evidence (Starter Baseline)
+When validating this starter card, capture one example per mode with:
+1. create/update/readback payloads
+2. focused execution result
+3. extracted note of how ignore-difference settings are represented for that mode
