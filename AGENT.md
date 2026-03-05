@@ -75,11 +75,11 @@ This is the primary orchestration skill. It handles intake, scope discovery, pla
 
 ### "Add assertions / validation"
 → Determine response type first, then load the matching card:
-  - JSON Assertor: `docs/skills/validation/skill-010-json-assertor-crud-copy.md`
-  - XML Assertor: `docs/skills/validation/skill-016-xml-output-assertor-workflow.md`
+  - JSON Assertor: `docs/skills/validation/skill-010-json-assertor-workflow.md`
+  - XML Assertor: `docs/skills/validation/skill-016-xml-assertor-workflow.md`
   - JSON Validator: `docs/skills/validation/skill-029-json-validator-workflow.md`
   - XML Validator: `docs/skills/validation/skill-030-xml-validator-workflow.md`
-  - Diff Tool: `docs/skills/validation/skill-031-diff-tool-modes-workflow.md`
+  - Diff Tool: `docs/skills/validation/skill-031-diff-tool-workflow.md`
   - Cross-cutting chaining rules: `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
 
 ### "Add a data bank / extract data"

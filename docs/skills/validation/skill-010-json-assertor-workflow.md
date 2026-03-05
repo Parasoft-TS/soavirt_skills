@@ -34,13 +34,14 @@ This skill supports case-by-case assertion authoring composed from user intent (
 - Parent tool/suite exists.
 - For REST-client chaining, parent must be valid output-provider anchor.
 - Runtime response media type for target output is JSON (confirmed from baseline run evidence).
+- Baseline execution evidence is required before assertion authoring decisions.
 - JSON selector rule must be loaded:
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
   - use XPath-style selectors for JSON fields, not JSONPath.
 
 ## 6) Procedure
 1. Resolve target context with `GET /v6/children` and/or `GET /v6/descendants/assets`.
-2. For REST client chains, derive parent as `<rest-client-id>/Response Traffic` (output provider anchor).
+2. For JSON-producing tool chains, derive parent from the semantic output-provider anchor (REST Client canonical: `<rest-client-id>/Response Traffic`).
 3. Create JSON Assertor with `POST /v6/tools/jsonAssertors` using:
    - `parent.id`
    - `name`
@@ -49,6 +50,7 @@ This skill supports case-by-case assertion authoring composed from user intent (
    - `GET /v6/descendants/assets?id=<file-id>` for `type=jsonAssertor`
    - `GET /v6/tools/jsonAssertors?id=<created-id>` for full object readback
 5. Modify with `PUT /v6/tools/jsonAssertors?id=<id>` (name, input, toolSettings).
+  - for updates to existing JSON Assertors, follow read-merge-write (`GET` -> mutate -> `PUT`) per Skill 049.
 6. Delete with `DELETE /v6/tools?id=<id>` and verify absence in descendants.
 7. Copy with `POST /v6/tools/copy` (`from.id`, `to.parent.id`, optional `to.name`) and verify new id placement.
 
@@ -116,6 +118,7 @@ This skill supports case-by-case assertion authoring composed from user intent (
 ## 10) Reuse Notes
 - Applies to SOAtest: Yes.
 - Applies to Virtualize: Not validated.
+- Intended producer class: JSON-producing semantic output providers (REST Client response output now; other producer outputs only when they emit confirmed JSON payloads).
 - Shared components:
   - `POST/PUT/GET /v6/tools/jsonAssertors`
   - `DELETE /v6/tools`

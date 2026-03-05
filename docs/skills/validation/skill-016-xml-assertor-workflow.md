@@ -1,4 +1,4 @@
-# Skill 016: XML-Output Assertor Lifecycle (Cross-Tool)
+# Skill 016: XML Assertor Workflow (Cross-Tool)
 
 ## 1) Skill Name
 Add, modify, read, delete, copy, and validate XML Assertor on XML-producing tool output
@@ -36,6 +36,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 - Target test/tool produces XML output at runtime.
 - Parent id resolves to an output-provider location that accepts assertor children.
 - Runtime response media type for target output is XML (confirmed from baseline run evidence).
+- Baseline execution evidence is required before assertion authoring decisions.
 
 ## 6) Procedure
 1. Construct the output-provider parent path for the target producer tool:
@@ -56,6 +57,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
    - payload must include `parent.id` and typically `name`.
 4. Configure a live value assertion:
    - `PUT /v6/tools/xmlAssertors?id=<assertor-id>`
+  - for updates to existing XML Assertors, follow read-merge-write (`GET` -> mutate -> `PUT`) per Skill 049.
    - include `toolSettings.assertions[]`, for example:
      - `type: valueAssertion`
      - `selectedElement.xpath`
@@ -103,6 +105,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 ## 10) Reuse Notes
 - Applies to SOAtest: Yes (validated).
 - Applies to Virtualize: Not yet validated.
+- Intended producer class: XML-producing semantic output providers (REST Client response output and DB Tool `Results as XML` validated; additional producers when they emit confirmed XML payloads).
 - Works best when input-binding path is explicitly verified from runtime artifacts.
 - Cross-cutting dependency:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`

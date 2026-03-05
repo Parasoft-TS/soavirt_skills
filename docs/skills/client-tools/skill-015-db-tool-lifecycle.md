@@ -1,3 +1,13 @@
+# DB Tool Lifecycle Skill Card
+## Update Policy
+Updates to DB Tool objects must follow baseline gating, output chaining, and read-merge-write update rules. See Skill 017 for output chaining model and Skill 049 for mutation safety policy.
+
+## Capability Preflight
+Before performing any mutation or lifecycle operation, perform capability preflight checks as described in Skill 050.
+
+## Cross-Cutting Dependencies
+Depends on: Skill 017 (output chaining), Skill 049 (read-merge-write update), Skill 050 (capability preflight)
+
 # Skill 015: DB Tool Lifecycle (Create/Update/Copy/Move/Delete)
 
 ## 1) Skill Name

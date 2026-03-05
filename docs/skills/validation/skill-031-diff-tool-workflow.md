@@ -38,8 +38,7 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 - API reachable and authenticated.
 - Parent output channel provides stable runtime response content.
 - Parent id resolves to an output-provider location that accepts chained tools.
-- For JSON mode where selector-like paths are used in ignore settings, load:
-  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+- Baseline execution evidence is required before mode selection.
 
 ## 6) Procedure
 1. Construct the output-provider parent path for the target producer tool:
@@ -66,6 +65,7 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
    - `POST /v6/tools/diffTools` with `parent.id` and `name`.
 6. Configure base comparison settings:
    - `PUT /v6/tools/diffTools?id=<diff-id>` with expected content/source and mode.
+  - for updates to existing Diff Tools, follow read-merge-write (`GET` -> mutate -> `PUT`) per Skill 049.
   - set each tool's `diffMode.type` from that tool's own observed response media type; do not bulk-apply one mode to multiple tools.
   - immediately read back the tool and verify persisted `diffMode.type` matches the intended mode for that endpoint.
   - for plain-text responses, default expected value source to baseline live response captured in step 2, then refine only with explicit user intent.
@@ -184,7 +184,8 @@ Text mode baseline:
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
-  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` (JSON mode selector semantics)
+  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` (JSON mode selector semantics when selector-like ignore paths are used)
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md` (use GET -> mutate -> PUT for updates to existing Diff Tool configurations)
 
 ### User Interaction Rule (Diff Failures)
 - On diff failure, provide a concise human-readable summary before any config mutation:

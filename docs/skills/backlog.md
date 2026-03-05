@@ -91,7 +91,7 @@ Family map:
 
 22. Atomic card: JSON Assertor CRUD + copy
 - Endpoints: `POST/PUT/GET /v6/tools/jsonAssertors` + `DELETE /v6/tools` + `POST /v6/tools/copy`
-- Status: Defined in `docs/skills/validation/skill-010-json-assertor-crud-copy.md` (create validated; modify/delete/copy pending)
+- Status: Defined in `docs/skills/validation/skill-010-json-assertor-workflow.md` (create validated; modify/delete/copy pending)
 
 23. Cross-cutting card: XPath-over-JSON query semantics
 - Scope: selector-expression fields on JSON tools (JSON Assertor, JSON Data Bank, and similar)
@@ -119,7 +119,7 @@ Family map:
 
 29. Atomic card: XML-output Assertor workflow (cross-tool)
 - Endpoints: `POST/PUT/GET /v6/tools/xmlAssertors` + `POST /v6/tools/move` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined and validated in `docs/skills/validation/skill-016-xml-output-assertor-workflow.md`
+- Status: Defined and validated in `docs/skills/validation/skill-016-xml-assertor-workflow.md`
 
 30. Cross-cutting card: output-provider chaining model
 - Scope: tool chaining semantics across standalone tools and output channels; parent-anchor selection defaults.
@@ -178,7 +178,7 @@ Family map:
 
 44. Atomic card: Diff Tool workflow with mode matrix (XML/JSON/Text/Binary)
 - Endpoints: `POST/PUT/GET /v6/tools/diffTools` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined in `docs/skills/validation/skill-031-diff-tool-modes-workflow.md`; per-mode ignore-setting validation pending.
+- Status: Defined in `docs/skills/validation/skill-031-diff-tool-workflow.md`; per-mode ignore-setting validation pending.
 
 45. Cross-cutting card: client header ownership policy
 - Scope: define explicit-vs-tool-managed request headers for client tools; default rule is payload-driven `Content-Type` and no manual override.

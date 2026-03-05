@@ -4,7 +4,7 @@
 Add and validate XML Validator on XML-producing tool output
 
 ## 2) Objective
-Create a reusable workflow for chaining an XML Validator to XML output, defaulting to schema validation with an explicit schema location/service-definition-derived schema configuration, and validating runtime payload structure/content against validator configuration.
+Create a reusable workflow for chaining an XML Validator to API client XML response output, defaulting to schema validation with an explicit schema location/service-definition-derived schema configuration, and validating runtime payload structure/content against validator configuration.
 
 Important: schema-validation mode is only considered correctly configured when the referenced-schema option is enabled so the WSDL/Schema location field is actively used.
 
@@ -25,7 +25,7 @@ Important: schema-validation mode is only considered correctly configured when t
 - Required:
   - target output-provider parent id that emits XML
   - XML Validator name
-  - schema configuration for validation (for example schema location)
+  - schema/service-definition location (for example XSD/WSDL URL or resolvable file/id) for schema validation configuration
 - Optional:
   - explicit validator configuration settings (mode, schema/service-definition location)
   - schema/service-definition hints from prior user prompts
@@ -36,12 +36,14 @@ Important: schema-validation mode is only considered correctly configured when t
 - API reachable and authenticated.
 - Parent output channel emits XML payloads.
 - Parent id resolves to an output-provider location that accepts chained tools.
+- Target producer is an API client tool response output (REST Client today; SOAP/Messaging client outputs when those skills are available).
 - Runtime response media type for target output is XML (confirmed from baseline run evidence).
 
 ## 6) Procedure
 1. Construct the output-provider parent path for the target producer tool:
   - REST Client: `<rest-client-id>/Response Traffic`
-  - DB Tool: `<db-tool-id>/Results as XML`
+  - API client tools only: use their semantic response output-provider anchor.
+  - Do not target DB Tool outputs for XML Validator schema-validation workflows.
   - Do NOT pass the producer tool id directly as `parent.id`; tool creation requires `parent.id` of type `outputProvider` or `suite`. Passing a REST Client id (type `REST Client`) returns `400`.
   - Do NOT attempt to discover output provider ids via `/children` or `/descendants/assets`; empty output providers are not returned. Construct the path directly.
   - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for canonical patterns.
@@ -56,11 +58,18 @@ Important: schema-validation mode is only considered correctly configured when t
 3. Build candidate schema/service-definition inputs using this precedence:
   - explicit values provided in the current user request,
   - schema/service-definition values stated earlier in the current session,
-  - relevant environment variables already configured for this test context.
+  - relevant environment variables already configured for this test context,
+  - inferable schema/service-definition hints from existing tools and their children in the target `.tst` (for example generated suite/source naming and validator-capable sibling configuration).
 4. Apply confidence gate before configuring schema validation:
   - proceed only when one candidate is unambiguous and format-compatible with the XML payload,
   - if candidates conflict, are missing, or are weakly inferred, ask a targeted user question and wait for confirmation.
   - do not generate synthetic/placeholder schemas to bypass missing schema-location input.
+  - do not create/configure XML Validator in `checkWellFormednessOnly` mode because definition inputs are unknown.
+4.1 Missing-definition prompt rule (required):
+  - when schema/service-definition inputs cannot be inferred from user input, session context, environment variables, or tool/tree inspection with high confidence, prompt the user to provide schema/service-definition location.
+  - treat this as a blocking gate for schema-mode configuration; wait for user input before completing validator configuration.
+  - do not default to `checkWellFormednessOnly` only because definition inputs are missing.
+  - only default to `checkWellFormednessOnly` if the user explicitly agrees to that mode.
 5. Create XML Validator when absent:
    - `POST /v6/tools/xmlValidators` with `parent.id` and `name`.
 6. Configure validator settings:
@@ -80,6 +89,7 @@ Important: schema-validation mode is only considered correctly configured when t
 - Readback confirms default mode is `validateAgainstSchema` unless user explicitly selected `checkWellFormednessOnly`.
 - Readback confirms `toolSettings.schemaValidationOptions.validateAgainstSchemasReferenced=true` when schema-validation mode is active.
 - Inferred schema/service-definition values are only applied when confidence gate conditions are met.
+- When definition inputs are not inferable with high confidence, workflow blocks on user prompt rather than downgrading validation mode.
 - Runtime result shows validator pass/fail aligned to payload validity and configuration.
 
 ## 8) Failure Modes
@@ -87,8 +97,11 @@ Important: schema-validation mode is only considered correctly configured when t
 - `404` invalid tool id or parent id.
 - XML parser/prolog errors from non-XML input binding.
 - Media-type mismatch when XML Validator is attached to JSON/plain-text traffic.
+- Scope-violation risk when XML Validator is attached to DB Tool outputs (XML Validator workflow is API-client response-output only).
 - Missing schema configuration when default schema-validation mode is expected.
+- User prompt required when schema/service-definition cannot be inferred may pause orchestration until input is provided (intentional blocking behavior).
 - Referenced-schema option disabled, causing WSDL/Schema location to be ignored.
+- Incorrect downgrade risk: using well-formedness mode despite available/required schema validation intent.
 - Wrong schema/service-definition inferred from ambiguous context.
 - Synthetic schema generation used instead of user-provided/verified schema location.
 - Input-binding mismatch if chained to diagnostics-only output instead of semantic XML output.
@@ -102,6 +115,7 @@ Important: schema-validation mode is only considered correctly configured when t
 ## 10) Reuse Notes
 - Applies to SOAtest: expected; runtime validation pending first dedicated run.
 - Applies to Virtualize: not yet validated.
+- Intended producer class: API client tool response outputs (REST Client now; SOAP/Messaging when corresponding skills are available).
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`

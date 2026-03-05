@@ -152,7 +152,7 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
   - `POST /v6/testExecutions`
   - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
 - Composition note:
-  - After REST client creation, optionally compose downstream validators/assertors based on user-requested test intent (see `skill-010-json-assertor-crud-copy.md` + `skill-011-xpath-over-json-query-semantics.md`).
+  - After REST client creation, optionally compose downstream validators/assertors based on user-requested test intent (see `skill-010-json-assertor-workflow.md` + `skill-011-xpath-over-json-query-semantics.md`).
   - For updates to existing REST Clients, load `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md` and use GET -> mutate -> PUT.
 
 ### JSON Tooling Reminder

@@ -237,7 +237,7 @@ Purpose: chronological working log of our skill-building sessions.
   - Evidence folder:
     - `work/runs/2026-03-03/tst-current/json-assertor-create/`
   - Added new skill card:
-    - `docs/skills/validation/skill-010-json-assertor-crud-copy.md`
+    - `docs/skills/validation/skill-010-json-assertor-workflow.md`
   - Linked new card in `skill-index.md` and `backlog.md`.
 - Validated JSON Assertor modify flow:
   - Renamed `/.../JSON Assertor - Root Skill Test` to `JSON Assertor - Modified` using `PUT /v6/tools/jsonAssertors?id=...`.
@@ -415,7 +415,7 @@ Purpose: chronological working log of our skill-building sessions.
   - evidence folder:
     - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/`
 - Added generalized XML-output skill card:
-  - `docs/skills/validation/skill-016-xml-output-assertor-workflow.md`
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
 - Captured user-provided SOAtest chaining model guidance (cross-cutting semantics):
   - tools can be standalone under suites or chained to output channels of other tools
   - output channels have different semantic roles (for example response/results vs traffic diagnostics)
@@ -536,7 +536,7 @@ Purpose: chronological working log of our skill-building sessions.
     - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
     - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - Added canonical mode-safe Diff Tool PUT payload examples in:
-    - `docs/skills/validation/skill-031-diff-tool-modes-workflow.md`
+    - `docs/skills/validation/skill-031-diff-tool-workflow.md`
   - Added mandatory expected-code calibration stage for negative/security tests in:
     - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
   - Preserved repository policy to keep compatibility guidance in skills/workflow docs and avoid expanding `docs/reference/api-spec-cache` overlays.

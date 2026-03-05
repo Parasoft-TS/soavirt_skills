@@ -36,14 +36,14 @@ Purpose: quickly locate only the skills needed for a task to control context siz
 - `structure/skill-008-datasource-type-targeted-move.md` (generalized move for any datasource implementation type)
 - `structure/skill-009-testsuite-creation-and-configuration.md` (staged suite create/update option coverage)
 - `structure/skill-047-generated-subset-prune.md` (prune non-selected operation suites after service-definition generation)
-- `validation/skill-010-json-assertor-crud-copy.md` (JSON Assertor create/modify/delete/copy)
+- `validation/skill-010-json-assertor-workflow.md` (JSON Assertor create/modify/delete/copy)
 - `execution-diagnostics/skill-012-test-execution-xml-report.md` (queue test run + poll + retrieve XML runtime report; triad step 1-2 baseline)
 - `execution-diagnostics/skill-014-test-failure-diagnostics-from-traffic.md` (focused failure triage using results XML + runtime traffic; triad step 3 + correlation)
 - `client-tools/skill-015-db-tool-lifecycle.md` (DB Tool create/update/copy/move/delete with deterministic suite placement)
-- `validation/skill-016-xml-output-assertor-workflow.md` (cross-tool XML Assertor lifecycle: create/read/update/delete/copy + runtime validation)
+- `validation/skill-016-xml-assertor-workflow.md` (cross-tool XML Assertor lifecycle: create/read/update/delete/copy + runtime validation)
 - `validation/skill-029-json-validator-workflow.md` (cross-tool JSON Validator create/configure/run-validation on runtime JSON output)
 - `validation/skill-030-xml-validator-workflow.md` (cross-tool XML Validator create/configure/run-validation on runtime XML output)
-- `validation/skill-031-diff-tool-modes-workflow.md` (Diff Tool create/configure with XML/JSON/Text/Binary mode-specific ignore settings)
+- `validation/skill-031-diff-tool-workflow.md` (Diff Tool create/configure with XML/JSON/Text/Binary mode-specific ignore settings)
 - `data-exchange/skill-019-xml-databank-extraction-workflow.md` (cross-tool XML Data Bank lifecycle: create/read/update/delete/copy + runtime extraction validation)
 - `data-exchange/skill-028-json-databank-extraction-workflow.md` (cross-tool JSON Data Bank lifecycle: create/read/update/delete/copy + runtime extraction validation)
 - `client-tools/skill-020-rest-client-none-mode-workflow.md` (REST Client lifecycle in None mode: create/read/update/delete/copy + execution validation)
@@ -107,11 +107,11 @@ Use this view when the user asks by capability (for example "client tool" or "va
 - `data-exchange/skill-028-json-databank-extraction-workflow.md`
 
 ### Validation Tools
-- `validation/skill-010-json-assertor-crud-copy.md`
-- `validation/skill-016-xml-output-assertor-workflow.md`
+- `validation/skill-010-json-assertor-workflow.md`
+- `validation/skill-016-xml-assertor-workflow.md`
 - `validation/skill-029-json-validator-workflow.md`
 - `validation/skill-030-xml-validator-workflow.md`
-- `validation/skill-031-diff-tool-modes-workflow.md`
+- `validation/skill-031-diff-tool-workflow.md`
 
 ### Execution & Diagnostics
 - `execution-diagnostics/skill-012-test-execution-xml-report.md`
