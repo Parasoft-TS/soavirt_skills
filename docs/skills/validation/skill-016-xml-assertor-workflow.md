@@ -62,6 +62,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
      - `type: valueAssertion`
      - `selectedElement.xpath`
      - `configuration.expectedValue` (`type: fixed`, `fixed: ...`)
+  - when using `hasContentAssertion`, set `selectedElement.extractionType=entireElement` (do not use `contentOnly` for this assertion type).
 5. Read back assertor to confirm persisted settings.
 6. Optional copy flow:
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
@@ -84,6 +85,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 - `404` for invalid parent/id.
 - Runtime XML parse failure indicates non-XML input binding, even when assertion XPath is valid.
 - Media-type mismatch risk when XML Assertor is attached to JSON/plain-text traffic.
+- False mismatch risk when `hasContentAssertion` uses `selectedElement.extractionType=contentOnly`; use `entireElement` for this assertion type.
 - copy placement/name collisions can produce unintended target placement unless readback is performed.
 - Over-softening risk: relaxing strict assertion intent after first failure can hide real regressions.
 

@@ -79,6 +79,8 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - numeric parity/range -> `numericAssertion` / `numericRangeAssertion`
   - string/domain/pattern -> `regularExpressionAssertion`
   - presence/shape -> `hasContentAssertion` / `occurrenceAssertion`
+  - required rule for `hasContentAssertion`:
+    - set `selectedElement.extractionType=entireElement` (do not use `contentOnly` for this assertion type)
 6. Configure assertions based on user intent against observed payload.
 7. Validate with focused verification run and collect run-results-traffic evidence triad.
 
@@ -98,6 +100,7 @@ This skill supports case-by-case assertion authoring composed from user intent (
 - Selector mismatch risk if JSONPath syntax is used in selector fields that require XPath-style expressions.
 - Media-type mismatch risk when JSON Assertor is attached to XML/plain-text traffic.
 - False mismatch risk from string-vs-number comparisons if assertion type does not match response value type.
+- False mismatch risk when `hasContentAssertion` uses `selectedElement.extractionType=contentOnly`; use `entireElement` for this assertion type.
 - Over-softening risk: auto-relaxing strict assertions after failure can mask real regressions.
 
 ## 8.1) Failure Handling Rule (No Ignore Branch)
