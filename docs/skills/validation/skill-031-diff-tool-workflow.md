@@ -41,11 +41,12 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 - Baseline execution evidence is required before mode selection.
 
 ## 6) Procedure
-1. Construct the output-provider parent path for the target producer tool:
-  - REST Client: `<rest-client-id>/Response Traffic`
-  - DB Tool: `<db-tool-id>/Results as XML`
-  - Do NOT pass the producer tool id directly as `parent.id`; use the output-provider path.
-  - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for canonical patterns.
+1. Resolve the target producer/output-provider parent using the canonical registry:
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
+  - Construct `parent.id` from Skill 018 mapping; do NOT pass the producer tool id directly.
+1.1 Fail-closed guard:
+  - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring Diff Tool.
+  - do not guess or locally invent parent-path mappings.
 2. Run baseline execution first and capture observed response payload + content type from traffic evidence.
   - baseline source must be the executed test's response traffic payload (`/testExecutions/{id}/traffic` -> selected `Traffic Viewer`).
   - do not seed expected values from ad-hoc external endpoint calls because headers/content negotiation may differ from the configured parent tool's run.
@@ -186,6 +187,7 @@ Text mode baseline:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` (JSON mode selector semantics when selector-like ignore paths are used)
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md` (use GET -> mutate -> PUT for updates to existing Diff Tool configurations)
+  - when new producer/output types are introduced, update Skill 018 first, then apply here.
 
 ### User Interaction Rule (Diff Failures)
 - On diff failure, provide a concise human-readable summary before any config mutation:

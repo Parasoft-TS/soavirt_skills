@@ -41,7 +41,10 @@ This skill supports case-by-case assertion authoring composed from user intent (
 
 ## 6) Procedure
 1. Resolve target context with `GET /v6/children` and/or `GET /v6/descendants/assets`.
-2. For JSON-producing tool chains, derive parent from the semantic output-provider anchor (REST Client canonical: `<rest-client-id>/Response Traffic`).
+2. Resolve the target producer/output-provider parent from `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5), then construct `parent.id` from that mapping.
+2.1 Fail-closed guard:
+  - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/modifying JSON Assertor chains.
+  - do not guess or locally invent parent-path mappings.
 3. Create JSON Assertor with `POST /v6/tools/jsonAssertors` using:
    - `parent.id`
    - `name`
@@ -132,6 +135,8 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - Use XPath-style selectors (for example `/root/item/type`) in selector fields even for JSON payload validation.
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - Prefer semantic response/results output-provider anchors over diagnostics-first traffic outputs.
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - Treat Skill 018 as canonical mapping source; update it first when new producer/output types are introduced.
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - Use GET -> mutate -> PUT for updates to existing JSON Assertor tools.
 

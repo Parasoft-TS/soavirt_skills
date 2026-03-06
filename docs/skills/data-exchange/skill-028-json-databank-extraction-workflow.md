@@ -42,11 +42,12 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - use XPath-style selectors for JSON fields, not JSONPath.
 
 ## 6) Procedure
-1. Construct the output-provider parent path for the target producer tool:
-  - REST Client: `<rest-client-id>/Response Traffic`
-  - DB Tool: `<db-tool-id>/Results as XML`
-  - Do NOT pass the producer tool id directly as `parent.id`; use the output-provider path.
-  - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for canonical patterns.
+1. Resolve the target producer/output-provider parent using the canonical registry:
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
+  - Construct `parent.id` from Skill 018 mapping; do NOT pass the producer tool id directly.
+1.1 Fail-closed guard:
+  - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating the JSON Data Bank.
+  - do not guess or locally invent parent-path mappings.
 2. Create JSON Data Bank:
    - `POST /v6/tools/jsonDataBanks` with `parent.id` and `name`.
 3. Configure extraction mappings:
@@ -93,6 +94,7 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - Use GET -> mutate -> PUT for updates to existing JSON Data Bank tools.
+  - when new producer/output types are introduced, update Skill 018 first, then apply here.
 
 ## 11) Initial Validation Plan
 1. Create under a REST Client JSON response output-provider anchor.

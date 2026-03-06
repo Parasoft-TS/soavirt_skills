@@ -4,7 +4,7 @@
 SOAtest tool output chaining model and parent-anchor selection
 
 ## 2) Objective
-Provide deterministic rules for selecting the correct output-provider parent when chaining tools, so assertions/validators bind to semantic outputs (for example response/results) rather than diagnostic outputs (for example traffic viewer channels).
+Provide deterministic rules for selecting the correct output-provider parent when chaining tools, so assertions/validators/databanks and other chainable tools bind to semantic outputs (for example response/results) rather than diagnostic outputs (for example traffic viewer channels).
 
 ## 3) Core Model
 - A tool (for example REST Client, DB Tool, XML Assertor) can be:
@@ -15,16 +15,16 @@ Provide deterministic rules for selecting the correct output-provider parent whe
 
 ## 4) Output Semantics Rule
 - Prefer semantic data outputs for chaining logic:
-  - REST workflows: response-oriented outputs for JSON/XML assertors/validators.
-  - DB workflows: `Results as XML` for XML assertors.
+  - REST workflows: response-oriented outputs for JSON/XML assertors/validators/databanks and other JSON tools.
+  - DB workflows: `Results as XML` for XML assertors, XML databanks, and other XML tools.
 - Apply strict media-type gate before tool-family selection:
   - JSON tools only when runtime response is JSON,
   - XML tools only when runtime response is XML,
   - plain-text responses should route to text-oriented comparison (for example Diff Tool text mode) unless user explicitly requests another strategy.
 - Treat `Traffic Object` as a diagnostics output by default:
   - primary consumer: `Traffic Viewer`
-  - rare exception: specialized tooling (for example write/export flows)
-  - do not use for assertor chaining unless explicitly required.
+  - rare exception: specialized tooling (for example write file tool)
+  - do not use for assertor, diff, validator, or data bank chaining unless explicitly required.
 
 ## 5) Parent Selection Procedure
 1. Identify candidate output-provider children under the producer tool.
@@ -48,9 +48,15 @@ Provide deterministic rules for selecting the correct output-provider parent whe
   - DB Tool: `<db-tool-id>/Results as XML`
 - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for the canonical path construction reference.
 
+### 5.3) Canonical Map + Fail-Closed Rule (Required)
+- Treat `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` as the single source of truth for producer/output-provider mapping.
+- Do not hardcode new producer-to-parent mappings in downstream workflow cards.
+- If the producer/output pair is missing from Skill 018, stop and request a Skill 018 update before chaining.
+- Do not guess or infer an unregistered output-provider parent path.
+
 ## 6) Validation Signals
 - Correct binding indicators:
-  - assertion tool receives payload type matching its parser (JSON/XML/etc.)
+  - assertion or databank tool receives payload type matching its parser (JSON/XML/etc.)
   - business assertion pass/fail reflects content expectation, not parser bootstrap errors.
 - Misbinding indicators:
   - parser/prolog/syntax errors despite valid XPath/query
@@ -71,10 +77,12 @@ Provide deterministic rules for selecting the correct output-provider parent whe
 ## 9) Reuse Notes
 - Applies to SOAtest: Yes (validated pattern).
 - Applies to Virtualize: conceptually relevant; endpoint-level validation pending.
-- Load this card as a dependency before building any chained assertor/validator skill.
+- Load this card as a dependency before building any chained tool skill.
 - Companion reference:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - use as the first lookup for concrete output-channel defaults.
+- Maintenance contract:
+  - when output-chaining policy changes, update this card and Skill 018 in the same session.
 
 ## 10) Validation Snapshot (2026-03-03)
 - DB Tool case:

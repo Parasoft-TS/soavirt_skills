@@ -42,6 +42,36 @@ Manage SOAtest DB Tools in `.tst` assets with deterministic placement and valida
   - runtime/xml output options
   - copy/move target parent and optional renamed destination
 
+### 4.1) Input Gate (Required)
+- Never infer or silently apply connection/query values from prior examples.
+- "Provided input" may come from either:
+  - direct user input, or
+  - orchestration-provided context that has been explicitly confirmed by the user.
+- If create request is underspecified, pause creation and solicit missing values.
+- Required before non-scaffold create:
+  - `driver`
+  - `JDBC URL`
+  - `username`
+  - `SQL query text`
+- `password` may remain empty if user explicitly chooses no password.
+
+### 4.2) Missing-Field Solicitation Contract
+When any required create field is missing, ask for all unresolved values in one prompt:
+- Driver:
+- JDBC URL:
+- Username:
+- Password (optional, can be blank):
+- SQL query text:
+Do not call create endpoints until required values are provided/confirmed.
+
+### 4.3) Scaffold-Only Create Mode
+- Supported only when user explicitly requests a blank/scaffold DB Tool.
+- In scaffold mode:
+  - create with empty/minimal connection/query placeholders,
+  - label tool name to indicate scaffold status if requested,
+  - immediately report that configuration is incomplete and list fields to fill.
+- Do not enter scaffold mode implicitly.
+
 ## 5) Preconditions
 - API reachable and authenticated.
 - Parent suite ids exist.
@@ -51,12 +81,14 @@ Manage SOAtest DB Tools in `.tst` assets with deterministic placement and valida
 1. Inspect current placement context:
    - `GET /v6/children?id=<suite-id>`
 2. Create DB Tool(s):
+   - enforce Input Gate and Solicitation Contract before create (unless explicit scaffold-only mode is requested).
    - `POST /v6/tools/dbTools` with:
      - `parent.id`
      - `name`
      - `toolSettings.connection.local.driver`
      - `toolSettings.connection.local.url`
      - `toolSettings.connection.local.username`
+     - `toolSettings.sqlQuery.value.fixed` (required outside scaffold mode)
 3. If exact order is required among suite children:
    - compute full ordered child id list
    - `PUT /v6/suites/children?id=<suite-id>` with complete `children[].id` sequence
@@ -84,6 +116,8 @@ Manage SOAtest DB Tools in `.tst` assets with deterministic placement and valida
 - Ordering drift if `PUT /v6/suites/children` payload omits required siblings.
 - Config misunderstanding risk:
   - API readback returns masked password representation even when empty input was used.
+- Silent-default risk:
+  - using example connection/query values when user did not provide them can create incorrect/unsafe configuration.
 
 ## 9) Safety / Rollback
 - Write skill (mutates `.tst` structure).
@@ -106,11 +140,11 @@ Manage SOAtest DB Tools in `.tst` assets with deterministic placement and valida
   - Chain assertors/validators to semantic DB outputs (for example `Results as XML`) rather than diagnostics-first traffic outputs.
 
 ## 11) Validated Configuration Pattern
-Validated DB Tool connection fields:
+Example validated DB Tool connection fields (example only, not implicit defaults):
 - `toolSettings.connection.local.driver = org.hsqldb.jdbcDriver`
 - `toolSettings.connection.local.url = jdbc:hsqldb:hsql://localhost:9021/parabank`
 - `toolSettings.connection.local.username = sa`
-- validated SQL query field:
+- validated SQL query field example:
   - `toolSettings.sqlQuery.value.fixed = select * from Account where ID=12345`
 
 ## 12) Current Validation Status (2026-03-03)

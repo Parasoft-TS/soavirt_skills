@@ -35,6 +35,43 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
   - deterministic placement index in suite
   - copy target parent/name
 
+### 4.1) Input Gate (Required)
+- Never infer or silently apply endpoint, method, headers, payload, or expected status values from prior examples/runs.
+- "Provided input" may come from either:
+  - direct user input, or
+  - orchestration-provided context that has been explicitly confirmed by the user.
+- If create/update intent is underspecified, pause mutation and solicit missing values.
+
+### 4.2) Conditional Required Matrix
+- Always required for create:
+  - parent suite id
+  - REST test name
+  - HTTP method
+  - endpoint template
+- Required for `POST`/`PUT`/`PATCH` outside scaffold mode:
+  - payload content type
+  - payload body source/value (literal or parameterized mapping)
+- Required for negative/security-focused tests before final verification:
+  - explicit expected response code strategy (`misc.validHttpResponseCodes`)
+
+### 4.3) Missing-Field Solicitation Contract
+When required fields are missing, ask for all unresolved values in one prompt:
+- Method:
+- Endpoint URL/template:
+- Headers (optional):
+- Content-Type (required for POST/PUT/PATCH outside scaffold):
+- Body payload (required for POST/PUT/PATCH outside scaffold):
+- Expected response codes:
+Do not call create/update endpoints until required fields are provided/confirmed.
+
+### 4.4) Scaffold-Only Create Mode
+- Supported only when user explicitly requests blank/scaffold REST Client creation.
+- In scaffold mode:
+  - create with minimal endpoint/method shell and no assumed payload/headers,
+  - mark/report configuration as incomplete immediately,
+  - list remaining required fields for operational readiness.
+- Do not enter scaffold mode implicitly.
+
 ## 5) Preconditions
 - API reachable and authenticated.
 - Target suite exists.
@@ -45,6 +82,7 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
 1. Inspect suite children and capture ordering baseline:
    - `GET /v6/suites/testSuites?id=<suite-id>` (read `relationships.childrenRel`)
 2. Create REST Client in None mode:
+   - enforce Input Gate and Solicitation Contract before create (unless explicit scaffold-only mode is requested).
    - `POST /v6/tools/restClients`
    - required payload parts:
      - `parent.id`
@@ -74,6 +112,7 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
        - `payload.inputMode = literal`
      - `payload.contentType` (for example `application/json`)
      - `misc.validHttpResponseCodes.type=fixed` and `misc.validHttpResponseCodes.fixed`
+   - if payload/expected-code values are orchestration-generated samples, obtain user acceptance (accept/edit) before final PUT.
 4. Read back and verify the tool:
    - `GET /v6/tools/restClients?id=<tool-id>`
   - verify `resource.literalText.fixed` is non-empty (critical execution precondition)
@@ -100,6 +139,7 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
   - extract observed HTTP status codes,
   - update `misc.validHttpResponseCodes.fixed` to observed behavior when initial assumptions differ,
   - run one verification execution after calibration.
+  - if expected-code policy is still ambiguous after calibration, pause and request user confirmation rather than assuming.
 
 ## 7) Validation
 - Expected HTTP status codes (API transport only):
@@ -133,6 +173,8 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
 - JSON payload normalization caveat:
   - REST Client API readback may compact JSON literal text even when payload mode is `formJSON`.
   - If human-readable beautified JSON must remain in `.tst`, enforce it via YAML round-trip (UTF-8 without BOM).
+- Silent-default risk:
+  - using example endpoint/payload/expected-code values when user/orchestration did not provide or confirm them can create incorrect tests.
 
 ## 9) Safety / Rollback
 - Write skill (mutates `.tst` test structure/configuration).

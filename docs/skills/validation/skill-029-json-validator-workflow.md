@@ -43,13 +43,15 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
   - use XPath-style selectors for JSON fields, not JSONPath.
 
 ## 6) Procedure
-1. Construct the output-provider parent path for the target producer tool:
-  - REST Client: `<rest-client-id>/Response Traffic`
-  - API client tools only: use their semantic JSON response output-provider anchor.
-  - Do not target DB Tool outputs for JSON Validator schema-validation workflows.
+1. Resolve the target producer/output-provider parent using the canonical registry:
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
+  - This workflow remains API-client response-output scoped; do not target DB Tool outputs for JSON Validator schema-validation workflows.
+  - Construct `parent.id` from Skill 018 mapping.
   - Do NOT pass the producer tool id directly as `parent.id`; tool creation requires `parent.id` of type `outputProvider` or `suite`. Passing a REST Client id (type `REST Client`) returns `400`.
-  - Do NOT attempt to discover output provider ids via `/children` or `/descendants/assets`; empty output providers are not returned. Construct the path directly.
-  - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for canonical patterns.
+  - Do NOT attempt to discover output provider ids via `/children` or `/descendants/assets`; empty output providers are not returned.
+1.1 Fail-closed guard:
+  - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring JSON Validator.
+  - do not guess or locally invent parent-path mappings.
 1.1 Run baseline execution and confirm observed response media type is JSON before creating/updating JSON Validator.
   - if payload is XML, route to Skill 030.
   - if payload is plain text, route to Skill 031 (text mode).
@@ -140,6 +142,7 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+  - when new producer/output types are introduced, update Skill 018 first, then apply here.
 
 ## 11) Initial Validation Plan
 1. Create under REST Client JSON response output.

@@ -8,6 +8,8 @@ Maintain a compact, high-signal lookup for choosing the correct output-provider 
 
 ## 3) Usage Rule
 - Consult this map before creating/moving any chained tool.
+- Treat this document as the canonical registry for producer/output-provider parent mapping.
+- Downstream tool-workflow skills must reference this map instead of embedding exhaustive local mapping lists.
 - If a run reveals mismatch or new behavior, update this map in the same session.
 
 ## 4) Output Map (Current Validated Knowledge)
@@ -39,15 +41,17 @@ The tool creation endpoints require `parent.id` to resolve to type `outputProvid
 - Do not assume direct traffic retrieval from a guessed output-provider path will return populated runs.
 
 ## 6) Selection Algorithm
-1. Identify the producer tool and construct the output-provider path using the patterns in Section 5.
+1. Identify the producer tool and resolve its output-provider mapping from this card first.
+  - if no mapping exists for the producer/output pair, fail closed: stop chaining and update this card before continuing.
+2. Construct the output-provider path using the mapped pattern in Section 5.
   - do NOT rely on `/children` or `/descendants/assets` to discover output providers; they may be empty and invisible.
   - use producer tool/output discovery only; ignore sibling-tool heuristics.
-2. Match required payload type (JSON/XML/text) to semantic output channel.
+3. Match required payload type (JSON/XML/text) to semantic output channel.
   - enforce media-type gate from runtime evidence before selecting tool family.
   - JSON tools only for JSON payloads; XML tools only for XML payloads; plain text -> Diff Tool text mode.
-3. Choose semantic output (response/results) before diagnostics channels.
-4. Create chain and run focused execution.
-5. If parser/type mismatch occurs, re-evaluate parent selection before changing assertions.
+4. Choose semantic output (response/results) before diagnostics channels.
+5. Create chain and run focused execution.
+6. If parser/type mismatch occurs, re-evaluate parent selection before changing assertions.
 
 ### 6.1) Hard Guard
 - Do not use `Traffic Viewer` presence as chain-parent evidence.
@@ -59,6 +63,7 @@ The tool creation endpoints require `parent.id` to resolve to type `outputProvid
   2. Add a short evidence note in `docs/logs/chat-log.md`.
   3. If policy changed, update `docs/skills/cross-cutting/skill-017-output-chaining-model.md`.
 - Keep rows concise and behavior-focused (purpose + default chaining decision).
+- Do not proceed with unmapped producer/output chaining in workflow skills until this map is updated.
 
 ## 8) Known Anti-Pattern
 - Chaining business assertors to `Traffic Object` by default.

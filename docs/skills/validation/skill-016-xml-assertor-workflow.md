@@ -39,11 +39,12 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 - Baseline execution evidence is required before assertion authoring decisions.
 
 ## 6) Procedure
-1. Construct the output-provider parent path for the target producer tool:
-  - REST Client: `<rest-client-id>/Response Traffic`
-  - DB Tool: `<db-tool-id>/Results as XML`
-  - Do NOT pass the producer tool id directly as `parent.id`; use the output-provider path.
-  - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for canonical patterns.
+1. Resolve the target producer/output-provider parent using the canonical registry:
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
+  - Construct `parent.id` from Skill 018 mapping; do NOT pass the producer tool id directly.
+1.1 Fail-closed guard:
+  - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating the XML Assertor.
+  - do not guess or locally invent parent-path mappings.
 2. Run baseline execution first and observe live XML payload shape/content from runtime traffic.
   - if observed payload is not XML, stop XML Assertor flow and route validation intent to the appropriate tool family:
     - JSON payload -> Skill 010/029 family
@@ -112,6 +113,8 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 - Cross-cutting dependency:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - Select semantic output-provider parents (for example response/results) before assertion tuning.
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - Treat Skill 018 as canonical mapping source; update it first when new producer/output types are introduced.
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - Use GET -> mutate -> PUT when editing existing assertors to preserve non-target settings.
 
