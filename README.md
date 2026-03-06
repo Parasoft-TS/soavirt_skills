@@ -9,6 +9,10 @@ This repository is aimed at users who want to clone it and use it with an LLM cl
 Current capabilities are strongest for SOAtest `.tst` workflows and include:
 
 - Summarize existing `.tst` assets in human-readable form (suite/test organization, intent, and evidence-backed detail level).
+- Perform deep YAML-based `.tst` configuration analysis with structured outputs:
+	- Execution Context
+	- Step Flow (consumes/produces + embedded validation details)
+	- Available Data Sources (family + columns)
 - Discover and inspect server-side assets (`children`, `descendants`, metadata reads).
 - Transfer and manage files (`download`, `upload`, `copy`, `rename`, `delete`).
 - Create test assets from service definitions:

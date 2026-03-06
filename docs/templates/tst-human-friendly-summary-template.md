@@ -8,8 +8,7 @@ Use this template when explaining a `.tst` file to users.
 - **Voice:** operator handoff (default) / explanatory walkthrough
 
 ## 0.1) Default Detail Heuristic
-- Determine size from REST structure counts (preferred): number of suites and tests.
-- If REST structure is unavailable, estimate from YAML test/suite counts.
+- Determine size from YAML structure counts: number of suites and tests.
 - Default behavior:
 	- **Small TST** (<= 15 tests): include suites and tests in Section C.
 	- **Medium TST** (16-50 tests): include suites, and include tests only for top-level or first 3 per suite.

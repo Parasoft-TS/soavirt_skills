@@ -29,6 +29,8 @@ Purpose: quickly locate only the skills needed for a task to control context siz
 - `cross-cutting/skill-032-client-header-ownership.md` (cross-cutting request-header ownership policy for client tools)
 - `cross-cutting/skill-049-tool-put-read-merge-write-policy.md` (cross-cutting safe update policy for existing tool PUT operations)
 - `cross-cutting/skill-050-server-api-capability-preflight.md` (cross-cutting endpoint-method compatibility preflight and fallback routing)
+- `cross-cutting/skill-051-datasource-introspection-column-discovery.md` (cross-cutting datasource discovery, family classification, and column/data introspection)
+- `cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md` (composite read-only analysis for execution context, dataflow, validations, and datasource availability; YAML-only evidence model)
 - Parse `.pva` top-level structure
 
 ## Layer L2: Structural Refactors (Planned)
@@ -126,3 +128,5 @@ Use this view when the user asks by capability (for example "client tool" or "va
 - `cross-cutting/skill-032-client-header-ownership.md`
 - `cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
 - `cross-cutting/skill-050-server-api-capability-preflight.md`
+- `cross-cutting/skill-051-datasource-introspection-column-discovery.md`
+- `cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`

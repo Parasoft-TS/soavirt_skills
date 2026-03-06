@@ -204,6 +204,17 @@ Family map:
 - Scope: verify endpoint-method compatibility before orchestration writes and route to documented fallback paths for unsupported methods.
 - Status: Defined in `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`.
 
+51. Cross-cutting card: datasource introspection and column discovery
+- Scope: discover available data sources in `.tst`/suite scope, classify datasource families, resolve columns/sample rows where supported, and emit normalized outputs with explicit unresolved fallback reasons.
+- Endpoints: `GET /v6/descendants/assets` + family-specific `GET /v6/datasources/*` + `GET /v6/datasources/*/columns` + optional `GET /v6/datasources/*/data`.
+- Status: Defined in `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`; runtime validation by datasource family pending.
+
+52. Cross-cutting card: TST configuration analysis and dataflow trace
+- Scope: produce `ExecutionContextMap`, `UnifiedStepFlowMap`, `ValidationMap`, and `DatasourceAvailabilityMap` for deep "how configured?" analysis using downloaded `.tst` YAML as the source of truth.
+- Endpoints: `GET /v6/files/download` only (for `.tst` retrieval).
+- Dependencies: `docs/skills/platform/skill-002-shared-file-transfer.md`.
+- Status: Defined in `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`; runtime validation pending on representative suites.
+
 ## Virtualize-Specific (Later)
 
 13. Identify and classify `.pva` assets under `/VirtualAssets`

@@ -66,6 +66,9 @@ Move exactly one selected data source implementation type (for example `TableDat
 - Applies to SOAtest: Yes.
 - Applies to Virtualize: Not validated.
 - Shared components involved: `GET/POST /v6/suites/testSuites`, `POST /v6/datasources/move`, `GET /v6/files/download`, `POST /v6/files/upload`.
+- Foundational dependency:
+  - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
+  - Use it before mutation to confirm available datasource families/columns and to improve move-impact analysis for downstream parameterized tests.
 
 ## 11) Examples
 - Example intent:
