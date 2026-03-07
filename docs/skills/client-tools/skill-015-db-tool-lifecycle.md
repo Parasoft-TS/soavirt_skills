@@ -34,16 +34,21 @@ Manage SOAtest DB Tools in `.tst` assets with deterministic placement and valida
 ## 4) Inputs
 - Required:
   - target parent suite id(s)
-  - DB Tool name(s)
   - connection values:
-    - driver
-    - JDBC URL
+    - driver class
+    - URL (`jdbc:{db}:{connectionstring}`) (for example `jdbc:hsqldb:hsql://localhost:9021/parabank`)
     - username
 - Optional:
-  - password
-  - SQL query text (`toolSettings.sqlQuery.value.fixed`)
+  - DB Tool name(s)
+  - password (blank is allowed)
+  - SQL query text (`toolSettings.sqlQuery.value.fixed`) (required for configured create; deferred in scaffold mode)
   - runtime/xml output options
   - copy/move target parent and optional renamed destination
+### 4.0) Create Mode Selection (Required)
+- Two create modes are supported:
+  - `configured` (default): create a ready-to-run DB Tool with required connection and query inputs.
+  - `scaffold-only`: create an empty/minimal DB Tool shell and defer operational fields.
+- If the user does not explicitly request scaffold mode, proceed as `configured`.
 
 ### 4.1) Input Gate (Required)
 - Never infer or silently apply connection/query values from prior examples.
@@ -52,22 +57,39 @@ Manage SOAtest DB Tools in `.tst` assets with deterministic placement and valida
   - orchestration-provided context that has been explicitly confirmed by the user.
 - If create request is underspecified, pause creation and solicit missing values.
 - Required before non-scaffold create:
-  - `driver`
-  - `JDBC URL`
+  - `driver class`
+  - `URL` (`jdbc:{db}:{connectionstring}`)
   - `username`
   - `SQL query text`
-- `password` may remain empty if user explicitly chooses no password.
+- `password` may remain empty/blank if user explicitly chooses no password.
+- Do not switch to scaffold mode implicitly.
 
-### 4.2) Missing-Field Solicitation Contract
-When any required create field is missing, ask for all unresolved values in one prompt:
-- Driver:
-- JDBC URL:
+### 4.2) Conditional Required Matrix
+- Create mode:
+  - `configured` by default
+  - `scaffold-only` only when user explicitly requests it
+- Always required for create:
+  - target parent suite id(s)
+- Required for configured create:
+  - driver class
+  - URL (`jdbc:{db}:{connectionstring}`)
+  - username
+  - SQL query text
+- Optional for all modes:
+  - DB Tool name (derive deterministic name if absent)
+  - password (blank allowed)
+
+### 4.3) Missing-Field Solicitation Contract
+When required fields are missing for the selected create mode, ask for all unresolved values in one prompt:
+- Create mode (`configured` or `scaffold-only`; default `configured`):
+- Driver class:
+- URL (`jdbc:{db}:{connectionstring}`) (for example: `jdbc:hsqldb:hsql://localhost:9021/parabank`):
 - Username:
 - Password (optional, can be blank):
-- SQL query text:
-Do not call create endpoints until required values are provided/confirmed.
+- SQL Query:
+Do not call create endpoints until required values for the selected mode are provided/confirmed.
 
-### 4.3) Scaffold-Only Create Mode
+### 4.4) Scaffold-Only Create Mode
 - Supported only when user explicitly requests a blank/scaffold DB Tool.
 - In scaffold mode:
   - create with empty/minimal connection/query placeholders,
@@ -87,7 +109,12 @@ Do not call create endpoints until required values are provided/confirmed.
 1. Inspect current placement context:
    - `GET /v6/children?id=<suite-id>`
 2. Create DB Tool(s):
-   - enforce Input Gate and Solicitation Contract before create (unless explicit scaffold-only mode is requested).
+   - enforce Input Gate and Solicitation Contract before create.
+   - branch by create mode:
+     - configured (default):
+       - require all configured-mode fields per Section 4.2 before create.
+     - scaffold-only (explicit user request only):
+       - allow minimal shell creation with deferred connection/query fields.
    - `POST /v6/tools/dbTools` with:
      - `parent.id`
      - `name`
@@ -114,6 +141,7 @@ Do not call create endpoints until required values are provided/confirmed.
 - Post-condition checks:
   - tool id path reflects expected parent placement
   - readback shows configured local connection values
+  - if create mode was scaffold-only, result is explicitly reported as incomplete with remaining fields listed.
   - temporary copy/move artifacts are absent after cleanup
 
 ## 8) Failure Modes
@@ -124,6 +152,8 @@ Do not call create endpoints until required values are provided/confirmed.
   - API readback returns masked password representation even when empty input was used.
 - Silent-default risk:
   - using example connection/query values when user did not provide them can create incorrect/unsafe configuration.
+- Intent-mismatch risk:
+  - creating scaffold when user intended configured (or vice versa) causes avoidable rework.
 
 ## 9) Safety / Rollback
 - Write skill (mutates `.tst` structure).

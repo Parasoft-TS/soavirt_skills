@@ -78,6 +78,54 @@ This skill supports case-by-case assertion authoring composed from user intent (
 - Existing JSON Assertor instances in the workspace are optional references for sanity checks only.
 - Do not require pre-built examples to author new assertions.
 
+## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
+This example is shape-only and must not be copied with literal values.
+
+Before using it, follow:
+- Section 5) Preconditions
+- Section 6) Procedure
+
+Rules:
+- Replace all `{{...}}` placeholders from runtime evidence + user intent.
+- Do not reuse sample ids/names/xpaths/expected values unless explicitly requested.
+- For assertion types not shown here, keep the same envelope (`type` + matching assertion object + `selectedElement` + `configuration`) and use OpenAPI (`assertionJson` + matching `<type>Assertion` schema).
+- For updates, use `PUT /v6/tools/jsonAssertors?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049 (same assertion envelope shape, no `parent` field).
+
+```json
+{
+  "parent": {
+    "id": "{{PARENT_OUTPUT_PROVIDER_ID}}"
+  },
+  "name": "{{ASSERTOR_NAME}}",
+  "toolSettings": {
+    "assertions": [
+      {
+        "type": "hasContentAssertion",
+        "hasContentAssertion": {
+          "name": "{{ASSERTION_NAME}}",
+          "configuration": {
+            "hasContent": {
+              "type": "fixed",
+              "fixed": "true"
+            }
+          },
+          "selectedElement": {
+            "xpath": "{{XPATH_FROM_OBSERVED_JSON}}",
+            "extractionType": "entireElement"
+          },
+          "options": {
+            "trimContent": true
+          }
+        }
+      }
+    ],
+    "expectedJson": {
+      "saveExpectedJson": false
+    }
+  }
+}
+```
+
 ## 6.1) Composition Guidance (Case-by-Case)
 1. Convert the user request into assertion intent:
   - which response element(s) to target

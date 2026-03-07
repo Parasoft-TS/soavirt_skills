@@ -91,6 +91,92 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
    - if needed, request XML report using `includeXmlReport=true`.
 9. If XML parser errors occur (for example `Content is not allowed in prolog`), treat it as input-binding mismatch and re-check the chosen output-provider/input source.
 
+## 6.0) Authoring Rule (API-First)
+- Construct new XML Assertor payloads directly from REST API schema + skill semantics.
+- Existing XML Assertor instances in the workspace are optional references for sanity checks only.
+- Do not require pre-built examples to author new assertions.
+
+## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
+This example is shape-only and must not be copied with literal values.
+
+Before using it, follow:
+- Section 5) Preconditions
+- Section 6) Procedure
+
+Rules:
+- Replace all `{{...}}` placeholders from runtime evidence + user intent.
+- Do not reuse sample ids/names/xpaths/expected values unless explicitly requested.
+- For assertion types not shown here, keep the same envelope (`type` + matching assertion object + `selectedElement` + `configuration`) and use OpenAPI (`assertionXml` + matching `<type>Assertion` schema).
+- For updates, use `PUT /v6/tools/xmlAssertors?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049 (same assertion envelope shape, no `parent` field).
+
+```json
+{
+  "parent": {
+    "id": "{{PARENT_OUTPUT_PROVIDER_ID}}"
+  },
+  "name": "{{ASSERTOR_NAME}}",
+  "toolSettings": {
+    "assertions": [
+      {
+        "type": "valueAssertion",
+        "valueAssertion": {
+          "name": "{{ASSERTION_NAME}}",
+          "configuration": {
+            "expectedValue": {
+              "type": "fixed",
+              "fixed": "{{EXPECTED_VALUE_FROM_OBSERVED_XML}}"
+            }
+          },
+          "selectedElement": {
+            "xpath": "{{XPATH_FROM_OBSERVED_XML}}",
+            "extractionType": "contentOnly"
+          },
+          "options": {
+            "trimContent": true
+          }
+        }
+      }
+    ],
+    "expectedXml": {
+      "saveExpectedXml": false
+    }
+  }
+}
+```
+
+## 6.1) Composition Guidance (Case-by-Case)
+1. Convert the user request into assertion intent:
+  - which response element(s) to target
+  - what comparison rule to apply (equality/range/pattern/presence)
+  - whether expected values are literals or variables from upstream tools
+2. Chain XML Assertor under semantic response output anchor:
+  - `<producer-tool-id>/Response Traffic` (or other Skill 018-mapped semantic XML output channel)
+3. Run a baseline execution first and observe live response payload shape/content from runtime traffic.
+  - if observed payload is not XML, stop XML Assertor flow and route validation intent to the appropriate tool family:
+    - JSON payload -> Skill 010/029 family
+    - plain text payload -> Skill 031 Diff Tool in text mode.
+  - if the user explicitly requested XML Assertor but observed payload is not XML, ask for one of two explicit actions before continuing:
+    - switch to matching tool family for observed media type, or
+    - update producer behavior to emit XML, then rerun baseline.
+  - if observed payload is XML, select between XML Assertor and Diff Tool XML mode based on response data volatility:
+    - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer XML Assertor with targeted assertions on stable fields,
+    - mostly static response data -> prefer Diff Tool XML mode for simpler full-response comparison (see Skill 031),
+    - when unsure, start with Diff Tool; switch to XML Assertor if the ignored-differences list grows large.
+4. Configure selectors with XPath expressions against observed XML payload structure.
+5. Select assertion type to match data semantics:
+  - value/parity checks -> `valueAssertion` / `numericAssertion`
+  - range checks -> `numericRangeAssertion`
+  - string/domain/pattern checks -> `regularExpressionAssertion`
+  - presence/shape checks -> `hasContentAssertion` / `occurrenceAssertion`
+  - required rule for `hasContentAssertion`:
+    - set `selectedElement.extractionType=entireElement` (do not use `contentOnly` for this assertion type)
+  - regex assertion rule:
+    - treat regex comparisons as full-string match semantics by default,
+    - for substring intent, use explicit wildcard patterning (for example `.*token.*`),
+    - declare case intent explicitly (case-sensitive default unless configured otherwise).
+6. Configure assertions based on user intent against observed payload.
+7. Validate with focused verification run and collect run-results-traffic evidence triad.
+
 ## 7) Validation
 - Creation/update/readback all return `200` on valid payloads.
 - Readback contains expected assertion payload:

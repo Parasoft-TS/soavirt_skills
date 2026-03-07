@@ -91,6 +91,16 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 11. If ignores were added, run focused verification again to confirm expected pass/fail behavior.
 12. Repeat steps 6-11 for each mode (`xml`, `json`, `text`, `binary`) and capture config + runtime evidence.
 
+### 6.1) Payload-Shape Usage Guard (Disambiguation Only)
+The payloads in Section 6.2 are shape references, not semantic defaults.
+
+Rules:
+- Replace all placeholders (`<diff-name>`, `<expected-xml>`, `<expected-json>`, `<expected-text>`) using runtime evidence + user intent.
+- Do not copy expected-content literals from examples.
+- Choose mode from baseline runtime media type (Section 6, steps 2-3), not from preference.
+- For updates, use GET -> mutate -> PUT read-merge-write per Skill 049.
+- Keep strict comparison by default; apply ignored differences only after explicit user confirmation.
+
 ### 6.2 Canonical PUT Payload Shapes (Mode-Safe)
 Use these minimal shapes when configuring expected content to avoid schema-shape drift.
 

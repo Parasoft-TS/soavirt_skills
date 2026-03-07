@@ -70,6 +70,50 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
   - `DELETE /v6/tools?id=<databank-id>` and verify absence in descendants/children.
 7. Execute focused run and confirm no parser/input-binding mismatch.
 
+## 6.0) Authoring Rule (API-First)
+- Construct new XML Data Bank payloads directly from REST API schema + skill semantics.
+- Existing XML Data Bank instances in the workspace are optional references for sanity checks only.
+- Do not require pre-built examples to author new extraction mappings.
+
+## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
+This example is shape-only and must not be copied with literal values.
+
+Before using it, follow:
+- Section 5) Preconditions
+- Section 6) Procedure
+
+Rules:
+- Replace all `{{...}}` placeholders from runtime evidence + user intent.
+- Do not reuse sample ids/names/xpaths/column names unless explicitly requested.
+- For extraction options not shown here, keep the same envelope and use OpenAPI schema for XML Data Bank tool settings.
+- For updates, use `PUT /v6/tools/xmlDataBanks?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049 (same `toolSettings` shape, no `parent` field).
+
+```json
+{
+  "parent": {
+    "id": "{{PARENT_OUTPUT_PROVIDER_ID}}"
+  },
+  "name": "{{XML_DATABANK_NAME}}",
+  "toolSettings": {
+    "selectedElements": [
+      {
+        "dataSourceColumn": {
+          "customColumn": {
+            "customColumnName": "{{COLUMN_NAME}}"
+          }
+        },
+        "selectedElement": {
+          "xpath": "{{XPATH_FROM_OBSERVED_XML}}",
+          "options": {
+            "contentOnly": "textContent"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
 ## 7) Validation
 - Create/update/readback calls return `200` on valid payloads.
 - Readback shows expected extraction mappings in `toolSettings.selectedElements[]`.

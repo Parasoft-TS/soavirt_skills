@@ -111,6 +111,52 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
 8. Read back tool and verify configuration persisted.
 9. Execute focused run and inspect runtime results.
 
+## 6.0) Authoring Rule (API-First)
+- Construct new JSON Validator payloads directly from REST API schema + skill semantics.
+- Existing JSON Validator instances in the workspace are optional references for sanity checks only.
+- Do not require pre-built examples to author validator configuration.
+
+## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
+This example is shape-only and must not be copied with literal values.
+
+Before using it, follow:
+- Section 5) Preconditions
+- Section 6) Procedure
+
+Rules:
+- Replace all `{{...}}` placeholders using runtime evidence + user intent.
+- Do not reuse sample ids/names/paths/methods/response codes unless explicitly requested.
+- Keep OpenAPI mapping explicit (`autoDetectMessage=false`) when schema mode is used.
+- For updates, use `PUT /v6/tools/jsonValidators?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049 (same `toolSettings` shape, no `parent` field).
+
+```json
+{
+  "parent": {
+    "id": "{{PARENT_OUTPUT_PROVIDER_ID}}"
+  },
+  "name": "{{JSON_VALIDATOR_NAME}}",
+  "toolSettings": {
+    "validationType": "validateAgainstSchema",
+    "schemaValidationSettings": {
+      "definitionSettings": {
+        "openapi": {
+          "autoDetectMessage": false,
+          "message": {
+            "direction": "response",
+            "path": "{{OPENAPI_PATH_TEMPLATE}}",
+            "method": "{{HTTP_METHOD}}",
+            "responseCode": "{{RESPONSE_CODE}}"
+          }
+        }
+      },
+      "definitionLocation": {
+        "url": "{{OPENAPI_URL_OR_LOCATION}}"
+      }
+    }
+  }
+}
+```
+
 ## 7) Validation
 - Create/update/readback calls return `200` on valid payloads.
 - Readback includes persisted validator settings.

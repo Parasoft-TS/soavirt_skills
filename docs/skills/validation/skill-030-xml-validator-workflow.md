@@ -95,6 +95,44 @@ Important: schema-validation mode is only considered correctly configured when t
 7. Read back tool and verify configuration persisted.
 8. Execute focused run and inspect runtime results.
 
+## 6.0) Authoring Rule (API-First)
+- Construct new XML Validator payloads directly from REST API schema + skill semantics.
+- Existing XML Validator instances in the workspace are optional references for sanity checks only.
+- Do not require pre-built examples to author validator configuration.
+
+## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
+This example is shape-only and must not be copied with literal values.
+
+Before using it, follow:
+- Section 5) Preconditions
+- Section 6) Procedure
+
+Rules:
+- Replace all `{{...}}` placeholders using runtime evidence + user intent.
+- Do not reuse sample ids/names/locations unless explicitly requested.
+- Keep schema-validation options explicit when schema mode is used (including `validateAgainstSchemasReferenced`).
+- For updates, use `PUT /v6/tools/xmlValidators?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049 (same `toolSettings` shape, no `parent` field).
+
+```json
+{
+  "parent": {
+    "id": "{{PARENT_OUTPUT_PROVIDER_ID}}"
+  },
+  "name": "{{XML_VALIDATOR_NAME}}",
+  "toolSettings": {
+    "mode": "validateAgainstSchema",
+    "resolveExternalDtds": true,
+    "schemaValidationOptions": {
+      "useNamespaceAsLocationURI": true,
+      "validateAgainstSchemasReferenced": true,
+      "location": {
+        "external": "{{XSD_OR_WSDL_URL}}"
+      }
+    }
+  }
+}
+```
+
 ## 7) Validation
 - Create/update/readback calls return `200` on valid payloads.
 - Readback includes persisted validator settings.

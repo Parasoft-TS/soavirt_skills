@@ -2,6 +2,48 @@
 
 Purpose: chronological working log of our skill-building sessions.
 
+## Session 2026-03-07 (Skill hardening follow-up)
+
+### Actions Completed
+- Added minimal payload-shape disambiguation sections with anti-copy guardrails to:
+  - `docs/skills/validation/skill-010-json-assertor-workflow.md`
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+  - `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
+  - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+  - `docs/skills/validation/skill-029-json-validator-workflow.md`
+  - `docs/skills/validation/skill-030-xml-validator-workflow.md`
+- Added lightweight payload-shape usage guard to Diff Tool workflow:
+  - `docs/skills/validation/skill-031-diff-tool-workflow.md` (Section 6.1).
+- Harmonized assertor composition guidance structure by adding explicit XML `6.1` section:
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`.
+- Refined REST Client lifecycle skill intake and execution wording:
+  - explicit defaults for inferred name and expected codes,
+  - content-type inference from provided body,
+  - explicit acceptance of empty body for POST/PUT/PATCH,
+  - execution-step alignment with Skill 012 payload contract and `?now=true`,
+  - client-header ownership pointer to Skill 032.
+- Per constrained REST Client experiment outcomes, removed None-mode post-update enforcement lines from Skill 020.
+- Harmonized create-mode behavior across client-tool skills:
+  - added explicit `configured` vs `scaffold-only` mode selection and branching to:
+    - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+    - `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
+  - aligned conditional required matrices, solicitation prompts, and scaffold-incomplete reporting.
+- Updated DB Tool intake wording in Skill 015 to solicit:
+  - Driver class
+  - URL (`jdbc:{db}:{connectionstring}`)
+  - Username
+  - Password (blank allowed)
+  - SQL Query
+
+### Runtime Probes and Findings
+- Compared constrained vs unconstrained REST Clients under `/TestAssets/Test.tst/.../Lw==billpay`:
+  - constrained client exposed `resource.type=swagger` with no API-visible OpenAPI URL field in REST Client GET payload,
+  - unconstrained client exposed `resource.type=literalText` with `resource.literalText.fixed`.
+- Copied constrained REST Client via `POST /v6/tools/copy` into same suite; constrained behavior retained in UI.
+- Executed constrained REST Client read-merge-write (`GET -> PUT -> GET`) experiment:
+  - `resource.type=swagger` persisted post-PUT,
+  - observed UI dirty-editor side effect reported by user.
+
 ## Session 2026-03-03
 
 ### Context
