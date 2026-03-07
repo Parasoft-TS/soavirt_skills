@@ -23,6 +23,15 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - downstream variable-consumer tool authoring
   - business-logic assertions (covered by assertor skills)
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+
 ## 4) Inputs
 - Required:
   - target output-provider parent id that emits JSON
@@ -42,6 +51,9 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - use XPath-style selectors for JSON fields, not JSONPath.
 
 ## 6) Procedure
+0. Apply capability preflight before first write:
+  - use Skill 050 Profile E for tool mutation steps,
+  - use Skill 050 Profile D for execution/traffic-observation validation steps.
 1. Resolve the target producer/output-provider parent using the canonical registry:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
   - Construct `parent.id` from Skill 018 mapping; do NOT pass the producer tool id directly.
@@ -86,8 +98,9 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - restore previous config with saved GET snapshot.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Expected; endpoint/flow should be validated with first live run.
-- Applies to Virtualize: not yet validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
@@ -95,8 +108,3 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - Use GET -> mutate -> PUT for updates to existing JSON Data Bank tools.
   - when new producer/output types are introduced, update Skill 018 first, then apply here.
-
-## 11) Initial Validation Plan
-1. Create under a REST Client JSON response output-provider anchor.
-2. Add 1-2 XPath selectors for stable fields in known JSON response.
-3. Run focused execution and verify tool readback and downstream variable availability.

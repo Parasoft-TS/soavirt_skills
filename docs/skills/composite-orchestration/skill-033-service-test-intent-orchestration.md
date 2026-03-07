@@ -54,10 +54,18 @@ Conversation-first default: favor natural-language solicitation and interpretati
 
 ### 6.1.1 API Capability Preflight (Required)
 2.1 Before any write operation, run branch-aware capability preflight (Skill 050):
-  - verify base API reachability with `GET /v6/children`,
-  - probe endpoint-method pairs used by the selected branch,
-  - classify unsupported method routes (`405`) and select documented fallbacks.
+  - apply the operation-class profile from Skill 050 Section 6.1,
+  - classify outcomes and `404` disambiguation per Skill 050 Section 6.2,
+  - record/reuse capability outcomes per Skill 050 Section 6.3.
 2.2 Do not continue with optimistic endpoint assumptions when preflight has identified a fallback path.
+
+### 6.1.2 Target Resolution Endpoint Selection (Required)
+2.3 Resolve runtime targets with deterministic endpoint usage:
+  - use `GET /v6/descendants/files` for filesystem-level discovery (`.tst`/`.pva` lookup, folder traversal),
+  - use `GET /v6/children?id=<tst-id>` for root suite/object seed under a specific file,
+  - use `GET /v6/descendants/assets?id=<asset-id>` for in-file object graph discovery (suites/tools/datasources/etc.).
+2.4 Do not call `GET /v6/descendants/assets` with directory ids (for example `/TestAssets`); resolve file/asset ids first.
+2.5 Parse descendants responses from `children` arrays and validate expected type before branching.
 
 ### 6.2 Source Strategy Branch
 3. If service definition/schema is missing or ambiguous, ask targeted question and wait.
@@ -261,6 +269,10 @@ After generation and subset pruning (rule 15), inspect the generated happy-path 
     - JSON response -> JSON Validator + (JSON Assertor or Diff Tool JSON mode),
     - XML response -> XML Validator + (XML Assertor or Diff Tool XML mode),
     - plain-text response -> do not attach JSON/XML tools by default; route to Diff Tool text mode workflow,
+  - if user request is generic (for example "add an assertion"), choose tool family strictly from observed media type and rule 21.1,
+  - if user explicitly requests a mismatched tool family (for example JSON Assertor while observed media type is XML), do not force attachment:
+    - ask user to either switch tool family to the observed media type, or
+    - approve producer media-type changes, then rerun baseline before tool creation.
   - apply selection per endpoint/test independently; never propagate one endpoint's media type decision to other endpoints,
   - never attach JSON tools to non-JSON traffic or XML tools to non-XML traffic,
   - when schema validation is requested, configure with user-provided service-definition location and explicit message mapping,
@@ -392,8 +404,3 @@ In non-conversational or agentic execution contexts (for example terminal-based 
   - `.tst` naming resolution,
   - explicit payload approval for happy-path `POST`/`PUT`/`PATCH` bodies.
 - Reasonable defaults may be used only after the user explicitly opts in to those defaults.
-
-## 12) Current Validation Status (2026-03-04)
-- Initial draft defined.
-- First live role-play execution completed (customer-subset scenario) and exposed hardening needs now codified in Section 6.7.
-- Next validation target: rerun with strict subset prune + deterministic naming + response-output chaining + JSON validator/assertor defaults.

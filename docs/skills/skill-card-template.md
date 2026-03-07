@@ -38,8 +38,9 @@
 - Rollback plan for writes:
 
 ## 10) Reuse Notes
-- Applies to SOAtest:
-- Applies to Virtualize:
+- Primary target:
+- Other product applicability / scope notes:
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank):
 
 ## 11) Examples

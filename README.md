@@ -3,12 +3,30 @@
 Skill cards and orchestration guidance for LLM-driven automation of Parasoft SOAtest and Virtualize assets through the SOAVirt REST API (v6).
 
 This repository is aimed at users who want to clone it and use it with an LLM client (for example Copilot/Claude-style coding agents) to author, run, and diagnose service tests.
+## Audience & Doc Map
+
+This repository serves two audiences:
+
+- **Operators/Users of SOAtest/Virtualize** (run, diagnose, and extend tests with an LLM)
+  - Start here:
+    - `AGENTS.md` (agent bootstrap and routing behavior)
+    - `docs/skills/skill-index.md` (find the right capability)
+    - Target skill cards under `docs/skills/`
+- **Contributors/Skill Authors** (design, refine, and add skills/policies)
+  - Start here:
+    - `docs/workflow/agent-workflow.md` (runtime-global execution policy)
+    - `docs/workflow/skill-authoring-workflow.md` (how skills/workflow docs should be designed and evolved)
+    - `docs/workflow/documentation-sync-workflow.md` (how canonical docs/logs/indexes stay synchronized)
+    - `docs/skills/backlog.md` (status and next work)
+    - `docs/logs/decision-log.md` (why key policy choices were made)
+
+Use this split to avoid mixing task execution guidance with skill-governance internals during normal operator flows.
 
 ## What You Can Do Today
 
 Current capabilities are strongest for SOAtest `.tst` workflows and include:
 
-- Summarize existing `.tst` assets in human-readable form (suite/test organization, intent, and evidence-backed detail level).
+- Summarize existing `.tst` assets in human-readable form (suite/test organization, intent, with adjustable detail level).
 - Perform deep YAML-based `.tst` configuration analysis with structured outputs:
 	- Execution Context
 	- Step Flow (consumes/produces + embedded validation details)
@@ -42,36 +60,26 @@ Current capabilities are strongest for SOAtest `.tst` workflows and include:
 	- fetch XML results reports
 	- retrieve traffic for failure analysis
 
-## Current Scope Status
-
-- Validated and actively usable:
-	- shared file lifecycle and introspection skills
-	- test execution and traffic diagnostics core flow
-	- REST Client and DB Tool lifecycle flows
-	- `.tst` creation from OpenAPI/WSDL/XSD
-	- subset-prune workflow after generated suites
-	- cross-cutting safety policies (read-merge-write PUT, capability preflight)
-- Defined but still maturing in runtime coverage:
-	- some validator/data-bank mode combinations
-	- RAML generation runtime validation
-	- broader Virtualize-specific workflows
-
 ## How To Use With Your LLM Client
 
 1. Clone this repository and open it as a workspace.
-2. Ensure your SOAVirt server is reachable.
-3. Provide the server base URL to your agent (or set `SOAVIRT_BASE_URL`).
-4. Ask in plain language (examples):
-	 - `I want to test my service`
-	 - `Create tests from this OpenAPI and keep only these operations`
-	 - `Run this .tst and diagnose failures from traffic`
-5. The agent should route to the right cards under `docs/skills/` and apply orchestration rules from `AGENT.md`.
+2. With any LLM client (Warp, Copilot, Claude, Windsurf, etc.), send an explicit first instruction before your real task:
+	- `Load AGENTS.md and its required startup docs, then wait for my task.`
+3. Ensure your SOAVirt server is reachable.
+4. Provide the server base URL to your agent (or set `SOAVIRT_BASE_URL`).
+5. Ask in plain language (examples):
+	- `I want to test my service`
+	- `Create tests from this OpenAPI and keep only these operations`
+	- `Run this .tst and diagnose failures from traffic`
+6. The agent should route to the right cards under `docs/skills/` and apply orchestration rules from `AGENTS.md`.
 
 ## Key Files
 
-- `AGENT.md`: Required bootstrap and intent routing rules.
-- `docs/workflow/agent-workflow.md`: cross-cutting execution and safety policies.
-- `docs/skills/skill-index.md`: capability map by layer and intent domain.
+- `AGENTS.md`: required bootstrap and intent routing rules.
+- `docs/workflow/agent-workflow.md`: runtime-global execution and safety policies.
+- `docs/workflow/skill-authoring-workflow.md`: contributor workflow for designing and evolving skills.
+- `docs/workflow/documentation-sync-workflow.md`: contributor workflow for keeping canonical docs/logs in sync.
+- `docs/skills/skill-index.md`: operator-facing capability map and routing surface.
 - `docs/skills/backlog.md`: validated/in-progress/planned status by skill.
 - `docs/reference/api-spec-cache/`: cached OpenAPI references by server key.
 - `docs/logs/decision-log.md`: design decisions and rationale history.

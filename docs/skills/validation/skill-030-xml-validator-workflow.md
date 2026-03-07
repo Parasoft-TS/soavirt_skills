@@ -21,6 +21,14 @@ Important: schema-validation mode is only considered correctly configured when t
   - auto-remediation of payload/schema issues
   - domain-specific XML schema design guidance
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+
 ## 4) Inputs
 - Required:
   - target output-provider parent id that emits XML
@@ -40,6 +48,9 @@ Important: schema-validation mode is only considered correctly configured when t
 - Runtime response media type for target output is XML (confirmed from baseline run evidence).
 
 ## 6) Procedure
+0. Apply capability preflight before first write:
+  - use Skill 050 Profile E for tool mutation steps,
+  - use Skill 050 Profile D for execution/traffic-observation validation steps.
 1. Resolve the target producer/output-provider parent using the canonical registry:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
   - This workflow remains API-client response-output scoped; do not target DB Tool outputs for XML Validator schema-validation workflows.
@@ -115,17 +126,12 @@ Important: schema-validation mode is only considered correctly configured when t
   - restore prior config from saved GET snapshot.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: expected; runtime validation pending first dedicated run.
-- Applies to Virtualize: not yet validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Intended producer class: API client tool response outputs (REST Client now; SOAP/Messaging when corresponding skills are available).
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - when new producer/output types are introduced, update Skill 018 first, then apply here.
-
-## 11) Initial Validation Plan
-1. Create under XML-producing output provider.
-2. Resolve schema/service-definition using precedence + confidence gate (ask user when uncertain).
-3. Configure baseline validation settings with default `validateAgainstSchema` mode.
-4. Execute focused run and capture pass/fail behavior.

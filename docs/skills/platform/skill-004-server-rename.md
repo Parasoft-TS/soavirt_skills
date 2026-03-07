@@ -14,6 +14,12 @@ Server-Side File Rename (`PUT /v6/files`)
   - Copying files.
   - Content edits.
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md` for rename verification.
+
 ## 4) Inputs
 - Required:
   - `baseUrl`

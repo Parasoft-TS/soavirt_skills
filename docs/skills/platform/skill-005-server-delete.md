@@ -13,6 +13,12 @@ Server-Side File Delete (`DELETE /v6/files`)
 - Out of scope:
   - Deleting non-empty folders recursively unless explicitly set.
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md` for deletion verification.
+
 ## 4) Inputs
 - Required:
   - `baseUrl`

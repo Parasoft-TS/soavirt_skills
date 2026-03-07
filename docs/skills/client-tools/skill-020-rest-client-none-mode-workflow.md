@@ -21,13 +21,21 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
   - creating a fully OpenAPI-bound REST Client from scratch through API only
   - schema-driven operation picker automation (Swagger UI-equivalent flow)
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- Additive:
+  - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
+  - `docs/skills/cross-cutting/skill-032-client-header-ownership.md`
+
 ## 4) Inputs
 - Required:
   - parent suite id
-  - REST test name
   - HTTP method (`GET`, `POST`, `PUT`, `DELETE`, etc.)
   - endpoint template (fixed or parameterized)
 - Optional:
+  - REST test name (if user doesn't specify, follow `docs/skills/cross-cutting/skill-013-test-naming-policy.md`)
   - expected response code(s)
   - headers (for example `Accept`, `Authorization`)
   - payload body (for `POST`/`PUT`/`PATCH`)
@@ -79,6 +87,9 @@ Do not call create/update endpoints until required fields are provided/confirmed
 - If ordered placement is required, current child list can be read first.
 
 ## 6) Procedure
+0. Apply capability preflight before first write:
+   - use Skill 050 Profile E for tool mutation steps (`POST`/`PUT`/`DELETE` and suite reorder),
+   - use Skill 050 Profile D for execution/traffic-observation steps.
 1. Inspect suite children and capture ordering baseline:
    - `GET /v6/suites/testSuites?id=<suite-id>` (read `relationships.childrenRel`)
 2. Create REST Client in None mode:
@@ -184,8 +195,9 @@ Do not call create/update endpoints until required fields are provided/confirmed
   - reapply previous tool configuration via saved GET payload
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated).
-- Applies to Virtualize: not validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Related endpoints:
   - `POST/PUT/GET /v6/tools/restClients`
   - `DELETE /v6/tools`
@@ -200,40 +212,3 @@ Do not call create/update endpoints until required fields are provided/confirmed
 ### JSON Tooling Reminder
 - When this REST Client is chained to JSON tools (for example JSON Assertor, JSON Data Bank), selector-expression fields use XPath-over-JSON semantics.
 - Always load `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` for JSON selector authoring; do not use JSONPath in XPath-expected fields.
-
-## 11) Current Validation Status (2026-03-03)
-Validated in workspace `soavirt_skills` with root test `/accounts/{accountId} - GET` configured in None-mode behavior and executed after root DB tool.
-
-Evidence artifacts:
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/refine_put_root_accounts_from_childcopy_response.json`
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/refine_root_children_reorder_response.json`
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/refine_execution_results_1283881965.json`
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/Basic_Test_Construction_Learning_refined_final_dump.txt`
-
-Additional validated replacement scenario (same day):
-- Replaced the 3rd root node REST Client (after DB tool) with a new fixed-endpoint GET test for:
-  - `GET http://localhost:8090/parabank/services/bank/accounts/12345`
-  - `Accept: application/json`
-- Preserved suite position by rebuilding full root child order and applying `PUT /v6/suites/children`.
-
-Evidence artifacts:
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_test_root_suite_before.json`
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_test_create_new_restclient_response.json`
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_test_reorder_payload.json`
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_test_reorder_response.json`
-- `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_test_root_suite_after.json`
-
-Additional validated JSON payload scenario (2026-03-04):
-- Created and appended REST Client:
-  - `POST /parabank/services/bank/billpay - Sample Payee`
-  - endpoint with required query params: `accountId`, `amount`
-  - JSON `Payee` payload configured with `payload.inputMode=formJSON`
-- Verified persisted YAML mode:
-  - `mode: Form JSON`
-- Verified beautified JSON persistence via YAML upload:
-  - `MessagingClient_LiteralMessage: |-` block style
-
-Evidence artifacts:
-- `work/runs/2026-03-04/billpay-rest-client/14_billpay_restclient_summary.json`
-- `work/runs/2026-03-04/billpay-rest-client/25_billpay_block_final.txt`
-- `work/runs/2026-03-04/billpay-rest-client/26_billpay_api_summary_final.json`

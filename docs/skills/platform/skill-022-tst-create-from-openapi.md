@@ -17,6 +17,13 @@ Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger
   - post-generation test customization
   - WSDL/RAML generation (separate endpoints)
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md` (post-create traceability/tagging handoff)
+
 ## 4) Inputs
 - Required:
   - parent directory id (for example `/TestAssets`)
@@ -46,15 +53,14 @@ Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger
 
 ## 5.1) Service-Definition Source Readiness Preflight
 Run this preflight before `POST /v6/files/tsts/swagger`:
-1. Confirm source location mode:
+1. Apply Skill 050 Profile B for `.tst` generation create/readback compatibility.
+2. Confirm source location mode:
   - URL mode (user-provided URL)
-  - File-path mode (user-provided path, internally normalized to API location fields)
-2. For URL mode, verify reachability from server runtime (not only local browser):
+  - file-path mode (user-provided path, internally normalized to API location fields)
+3. For URL mode, verify reachability from server runtime (not only local browser):
   - probe the exact URL and expect `200`
-3. Verify format/source alignment:
-  - endpoint expects OpenAPI/Swagger content for this skill
-4. Verify parent target:
-  - `parent.id` exists and is writable (for example `/TestAssets`)
+4. Verify format/source alignment:
+  - endpoint expects OpenAPI/Swagger content for this skill.
 5. If preflight fails, stop before create and correct source/parent first.
 
 ## 5.2) Name Collision Gate (Fallback)
@@ -121,24 +127,12 @@ Run this guard only when target name uncertainty exists (for example after ambig
 - Rollback: delete created `.tst` via `DELETE /v6/files?id=...`.
 
 ## 11) Reuse Notes
-- Applies to SOAtest: Yes (validated for OpenAPI endpoint).
+- Primary target: SOAtest.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Related endpoints:
   - `POST /v6/files/tsts/swagger`
   - `POST /v6/files/tsts/wsdl`
   - `POST /v6/files/tsts/raml`
 - API-first rule:
   - Build payload from `tstsSwaggerRequest` schema directly; do not require pre-existing generated files as templates.
-
-## 12) Current Validation Status (2026-03-03)
-- Validated create and cleanup in this workspace using URL location.
-- Evidence artifacts:
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill22_create_swagger_tst_request.json`
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill22_create_swagger_tst_response.json`
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill22_delete_swagger_tst_response.json`
-
-- Additional live validation using OpenAPI YAML URL:
-  - source: `http://localhost:8090/parabank/services/bank/openapi.yaml`
-  - evidence artifacts:
-    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill22b_create_swagger_yaml_tst_request.json`
-    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill22b_create_swagger_yaml_tst_response.json`
-    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill22b_delete_swagger_yaml_tst_response.json`
+- If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.

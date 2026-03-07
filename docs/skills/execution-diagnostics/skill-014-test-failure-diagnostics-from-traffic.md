@@ -59,6 +59,8 @@ This is a **general post-execution diagnostics skill** and should be applied whe
    - pick relevant `trafficViewers[].id`
    - `GET /v6/testExecutions/{id}/traffic?entityId=<traffic-viewer-id>`
   - use the specific tool's traffic viewer id for precise diagnostics (for example DB Tool viewer vs REST Client viewer)
+  - if selected viewer has empty `toolSettings.testRuns`, retry with other suite-returned viewer ids before escalating.
+  - if all viewer payloads are empty, extract request/response evidence from decoded XML report (`TrafficData`) and continue diagnosis with explicit evidence-source labeling.
 6. Inspect REST Client configuration context:
   - `GET /v6/tools/restClients?id=<rest-client-id>`
   - capture at minimum:
@@ -85,6 +87,7 @@ This is a **general post-execution diagnostics skill** and should be applied whe
 9. Correlate and diagnose:
   - from XML: failing test names, violation messages, categories
   - from traffic: request path/headers + response code/body
+  - when traffic endpoint is empty, use XML-report traffic fallback evidence and mark confidence accordingly
   - from REST Client config: whether observed status code is considered valid by `validHttpResponseCodes` (empty/default means expected `200`)
   - from spec (when configured): whether observed status and payload type match API contract
   - from chained tools: whether failure is transport/status, payload shape/content, or chained assertion/validation mismatch
@@ -119,6 +122,7 @@ Do not finalize root-cause conclusions until all three are collected, unless one
 - `400` traffic `entityId` wrong type (`.tst` id or REST Client test id).
 - `400` traffic query uses wrong key; parameter must be named `entityId`.
 - Empty `testRuns` in non-executed viewers (not necessarily an error).
+- Empty `testRuns` across all viewers can hide primary evidence if XML-report fallback is skipped.
 - Misclassification risk: treating HTTP status alone as root cause without checking `validHttpResponseCodes` and chained-tool expectations.
 - Misclassification risk: treating non-200 as failure when configuration allows that code/range (for example `302, 500-599`).
 - Spec drift risk: service definition expects one status/schema, runtime service returns another.
@@ -130,8 +134,9 @@ Do not finalize root-cause conclusions until all three are collected, unless one
 - Optional cleanup: remove run artifacts folder if needed.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated).
-- Applies to Virtualize: not validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Depends on:
   - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
   - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
@@ -153,7 +158,7 @@ Do not finalize root-cause conclusions until all three are collected, unless one
   - chained tool inventory and salient assertions/validators
   - diagnosis note with confidence and next check
 
-## 12) Example Snapshot (Non-Normative, 2026-03-03)
+## 12) Example Snapshot (Non-Normative)
 - Focused run example only:
   - test name: `Simple REST Client - Test In Root Test Suite`
   - job id: `1795602334`

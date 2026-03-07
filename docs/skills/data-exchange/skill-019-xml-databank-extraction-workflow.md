@@ -21,6 +21,14 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
   - downstream variable-consumer tool authoring
   - business-logic assertions (covered by assertor skills)
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+
 ## 4) Inputs
 - Required:
   - target output-provider parent id that emits XML
@@ -37,6 +45,9 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
 - Parent id resolves to an output-provider location that accepts chained tools.
 
 ## 6) Procedure
+0. Apply capability preflight before first write:
+  - use Skill 050 Profile E for tool mutation steps,
+  - use Skill 050 Profile D for execution/traffic-observation validation steps.
 1. Resolve the target producer/output-provider parent using the canonical registry:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
   - Construct `parent.id` from Skill 018 mapping; do NOT pass the producer tool id directly.
@@ -79,33 +90,12 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
   - restore previous config with saved GET snapshot.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated).
-- Applies to Virtualize: not yet validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - Use GET -> mutate -> PUT for updates to existing XML Data Bank tools.
   - when new producer/output types are introduced, update Skill 018 first, then apply here.
-
-## 11) Validation Snapshot (2026-03-03)
-- Created under DB Tool semantic XML output:
-  - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/DB Tool - Root Between Test And Child/Results as XML/XML Data Bank - DB Result Fields`
-- Configured extractions:
-  - `DB_ID` from `/results/resultSet/rows/row/ID/text()`
-  - `DB_BALANCE` from `/results/resultSet/rows/row/BALANCE/text()`
-- Runtime validation:
-  - job `1633921850`
-  - summary `failureCount=2`, `testRunCount=3` (expected setup failures only)
-  - DB Tool test status `pass`
-  - XML prolog parser error absent.
-- Mirrored on child-suite DB Tool semantic XML output:
-  - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/Child Test Suite/DB Tool - First Child Suite/Results as XML/XML Data Bank - Child DB Result Fields`
-  - same extraction pattern (`DB_ID`, `DB_BALANCE`)
-  - runtime validation:
-    - job `318960184`
-    - summary `failureCount=2`, `testRunCount=3`
-    - child DB Tool test status `pass`
-    - XML prolog parser error absent.
-- Evidence folder:
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/`

@@ -24,6 +24,15 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
   - domain-specific expected-payload authoring strategies
   - auto-remediation of response mismatches
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+
 ## 4) Inputs
 - Required:
   - target output-provider parent id (typically response output)
@@ -41,6 +50,9 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 - Baseline execution evidence is required before mode selection.
 
 ## 6) Procedure
+0. Apply capability preflight before first write:
+  - use Skill 050 Profile E for tool mutation steps,
+  - use Skill 050 Profile D for execution/traffic-observation validation steps.
 1. Resolve the target producer/output-provider parent using the canonical registry:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
   - Construct `parent.id` from Skill 018 mapping; do NOT pass the producer tool id directly.
@@ -180,8 +192,9 @@ Text mode baseline:
   - restore prior config from saved GET snapshot.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: expected; runtime validation pending dedicated mode-matrix run.
-- Applies to Virtualize: not yet validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
@@ -197,7 +210,7 @@ Text mode baseline:
 - Ask user whether to add ignored differences for those specific fields.
 - Do not auto-apply ignores unless user explicitly confirms.
 
-## 11) Optional Mode-Matrix Evidence (Starter Baseline)
+## 11) Optional Mode-Matrix Evidence Capture
 When validating this starter card, capture one example per mode with:
 1. create/update/readback payloads
 2. focused execution result

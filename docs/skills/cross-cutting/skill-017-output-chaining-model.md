@@ -75,16 +75,16 @@ Provide deterministic rules for selecting the correct output-provider parent whe
   - delete and recreate under correct parent.
 
 ## 9) Reuse Notes
-- Applies to SOAtest: Yes (validated pattern).
-- Applies to Virtualize: conceptually relevant; endpoint-level validation pending.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Load this card as a dependency before building any chained tool skill.
 - Companion reference:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - use as the first lookup for concrete output-channel defaults.
 - Maintenance contract:
   - when output-chaining policy changes, update this card and Skill 018 in the same session.
-
-## 10) Validation Snapshot (2026-03-03)
+## 10) Example Binding Correction
 - DB Tool case:
   - incorrect chain: `.../Traffic Object/XML Assertor - DB Row ID` produced XML parser/prolog error.
   - corrected chain: `.../Results as XML/XML Assertor - DB Row ID` removed parser error and passed DB test assertion.

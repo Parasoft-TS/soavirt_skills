@@ -57,13 +57,14 @@ Endpoint: `POST /v6/testExecutions?now=true`
 Key details:
 - `scopeOptions.workspace.resources` is required (not `soatestOptions.testFile`).
 - `testNames[].match` is a **boolean** (`true`/`false`), not a string like `"exact"`.
+- `soatestOptions.testNames` must be an array of **objects** (`{ "value": "...", "match": true }`), not an array of plain strings.
 - Append `?now=true` to the URL to start execution immediately.
 - `soatestOptions.testNames` is optional; omit to run all tests in the resource.
 
 ## 6) Procedure
 1. Preflight resource existence:
    - `GET /v6/descendants/files`
-   - verify target `.tst` is present under `scopeOptions.workspace.resources` path.
+   - verify target `.tst` is present under `scopeOptions.workspace.resources` path (parse `children` array entries).
 2. Build payload:
    - `general.config=<valid-config-key>`
   - workspace default (this repo): `soatest.user://Example Configuration`
@@ -73,9 +74,11 @@ Key details:
 3. Start execution:
    - `POST /v6/testExecutions?now=true`
    - capture returned job id.
+   - fail-fast gate (required): if POST does not return a valid execution `id` (for example `400` payload error), stop and correct payload/config first; do not call status/results/traffic for that failed attempt.
 4. Poll status:
    - `GET /v6/testExecutions/{id}/status`
-   - wait until `isRunning=false`.
+   - use `isRunning` as the canonical completion signal; wait until `isRunning=false`.
+   - treat `percent` as informational only (not a completion gate by itself).
 5. Fetch results:
    - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
 6. Optional diagnostics traffic retrieval:
@@ -86,6 +89,11 @@ Key details:
   - normalize to two-step retrieval even when output-provider ids are known:
     - always discover viewer ids from suite context first,
     - then fetch focused viewer payloads by returned ids.
+  - viewer-selection rule:
+    - prefer the specific producer's Traffic Viewer id for the target test/tool, not just the first returned viewer.
+  - fallback when traffic payload is empty:
+    - if selected viewer has empty `toolSettings.testRuns`, retry with other suite-returned viewer ids for the same run,
+    - if all viewer payloads remain empty, extract request/response evidence from decoded `xmlReport` traffic sections (`TrafficData`) before classifying traffic as unavailable.
   - use `toolSettings.testRuns[].trafficData.request/response` for failure analysis.
 7. Persist artifacts:
    - raw POST response
@@ -111,24 +119,29 @@ When in doubt, complete all three steps before drawing conclusions about failure
   - `xmlReport` length > 0
   - decoded XML starts with `<?xml` and contains `<ResultsSession ...>`
   - results summary contains `execution.testRunCount` and failure/pass counts
+  - when traffic endpoint returns empty runs, fallback extraction from decoded XML report is attempted before concluding evidence is unavailable.
   - if `summary.scope.totalFilesExecuted > 0` but `summary.execution.testRunCount = 0`, treat run as no-op and investigate target test executability (for example empty REST Client URL fields, disabled tools, overly restrictive config filters).
 
 ## 8) Failure Modes
 - `400 Invalid payload` when `scopeOptions.workspace.resources` missing.
+- `400 Invalid payload` when `soatestOptions.testNames` is provided as a string array instead of object array (`value`/`match`).
 - `404 Non-existent configuration [...]` when `general.config` key is not valid in workspace.
 - `404` on status/results when job id is missing/invalid.
 - `400 Invalid payload` on traffic endpoint when `entityId` type is not accepted:
   - accepted: `testSuite`, `outputTool`
   - rejected (validated): `.tst` file id (`Test (.tst) File`), REST client test id (`REST Client`).
+- Empty `testRuns` from viewer traffic despite execution:
+  - can occur for non-target viewers or sparse run capture,
+  - requires viewer reselection and XML-report fallback before concluding missing traffic evidence.
 
-## 8.1) Known Execution-Selection Constraints (Validated)
+## 8.1) Known Execution-Selection Constraints
 - `soatestOptions.testNames` is **coarse name-based filtering**, not suite-path addressing.
 - It does **not** map to test suite boundaries.
 - Duplicate test names are all selected when names match.
 - Setup tests can still execute with filtered runs when they are part of suite execution flow.
 - Practical mitigation: adopt unique test names across the workspace so `testNames.value` remains deterministic.
 
-## 8.2) Known Traffic Retrieval Constraints (Validated)
+## 8.2) Known Traffic Retrieval Constraints
 - Endpoint used: `GET /v6/testExecutions/{id}/traffic?entityId=...`
 - `entityId` must resolve to an object typed as `testSuite` or `outputTool`.
 - Query parameter key must be `entityId` (not `id` or other aliases).
@@ -147,47 +160,13 @@ When in doubt, complete all three steps before drawing conclusions about failure
 - Optional cleanup: `DELETE /v6/testExecutions/{id}` for queued jobs not yet started.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated).
-- Applies to Virtualize: not validated yet.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared dependencies:
   - `docs/skills/platform/skill-001-shared-introspection.md`
   - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
-
-## 11) Current Validation Status
-- **Validated now** on:
-  - resource: `/TestAssets/Basic_Test_Construction_Learning.tst`
-  - config: `soatest.user://Example Configuration`
-  - job id: `643258876`
-  - results: XML report returned (`xmlLength=16088`)
-  - decode check: `results_report_decoded.xml` starts with XML declaration and `ResultsSession`
-  - execution summary: `testRunCount=6`, `failureCount=2`, `totalFilesExecuted=1`
-- Evidence folder:
-  - `work/runs/2026-03-03/tst-current/test-execution-xml-report/`
-
-- **Additional validation (testNames narrowing)**:
-  - run used:
-    - `soatestOptions.testNames=[{"value":"Simple REST Client - Test In Root Test Suite","match":true}]`
-  - observed executed tests:
-    - `Set-Up 1: Initialize environment SQL`
-    - `Set-Up 2: Prime Parabank API`
-    - `Test 1: Simple REST Client - Test In Root Test Suite`
-  - confirms coarse filtering by name and setup-test inclusion.
-  - evidence folder:
-    - `work/runs/2026-03-03/tst-current/test-execution-testnames-root-only/`
-
-- **Additional validation (traffic diagnostics retrieval)**:
-  - endpoint:
-    - `GET /v6/testExecutions/{id}/traffic?entityId=...`
-  - job ids probed:
-    - `880769118`
-    - `643258876`
-  - validated behavior:
-    - suite id returns `trafficViewers` with nested request/response payloads
-    - `.tst` id and REST client test id both fail with type-based `400 Invalid payload`
-  - evidence folder:
-    - `work/runs/2026-03-03/tst-current/test-execution-traffic-diagnostics/`
-
-## 12) Practical Notes
+## 11) Practical Notes
 - In this environment, valid `general.config` keys were discoverable from:
   - workspace metadata file `ConfigManager.properties`
   - active value example: `soatest.user://Example Configuration`

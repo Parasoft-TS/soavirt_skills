@@ -16,6 +16,12 @@ After creating a `.tst` from a full service definition, remove non-selected oper
   - enriching kept tests with negative variants/tooling
   - semantic selection design (owned by orchestration cards)
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
+
 ## 4) Inputs
 - Required:
   - target `.tst` id
@@ -74,17 +80,8 @@ After creating a `.tst` from a full service definition, remove non-selected oper
   - or restore from pre-prune copied backup `.tst`.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated).
-- Applies to Virtualize: not validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Typical dependency chain:
   - generation skill (022/023/024/025) -> this prune skill -> variant/tooling skills.
-
-## 11) Current Validation Status (2026-03-04)
-- Validated in `Orchestration Test.tst` rerun:
-  - root service-definition suite children before prune: `27`
-  - deleted non-selected suites: `21`
-  - remaining suites after prune: `6` (all `/customers/*`)
-- Validated delete endpoint for suite prune:
-  - `DELETE /v6/suites?id=<suite-id>`
-- Runtime hardening included:
-  - non-`testSuite` children (including `Environment`) are excluded from prune candidates.

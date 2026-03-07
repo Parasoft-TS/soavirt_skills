@@ -43,6 +43,7 @@ SOAtest/Virtualize use a custom interoperability engine that maps XPath-style se
 - Mixed XPath/JSONPath conventions across tools lead to brittle test suites.
 
 ## 9) Reuse Notes
-- Applies to SOAtest: Yes.
-- Applies to Virtualize: Expected by shared engine behavior; validate per tool when first encountered.
+- Primary target: SOAtest.
+- Virtualize behavior may differ by tool family and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Should be loaded as a dependency whenever configuring selector expressions on JSON payload tools.

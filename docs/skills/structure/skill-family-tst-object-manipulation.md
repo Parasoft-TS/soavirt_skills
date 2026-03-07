@@ -63,7 +63,7 @@ Every atomic manipulation card must include:
 3. Before/after evidence capture
 4. Failure mode mapping (constraint violation, missing id, parent mismatch)
 
-## Known Constraints (Validated)
+## Known Constraints
 - **Environment child ordering is constrained**:
 	- `PUT /v6/suites/children` does not allow arbitrary `QA`/`DEV` swaps in this target file.
 	- Even with explicit `DEV` then `QA` payload, persisted order remained `QA` then `DEV`.
@@ -88,10 +88,3 @@ Every atomic manipulation card must include:
 	3. If ambiguous, perform surgical YAML move of the chosen implementation block.
 	4. Upload and verify by implementation type trace in source and destination suites.
 
-## Recommended Build Order
-1. `reorder-children` (suites) — already validated at endpoint level
-2. `move-object` (suites/tools)
-3. `copy-object` overlays by object class
-4. `rename-object` overlays by object class
-5. `delete-object` overlays by object class
-6. composites for common operator workflows

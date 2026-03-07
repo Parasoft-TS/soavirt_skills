@@ -21,6 +21,14 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - service/database data remediation
   - UI-only assertion editing workflows
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+
 ## 4) Inputs
 - Required:
   - target output-provider parent id
@@ -39,6 +47,9 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 - Baseline execution evidence is required before assertion authoring decisions.
 
 ## 6) Procedure
+0. Apply capability preflight before first write:
+  - use Skill 050 Profile E for tool mutation steps,
+  - use Skill 050 Profile D for execution/traffic-observation validation steps.
 1. Resolve the target producer/output-provider parent using the canonical registry:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5).
   - Construct `parent.id` from Skill 018 mapping; do NOT pass the producer tool id directly.
@@ -49,6 +60,9 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - if observed payload is not XML, stop XML Assertor flow and route validation intent to the appropriate tool family:
     - JSON payload -> Skill 010/029 family
     - plain text payload -> Skill 031 Diff Tool in text mode.
+  - if the user explicitly requested XML Assertor but observed payload is not XML, ask for one of two explicit actions before continuing:
+    - switch to matching tool family for observed media type, or
+    - update producer behavior to emit XML, then rerun baseline.
   - if observed payload is XML, select between XML Assertor and Diff Tool XML mode based on response data volatility:
     - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer XML Assertor with targeted XPath assertions on stable fields,
     - mostly static response data -> prefer Diff Tool XML mode for simpler full-response comparison (see Skill 031),
@@ -64,6 +78,9 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
      - `selectedElement.xpath`
      - `configuration.expectedValue` (`type: fixed`, `fixed: ...`)
   - when using `hasContentAssertion`, set `selectedElement.extractionType=entireElement` (do not use `contentOnly` for this assertion type).
+  - for `regularExpressionAssertion`, treat patterns as full-string match semantics by default:
+    - use explicit wildcard wrapping for contains intent (for example `.*token.*`),
+    - state case intent explicitly (case-sensitive default unless configured otherwise).
 5. Read back assertor to confirm persisted settings.
 6. Optional copy flow:
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
@@ -106,8 +123,9 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - or restore previous config using saved GET snapshot.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated).
-- Applies to Virtualize: Not yet validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Intended producer class: XML-producing semantic output providers (REST Client response output and DB Tool `Results as XML` validated; additional producers when they emit confirmed XML payloads).
 - Works best when input-binding path is explicitly verified from runtime artifacts.
 - Cross-cutting dependency:
@@ -117,16 +135,3 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - Treat Skill 018 as canonical mapping source; update it first when new producer/output types are introduced.
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - Use GET -> mutate -> PUT when editing existing assertors to preserve non-target settings.
-
-## 11) Validation Snapshot (2026-03-03)
-- Created under DB Tool output provider:
-  - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/DB Tool - Root Between Test And Child/Results as XML/XML Assertor - DB Row ID`
-- Assertion configured:
-  - XPath: `/results/resultSet/rows/row/ID`
-  - Expected value: `12345`
-- Focused execution after placement under `Results as XML`:
-  - summary: `failureCount=2`, `testRunCount=3`
-  - decoded XML report confirms DB Tool test status: `pass`
-  - prior parser error `Content is not allowed in prolog` is absent.
-- Evidence folder:
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/`

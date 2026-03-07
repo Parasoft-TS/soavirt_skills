@@ -559,6 +559,132 @@ Purpose: chronological working log of our skill-building sessions.
 - Additional evidence folder:
   - `work/runs/2026-03-04/new-demo/`
 
+## Session 2026-03-06
+
+### Context
+- Goal: reduce missed skill routing by introducing broad Parasoft-domain intent cues that distinguish skill-oriented requests from general LLM tasks.
+
+### Actions Completed
+- Added Parasoft-intent keyword gate to bootstrap routing:
+  - updated `AGENTS.md` Intent Routing with cue list and low-confidence clarification behavior.
+- Added global workflow policy for cue-based routing:
+  - updated `docs/workflow/agent-workflow.md` with `Parasoft Intent Detection Gate (Global)`.
+- Added index-level quick cues to support consistent selection:
+  - updated `docs/skills/skill-index.md` with `Quick Intent Cues (Parasoft-Domain Trigger)`.
+- Cue set standardized as:
+  - `tst`, `api test`, `api testing`, `soatest`, `pva`, `virtual service`, `service mock`, `api mock`, `parasoft`, `service virtualization`.
+
+### Notes
+- Routing behavior now defaults to skill architecture when cues indicate Parasoft-domain intent, and avoids forcing `docs/skills/` flow for clearly non-Parasoft requests.
+- When confidence is low or cues conflict, workflow now directs one targeted clarification question before mutation.
+
+## Session 2026-03-07
+
+### Context
+- Goal: reduce output inconsistency and preflight drift by standardizing Skill 052 output structure and centralizing Skill 050 preflight behavior with efficient in-session reuse.
+
+### Actions Completed
+- Split the workflow guidance into clearer canonical documents:
+  - kept `docs/workflow/agent-workflow.md` focused on runtime-global execution policy
+  - created `docs/workflow/skill-authoring-workflow.md` for contributor skill-maintenance process
+  - created `docs/workflow/documentation-sync-workflow.md` for canonical doc/log synchronization rules
+- Moved authoring/governance material out of `agent-workflow.md`:
+  - working principles
+  - skill organization and layering model
+  - standard per-skill authoring loop
+  - documentation synchronization and artifact-separation rules
+- Updated bootstrap and repo entry-point docs to match the split:
+  - `AGENTS.md`
+  - `README.md`
+- Reviewed `docs/workflow/skills-taxonomy-refactor-proposal-2026-03-04.md` against the current canonical docs and confirmed its transition goals were already implemented:
+  - shallow domain folders under `docs/skills/`
+  - intent-oriented routing/navigation in `docs/skills/skill-index.md`
+  - layered taxonomy retained as an architectural model rather than the primary operator-facing index
+- Replaced `docs/skills/skill-index.md` with a cleaner operator-facing structure:
+  - primary navigation by skill family / intent domain
+  - explicit read-only analysis routing for Skills 007 / 051 / 052
+  - L0-L4 retained as a secondary architectural section
+- Preserved the completed taxonomy-refactor rationale in `docs/logs/decision-log.md` so the historical intent no longer depends on the standalone proposal file.
+- Retired obsolete transition artifact:
+  - deleted `docs/workflow/skills-taxonomy-refactor-proposal-2026-03-04.md`
+- Template-driven Skill 052 output standardization:
+  - created `docs/templates/tst-configuration-analysis-template.md`.
+  - refactored `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md` to delegate output contract ownership to the template.
+  - aligned Skill 052 and template naming model to three-map output:
+    - `Execution Context`
+    - `Step Flow` (including `AppliesValidation`)
+    - `Available Data Sources`
+  - updated stale backlog wording in:
+    - `docs/skills/backlog.md` (Skill 52 scope line).
+- Skill 050 canonicalization pass:
+  - expanded `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` with:
+    - operation-class preflight profiles,
+    - status classification and `404` disambiguation flow,
+    - canonical ownership boundaries (Skill 001/002/012 owner split),
+    - canonical fallback-routing references.
+  - reduced duplicate generic preflight wording in dependent cards by referencing Skill 050 sections:
+    - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+    - `docs/skills/platform/skill-021-tst-create-empty.md`
+    - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+    - `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
+    - `docs/skills/platform/skill-024-tst-create-from-raml.md`
+    - `docs/skills/platform/skill-025-tst-create-from-xsd.md`
+- Dependency hygiene pass for Skill 050:
+  - added or normalized explicit Skill 050 dependency and profile usage in write-capable cards:
+    - `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
+    - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+    - `docs/skills/validation/skill-010-json-assertor-workflow.md`
+    - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+    - `docs/skills/validation/skill-029-json-validator-workflow.md`
+    - `docs/skills/validation/skill-030-xml-validator-workflow.md`
+    - `docs/skills/validation/skill-031-diff-tool-workflow.md`
+    - `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
+    - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+    - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- Skill 050 in-session reuse hardening:
+  - made capability ledger usage mandatory (lookup before probe, persist after probe).
+  - set canonical ledger location:
+    - `work/cache/capability-ledger/<baseurl-key>.json`
+  - defined canonical cache key tuple:
+    - `baseUrlKey + endpointPath + method + operationProfile + authContextKey`
+  - added mandatory invalidation triggers:
+    - base URL change
+    - auth-context change
+    - force-refresh
+    - contradictory runtime evidence.
+- Skill 050 architecture clarification pass:
+  - clarified Skill 050 as a broader runtime API capability-preflight surface, not only a pre-write helper.
+  - aligned global/bootstrap routing and loading docs:
+    - `docs/workflow/agent-workflow.md`
+    - `AGENTS.md`
+    - `docs/skills/skill-index.md`
+  - aligned supporting wording in:
+    - `docs/skills/platform/skill-001-shared-introspection.md`
+    - `docs/skills/backlog.md`
+    - `docs/logs/decision-log.md`
+- Backlog repurposing pass:
+  - rewrote `docs/skills/backlog.md` from a stale numbered build-order list into a contributor-facing status ledger + short backlog.
+  - grouped live skills by the current `docs/skills/skill-index.md` families instead of legacy sequencing.
+  - separated active priorities, current status registry, planned gaps, deferred/retired work, and the Virtualize future track.
+  - removed endpoint-catalog style detail and stale "after foundation"/"active skill card" framing that now belongs elsewhere.
+  - aligned the backlog role with `README.md`, `docs/workflow/skill-authoring-workflow.md`, and `docs/workflow/documentation-sync-workflow.md`.
+- Skill-card role normalization pass:
+  - removed per-card `Current Validation Status`, `Validation Snapshot`, and `Initial Validation Plan` sections that duplicated backlog ownership.
+  - normalized `Reuse Notes` across skill cards to describe applicability/composition instead of validation state.
+  - removed stale roadmap/build-order content from `docs/skills/structure/skill-family-tst-object-manipulation.md`.
+  - updated `docs/skills/skill-card-template.md` so new cards point status tracking to `docs/skills/backlog.md` by default.
+  - preserved execution semantics, validation criteria, and stable behavior constraints in the cards while retiring dated progress/evidence framing.
+
+### Notes
+- The workflow directory now has distinct runtime vs contributor-maintenance workflow docs instead of one overloaded file.
+- The taxonomy proposal is no longer needed as active workflow guidance because its transition intent is now preserved by the canonical index and the decision log.
+- Intended reuse model:
+  - avoid redundant checks across multi-skill composition and across independent prompts in the same ongoing session.
+  - allow fresh preflight on brand-new agent sessions.
+- Cache safety boundary:
+  - Skill 050 ledger is capability metadata only and not a replacement for live resource-state reads/writes in other cards.
+- `docs/skills/backlog.md` now functions as contributor continuity/status guidance, while `docs/skills/skill-index.md` remains the operator-facing routing surface.
+
 ---
 
 ## Session Template

@@ -15,6 +15,13 @@ Move exactly one selected data source implementation type (for example `TableDat
   - Cross-file moves between different `.tst` assets in one step.
   - Semantic edits to datasource internals beyond relocation.
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+  - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
+- Additive:
+  - `docs/skills/platform/skill-002-shared-file-transfer.md` for YAML fallback branch.
+
 ## 4) Inputs
 - Required:
   - source file id (for example `/TestAssets/... .tst`)
@@ -63,8 +70,9 @@ Move exactly one selected data source implementation type (for example `TableDat
   - verify suite datasource type distribution restored
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes.
-- Applies to Virtualize: Not validated.
+- Primary target: SOAtest.
+- Virtualize object models may differ and are outside this card's default scope.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved: `GET/POST /v6/suites/testSuites`, `POST /v6/datasources/move`, `GET /v6/files/download`, `POST /v6/files/upload`.
 - Foundational dependency:
   - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`

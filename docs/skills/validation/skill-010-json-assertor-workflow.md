@@ -20,6 +20,15 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - cross-file migration policies
   - dependency on pre-existing JSON Assertor instances as required creation templates
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+
 ## 4) Inputs
 - Required:
   - target parent id
@@ -40,7 +49,14 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - use XPath-style selectors for JSON fields, not JSONPath.
 
 ## 6) Procedure
-1. Resolve target context with `GET /v6/children` and/or `GET /v6/descendants/assets`.
+0. Apply capability preflight before first write:
+  - use Skill 050 Profile E for tool mutation steps,
+  - use Skill 050 Profile D for execution/traffic-observation validation steps.
+1. Resolve target context with deterministic endpoint selection:
+  - use `GET /v6/descendants/files?id=<workspace-folder>&type=tst` to resolve target `.tst` file id when needed,
+  - use `GET /v6/children?id=<tst-id>` for root suite context,
+  - use `GET /v6/descendants/assets?id=<tst-id>` or `GET /v6/descendants/assets?id=<suite-id>` to resolve nested suite/tool targets.
+  - do not use `GET /v6/descendants/assets` with directory ids.
 2. Resolve the target producer/output-provider parent from `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` (Section 5), then construct `parent.id` from that mapping.
 2.1 Fail-closed guard:
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/modifying JSON Assertor chains.
@@ -73,6 +89,9 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - if observed payload is not JSON, stop JSON Assertor flow and route validation intent to the appropriate tool family:
     - XML payload -> Skill 016/030 family
     - plain text payload -> Skill 031 Diff Tool in text mode.
+  - if the user explicitly requested JSON Assertor but observed payload is not JSON, ask for one of two explicit actions before continuing:
+    - switch to matching tool family for observed media type, or
+    - update producer behavior to emit JSON (for example request-header/media-type configuration), then rerun baseline.
   - if observed payload is JSON, select between JSON Assertor and Diff Tool JSON mode based on response data volatility:
     - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer JSON Assertor with targeted assertions on stable fields,
     - mostly static response data -> prefer Diff Tool JSON mode for simpler full-response comparison (see Skill 031),
@@ -84,6 +103,10 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - presence/shape -> `hasContentAssertion` / `occurrenceAssertion`
   - required rule for `hasContentAssertion`:
     - set `selectedElement.extractionType=entireElement` (do not use `contentOnly` for this assertion type)
+  - regex assertion rule:
+    - treat regex comparisons as full-string match semantics by default,
+    - for substring intent, use explicit wildcard patterning (for example `.*12212.*`),
+    - declare case intent explicitly (case-sensitive default unless configured otherwise).
 6. Configure assertions based on user intent against observed payload.
 7. Validate with focused verification run and collect run-results-traffic evidence triad.
 
@@ -122,8 +145,9 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - restore file snapshot if broad unintended edits occur
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes.
-- Applies to Virtualize: Not validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Intended producer class: JSON-producing semantic output providers (REST Client response output now; other producer outputs only when they emit confirmed JSON payloads).
 - Shared components:
   - `POST/PUT/GET /v6/tools/jsonAssertors`
@@ -143,37 +167,3 @@ This skill supports case-by-case assertion authoring composed from user intent (
 ### JSON Tooling Reminder
 - For JSON tools in this workspace, selector fields follow XPath-over-JSON semantics.
 - Do not use JSONPath in XPath-expected fields.
-
-## 11) Current Validation Status
-- **Validated now**:
-  - Create JSON Assertor in `/TestAssets/Basic_Test_Construction_Learning.tst` under root REST client by using parent id:
-    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/Simple REST Client - Test In Root Test Suite/Response Traffic`
-  - Created tool name:
-    - `JSON Assertor - Root Skill Test`
-  - Modify flow:
-    - Renamed tool to `JSON Assertor - Modified` via `PUT /v6/tools/jsonAssertors?id=...`
-  - Assertion configuration flow:
-    - Updated `toolSettings.assertions` for `JSON Assertor - Modified` with validated assertion types:
-      - `occurrenceAssertion`
-      - `numericAssertion`
-      - `numericRangeAssertion`
-      - `regularExpressionAssertion`
-      - `hasContentAssertion`
-      - `valueOccurrenceAssertion`
-- **Pending**:
-  - explicit DELETE flow
-  - explicit COPY flow
-
-- **Additional validation example (non-normative)**:
-  - parent chain anchor:
-    - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/GET Lw==parabankLw==servicesLw==bankLw==accountsLw==${DB_ID}/Response Traffic`
-  - created assertor:
-    - `JSON Assertor - Balance Matches DB Data Bank`
-  - assertion shape:
-    - `type=numericAssertion`
-    - `selectedElement.xpath=/root/balance` (XPath-style)
-    - `expectedValue.fixed=${DB_BALANCE}`
-  - focused run evidence:
-    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_balance_assert_exec_results_1231543615.json`
-    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_balance_assert_exec_traffic_rest_1231543615.json`
-    - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill1_balance_assert_exec_traffic_db_1231543615.json`

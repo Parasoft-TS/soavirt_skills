@@ -16,6 +16,13 @@ Create a brand-new `.tst` with generated tests from a WSDL definition using `POS
   - traffic-based generation
   - post-generation customization
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md` (post-create traceability/tagging handoff)
+
 ## 4) Inputs
 - Required:
   - `parent.id` (directory id, for example `/TestAssets`)
@@ -45,10 +52,10 @@ Create a brand-new `.tst` with generated tests from a WSDL definition using `POS
 
 ## 5.1) Service-Definition Source Readiness Preflight
 Run this preflight before `POST /v6/files/tsts/wsdl`:
-1. Confirm source location mode (URL vs file path).
-2. For URL mode, probe the exact WSDL URL and expect `200` from server runtime.
-3. Confirm content matches endpoint expectation (WSDL for this skill).
-4. Confirm `parent.id` exists and is writable.
+1. Apply Skill 050 Profile B for `.tst` generation create/readback compatibility.
+2. Confirm source location mode (URL vs file path).
+3. For URL mode, probe the exact WSDL URL and expect `200` from server runtime.
+4. Confirm content matches endpoint expectation (WSDL for this skill).
 5. If preflight fails, correct source/parent and retry.
 
 ## 6) Procedure
@@ -87,12 +94,7 @@ Run this preflight before `POST /v6/files/tsts/wsdl`:
 - Write operation; rollback by deleting created `.tst`.
 
 ## 11) Reuse Notes
-- Applies to SOAtest: Yes (validated).
+- Primary target: SOAtest.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - API-first authoring required; do not depend on pre-existing generated examples.
-
-## 12) Current Validation Status (2026-03-03)
-- Live validated with user-provided WSDL URL.
-- Evidence:
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill23_create_wsdl_tst_request.json`
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill23_create_wsdl_tst_response.json`
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill23_delete_wsdl_tst_response.json`
+- If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.

@@ -16,6 +16,10 @@ Prevent accidental configuration loss when editing pre-configured tools by requi
   - endpoint-specific create payload design
   - non-tool object update semantics (`files`, `suites` ordering, etc.)
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+
 ## 4) Inputs
 - Required:
   - target tool id
@@ -30,6 +34,8 @@ Prevent accidental configuration loss when editing pre-configured tools by requi
 - Update target is an existing (already configured) tool.
 
 ## 6) Procedure
+0. Apply capability preflight before first tool mutation:
+   - use Skill 050 Profile E for tool/object mutation branches.
 1. Read current tool config:
    - `GET` class-specific endpoint for the tool (for example `/v6/tools/restClients?id=...`, `/v6/tools/dbTools?id=...`, `/v6/tools/jsonValidators?id=...`).
 2. Build PUT payload by merge:
@@ -62,14 +68,11 @@ Prevent accidental configuration loss when editing pre-configured tools by requi
 - Keep a pre-update snapshot (`GET` response) for fast rollback.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated pattern).
-- Applies to Virtualize: Yes (policy-level; endpoint-specific validation pending).
+- Primary target: SOAtest.
+- Also intended as a shared policy surface for other product tool-update flows that expose replace-semantics `PUT` behavior.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Composition rule:
   - load this card before any skill that edits existing tool configurations.
   - `POST` create flows are exempt unless they transition into editing an existing tool instance.
-
-## 11) Current Validation Status (2026-03-04)
-- Validated in current workspace for REST Client updates:
-  - name-only sparse `PUT /v6/tools/restClients` cleared URL/resource settings.
-  - read-merge-write PUT preserved required URL fields while applying intended mutations.
-- Cross-tool policy promoted from this observed behavior to avoid similar regressions in other pre-configured tool types.
+- Non-tool counterpart:
+  - use `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md` for suite/non-tool object PUT operations.

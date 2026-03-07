@@ -24,7 +24,11 @@ TST Content Summarization (YAML-Authoritative)
   - `focusAreas` (for example `environments`, `data sources`, `assertions`, `chained tests`)
 
 ## 6) Procedure
-1. Download YAML via `GET /v6/files/download?id=<tstFileId>`.
+0. Phase A - target resolution (if target identity is unresolved):
+   - allowed endpoints: `GET /v6/children`, `GET /v6/descendants/files`
+   - use only to resolve `tstFileId` and optional focus context.
+   - once `tstFileId` is resolved, transition to Phase B.
+1. Phase B - download YAML via `GET /v6/files/download?id=<tstFileId>`.
 2. Parse YAML structure and configuration:
    - suite/test/tool hierarchy
    - names, `testID`, and nested tool chains
@@ -40,6 +44,23 @@ TST Content Summarization (YAML-Authoritative)
    - Structural summary (what exists)
    - Behavioral summary (what it appears to do)
    - Refactor target map (where common requested edits would apply)
+5. Fail-closed enforcement:
+   - if any forbidden post-download endpoint is called (see 6.1), abort and restart Phase B using YAML evidence only.
+
+## 6.1) YAML-Evidence Boundary Policy (Required)
+- Primary analysis evidence for this skill must come from downloaded YAML content.
+- Before YAML download: only target-resolution reads are allowed (`/v6/children`, `/v6/descendants/files`) when needed.
+- After YAML download begins: do not use API discovery/introspection calls as analysis evidence.
+- Forbidden post-download endpoints (non-exhaustive):
+  - `/v6/children`
+  - `/v6/descendants/files`
+  - `/v6/descendants/assets`
+  - `/v6/assets/data`
+  - `/v6/tools/*`
+  - `/v6/datasources/*`
+- Environment reference exception:
+  - resolving referenced `.env`/`.envs` is allowed for Section B via filesystem-level resolution and `GET /v6/files/download` only.
+  - variable table values in Section B must still be reported from downloaded file content.
 
 ## 7) Output Contract
 - Include:
@@ -55,6 +76,10 @@ TST Content Summarization (YAML-Authoritative)
 - Template compliance is mandatory for default summaries:
   - output sections must appear in this exact order: `0`, `A`, `B`, `C`, `D`
   - do not replace, rename, or omit template sections in default mode
+- Response validity gate:
+  - output is invalid unless sections `0`, `A`, `B`, `C`, `D` appear in exact template order.
+  - freeform/non-template summaries are not allowed for default Skill 007 output.
+  - required section fields must be present; unresolved fields must be emitted as `Unknown (<reason>)`.
 - Include protocol/transport deep detail only when it helps answer the user’s question.
 - Exclude risk/opinion/recommendation sections by default unless user explicitly asks.
 - In Section B, include source context (for example referenced `.envs` filename) but omit implementation-detail narration (for example "downloaded/parsing" mechanics).
@@ -102,12 +127,27 @@ TST Content Summarization (YAML-Authoritative)
 ### Section D Labeling Rule
 - In `Business Flow Summary`, label each flow by suite name directly (for example `Child Test Suite`) rather than `Flow (...)` prefixes.
 
+### 7.3) Common Divergence Traps (Required Handling)
+- Trap: continuing API asset introspection after target resolution.
+  - Required handling: stop API exploration and continue with YAML evidence.
+- Trap: returning narrative summary outside the template.
+  - Required handling: regenerate output in the required `0/A/B/C/D` template structure.
+- Trap: mixing discovery evidence and summary evidence without source distinction.
+  - Required handling: use API reads only for target resolution; all summary claims must be YAML-evidenced (plus `.env`/`.envs` file content for Section B when referenced).
+
 ## 8) Validation
 - Ensure reported suites/tests/tools are present in YAML hierarchy.
 - Ensure reported counts come from YAML traversal.
 - Confirm notable values in the summary (for example URLs, variables, selectors) exist in YAML fields.
 - Confirm active environment in summary matches environment configuration in YAML.
 - If environment reference is used, confirm summary variable table values come from parsed `.env`/`.envs` content.
+- Mandatory pre-response compliance checklist:
+  1. `tstFileId` resolved.
+  2. `.tst` YAML downloaded via `/v6/files/download`.
+  3. No forbidden post-download API calls were used as analysis evidence.
+  4. Template sections `0/A/B/C/D` and required fields are present in exact order.
+  5. Reported structure/flows/values include YAML evidence anchors.
+  6. If `EnvironmentReference` is used, Section B values are evidenced from downloaded `.env`/`.envs` content.
 
 ## 9) Failure Modes
 - Name collisions (for example multiple `Untitled` data sources) can reduce summary specificity.

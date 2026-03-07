@@ -1,222 +1,186 @@
-# Skill Backlog
+# Skill Status and Backlog
+Purpose: provide a contributor-facing status ledger for current skill coverage plus a short active backlog.
 
-## Foundation (Shared REST Lifecycle)
+Use this file to answer:
+- what already exists,
+- what is validated vs only defined,
+- what is actively being improved next,
+- what is deferred, retired, or still missing.
 
-1. List workspace roots and immediate children
-- Endpoint: `GET /v6/children`
-- Status: Defined in `docs/skills/platform/skill-001-shared-introspection.md`
+Do not use this file as the primary operator-facing routing surface.
+- Use `docs/skills/skill-index.md` for routing and navigation.
+- Use individual skill cards for endpoint-accurate behavior.
 
-2. Enumerate descendants by folder and type
-- Endpoint: `GET /v6/descendants/files`
-- Status: Defined in `docs/skills/platform/skill-001-shared-introspection.md`
+## Status Legend
+- **Validated**: documented and backed by runtime evidence in this workspace/project history.
+- **Defined**: card exists and is intended for use, but validation is partial, pending, or policy-level only.
+- **In progress**: active hardening/validation work is underway.
+- **Planned gap**: desired coverage does not yet have a stable card.
+- **Deferred/Retired**: intentionally not being expanded right now.
 
-3. Download file content by id
-- Endpoint: `GET /v6/files/download`
-- Status: Validated (no-op round-trip) in `docs/skills/platform/skill-002-shared-file-transfer.md`
+## Active Priorities
+- Broaden Virtualize coverage beyond shared platform/policy surfaces.
+- Convert remaining partially-defined validation/data-exchange cards into fully validated workflows:
+  - `docs/skills/platform/skill-024-tst-create-from-raml.md`
+  - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+  - `docs/skills/validation/skill-029-json-validator-workflow.md`
+  - `docs/skills/validation/skill-030-xml-validator-workflow.md`
+  - `docs/skills/validation/skill-031-diff-tool-workflow.md`
+- Decide whether the remaining structural-manipulation gaps should become standalone cards or be retired as unneeded complexity:
+  - class-specific move/copy/rename/delete/reorder cards beyond the current family + existing validated coverage
+- Continue refining contributor-facing canonical docs so `skill-index.md`, `backlog.md`, and workflow docs stay tightly aligned.
 
-4. Upload file content by id
-- Endpoint: `POST /v6/files/upload`
-- Status: Validated (no-op round-trip) in `docs/skills/platform/skill-002-shared-file-transfer.md`
+## Skill Status Registry
+### 1) Platform / File Operations
+- `docs/skills/platform/skill-001-shared-introspection.md`
+  - **State:** Defined
+  - **Notes:** canonical shared read/discovery surface; used broadly across runtime routing.
+- `docs/skills/platform/skill-002-shared-file-transfer.md`
+  - **State:** Validated
+  - **Notes:** shared download/upload flow with no-BOM upload safety.
+- `docs/skills/platform/skill-003-server-copy-rename.md`
+  - **State:** Validated
+  - **Notes:** server-side copy + rename file workflow.
+- `docs/skills/platform/skill-004-server-rename.md`
+  - **State:** Validated
+  - **Notes:** in-place file rename workflow.
+- `docs/skills/platform/skill-005-server-delete.md`
+  - **State:** Validated
+  - **Notes:** file delete workflow.
+- `docs/skills/platform/skill-006-safe-file-refactor-composite.md`
+  - **State:** Defined
+  - **Notes:** composite orchestration over validated file primitives.
 
-5. Copy and rename file on server
-- Endpoint: `POST /v6/files/copy`
-- Status: Validated in `docs/skills/platform/skill-003-server-copy-rename.md`
+### 2) Asset Creation / Generation
+- `docs/skills/platform/skill-021-tst-create-empty.md`
+  - **State:** Validated
+  - **Notes:** empty `.tst` create/reuse path is stable.
+- `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+  - **State:** Validated
+  - **Notes:** OpenAPI/Swagger generation path is validated and hardened for ambiguous write recovery.
+- `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
+  - **State:** Validated
+  - **Notes:** WSDL generation path validated.
+- `docs/skills/platform/skill-024-tst-create-from-raml.md`
+  - **State:** Defined
+  - **Notes:** endpoint contract validated; runtime validation still pending a reachable RAML source.
+- `docs/skills/platform/skill-025-tst-create-from-xsd.md`
+  - **State:** Validated
+  - **Notes:** XSD generation path validated.
 
-6. Rename file in place on server
-- Endpoint: `PUT /v6/files`
-- Status: Validated in `docs/skills/platform/skill-004-server-rename.md`
-
-7. Delete file on server
-- Endpoint: `DELETE /v6/files`
-- Status: Validated in `docs/skills/platform/skill-005-server-delete.md`
-
-8. Safe file refactor composite workflow
-- Endpoint: Composite of `POST /v6/files/copy` + `PUT /v6/files` + `DELETE /v6/files`
-- Status: Defined in `docs/skills/platform/skill-006-safe-file-refactor-composite.md`
-
-## Active Skill Card
-
+### 3) Read-Only Analysis
 - `docs/skills/cross-cutting/skill-007-tst-content-summarization.md`
+  - **State:** Defined
+  - **Notes:** retained as the high-level human-friendly summary route.
+- `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
+  - **State:** Defined
+  - **Notes:** foundational datasource discovery card; family-by-family validation still pending.
+- `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
+  - **State:** Defined
+  - **Notes:** canonical deep YAML-based configuration/dataflow analysis route; representative runtime validation remains useful.
 
-## SOAtest-Specific (After foundation)
-
-9. Summarize `.tst` contents with REST + YAML correlation
-- Endpoint: `GET /v6/descendants/assets` + `POST /v6/assets/data` + `GET /v6/files/download`
-- Status: In progress via `docs/skills/cross-cutting/skill-007-tst-content-summarization.md`
-
-10. Identify and classify `.tst` assets under `/TestAssets`
-11. Extract key structure from downloaded `.tst` YAML
-12. Perform safe round-trip update on sandbox `.tst`
-
-## L2 Skill Family: TST Object Manipulation
-
-Family map:
+### 4) Structural Mutation
 - `docs/skills/structure/skill-family-tst-object-manipulation.md`
+  - **State:** Defined
+  - **Notes:** architectural family/intent map, not a full endpoint card.
+- `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
+  - **State:** Defined
+  - **Notes:** generalized move flow exists; further runtime evidence would improve confidence.
+- `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+  - **State:** Defined
+  - **Notes:** broad suite lifecycle card exists; targeted runtime validation can continue incrementally.
+- `docs/skills/structure/skill-047-generated-subset-prune.md`
+  - **State:** Validated
+  - **Notes:** generated-suite prune workflow is validated and reusable.
 
-13. Atomic card: Reorder children in suite
-- Endpoint: `PUT /v6/suites/children`
-- Status: Endpoint behavior validated; card authoring pending
+### 5) Client Tools
+- `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
+  - **State:** Validated
+  - **Notes:** DB Tool lifecycle validated.
+- `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - **State:** Validated
+  - **Notes:** unconstrained REST Client creation/configuration is the current recommended path.
 
-14. Atomic card: Move object to new parent
-- Endpoint: `PUT /v6/suites/move` + related move endpoints by object class
-- Status: Planned
+### 6) Validation Tools
+- `docs/skills/validation/skill-010-json-assertor-workflow.md`
+  - **State:** Defined
+  - **Notes:** create path validated; modify/delete/copy coverage still partial.
+- `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+  - **State:** Validated
+  - **Notes:** XML Assertor workflow validated.
+- `docs/skills/validation/skill-029-json-validator-workflow.md`
+  - **State:** Defined
+  - **Notes:** card exists; runtime validation remains pending.
+- `docs/skills/validation/skill-030-xml-validator-workflow.md`
+  - **State:** Defined
+  - **Notes:** card exists; runtime validation remains pending.
+- `docs/skills/validation/skill-031-diff-tool-workflow.md`
+  - **State:** Defined
+  - **Notes:** card exists; per-mode ignore-setting/runtime matrix validation remains pending.
 
-15. Atomic card: Copy object by class
-- Endpoint: class-specific copy endpoints where available
-- Status: Planned
+### 7) Data Exchange Tools
+- `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
+  - **State:** Validated
+  - **Notes:** XML Data Bank extraction validated.
+- `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+  - **State:** Defined
+  - **Notes:** JSON Data Bank card exists; runtime validation remains pending.
 
-16. Atomic card: Rename object by class
-- Endpoint: class-specific rename endpoints where available
-- Status: Planned
+### 8) Execution Diagnostics
+- `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+  - **State:** Validated
+  - **Notes:** canonical execution payload/results/traffic baseline.
+- `docs/skills/execution-diagnostics/skill-014-test-failure-diagnostics-from-traffic.md`
+  - **State:** Validated
+  - **Notes:** focused failure diagnosis from runtime traffic is validated.
 
-17. Atomic card: Delete object by class
-- Endpoint: class-specific delete endpoints where available
-- Status: Planned
+### 9) Cross-Cutting Policy
+- `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+  - **State:** Defined
+  - **Notes:** policy card for XPath-over-JSON selector semantics.
+- `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
+  - **State:** Defined
+  - **Notes:** deterministic naming policy is established.
+- `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - **State:** Validated
+  - **Notes:** core chaining semantics are established and referenced broadly.
+- `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - **State:** Validated
+  - **Notes:** canonical parent/output mapping authority.
+- `docs/skills/cross-cutting/skill-032-client-header-ownership.md`
+  - **State:** Defined
+  - **Notes:** policy-level card for tool-managed request headers.
+- `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+  - **State:** Validated
+  - **Notes:** read-merge-write policy promoted from observed tool PUT behavior.
+- `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+  - **State:** Defined
+  - **Notes:** canonical runtime API preflight policy; broadly active as a workflow dependency.
+- `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
+  - **State:** Defined
+  - **Notes:** policy-level counterpart to Skill 049 for non-tool objects.
 
-18. Overlay set: object-class constraints
-- Classes: suites, tools, data sources, environments, global properties
-- Status: Planned
+### 10) Composite Orchestration
+- `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+  - **State:** In progress
+  - **Notes:** core orchestration card exists and has completed meaningful live runs, but remains the main hardening surface for multi-step authoring flows.
 
-19. Composite card: copy + move + reorder (paste at target position)
-- Endpoint: Composite orchestration
-- Status: Planned
+## Coverage Gaps / Planned New Cards
+- Structural manipulation coverage beyond current validated cards remains incomplete if the project still wants fine-grained standalone cards for:
+  - class-specific move flows
+  - class-specific copy flows
+  - class-specific rename flows
+  - class-specific delete flows
+  - explicit reorder cards/overlays
+- Virtualize-specific skill coverage remains shallow beyond shared platform/policy surfaces.
+- Additional datasource-family validation evidence is still desirable for Skill 051 and downstream datasource-aware workflows.
 
-20. Atomic card: Data source type-targeted move (generalized)
-- Endpoints: `POST /v6/datasources/move` + YAML fallback via `GET /v6/files/download` / `POST /v6/files/upload`
-- Status: Defined in `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
+## Deferred / Retired
+- REST Client constrained creation cards (`Skills 026/027`)
+  - **State:** Deferred/Retired
+  - **Notes:** current recommended path remains unconstrained REST Client creation via `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`.
 
-21. Atomic card: Test suite creation and configuration (staged)
-- Endpoints: `POST /v6/suites/testSuites` + `PUT /v6/suites/testSuites?id=...` + `GET /v6/suites/testSuites?id=...`
-- Status: Defined in `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md` (option matrix deferred for later validation)
-
-22. Atomic card: JSON Assertor CRUD + copy
-- Endpoints: `POST/PUT/GET /v6/tools/jsonAssertors` + `DELETE /v6/tools` + `POST /v6/tools/copy`
-- Status: Defined in `docs/skills/validation/skill-010-json-assertor-workflow.md` (create validated; modify/delete/copy pending)
-
-23. Cross-cutting card: XPath-over-JSON query semantics
-- Scope: selector-expression fields on JSON tools (JSON Assertor, JSON Data Bank, and similar)
-- Status: Defined in `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
-
-24. Atomic card: Server test execution + XML runtime report retrieval
-- Endpoints: `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined and validated in `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
-
-25. Cross-cutting card: deterministic test naming policy
-- Scope: unique/stable naming for test and tool nodes to avoid `testNames` collisions and default labels (for example `REST Client`)
-- Status: Defined in `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
-
-26. Atomic extension: test-execution traffic diagnostics retrieval
-- Endpoints: `GET /v6/testExecutions/{id}/traffic?entityId=<test-suite-id|traffic-viewer-id>`
-- Status: Defined and validated in `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md` (section 8.2)
-
-27. Atomic card: focused test-failure diagnosis using runtime traffic
-- Endpoints: `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true` + `GET /v6/testExecutions/{id}/traffic`
-- Status: Defined and validated in `docs/skills/execution-diagnostics/skill-014-test-failure-diagnostics-from-traffic.md`
-
-28. Atomic card: DB Tool lifecycle (create/update/copy/move/delete)
-- Endpoints: `POST/PUT/GET /v6/tools/dbTools` + `POST /v6/tools/copy` + `POST /v6/tools/move` + `DELETE /v6/tools` + `PUT /v6/suites/children`
-- Status: Defined and validated in `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
-
-29. Atomic card: XML-output Assertor workflow (cross-tool)
-- Endpoints: `POST/PUT/GET /v6/tools/xmlAssertors` + `POST /v6/tools/move` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined and validated in `docs/skills/validation/skill-016-xml-assertor-workflow.md`
-
-30. Cross-cutting card: output-provider chaining model
-- Scope: tool chaining semantics across standalone tools and output channels; parent-anchor selection defaults.
-- Status: Defined and validated in `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
-
-31. Cross-cutting card: tool output map cheat-sheet (living)
-- Scope: compact, continuously updated map of tool outputs, semantic purpose, and default chaining anchors.
-- Status: Defined and validated in `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
-
-32. Atomic card: XML Data Bank extraction workflow (cross-tool)
-- Endpoints: `POST/PUT/GET /v6/tools/xmlDataBanks` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined and validated in `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
-
-33. Atomic card: REST Client workflow (Service Definition = None)
-- Endpoints: `POST/PUT/GET /v6/tools/restClients` + `DELETE /v6/tools` + `PUT /v6/suites/children` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined and validated in `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
-
-34. Atomic card: REST Client workflow (OpenAPI/Swagger-constrained)
-- Endpoints: `POST/PUT/GET /v6/tools/restClients` + optional `POST /v6/tools/copy` + `PUT /v6/suites/children` + `POST /v6/testExecutions`
-- Status: Deferred/on hold. Current recommended path is unconstrained REST Client creation via `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`.
-
-35. Atomic card: Create new empty `.tst`
-- Endpoint: `POST /v6/files/tsts` (+ optional rollback `DELETE /v6/files?id=...`)
-- Status: Defined and validated in `docs/skills/platform/skill-021-tst-create-empty.md`
-
-36. Atomic card: Create `.tst` from OpenAPI/Swagger service definition
-- Endpoint: `POST /v6/files/tsts/swagger` (+ optional rollback `DELETE /v6/files?id=...`)
-- Status: Defined and validated in `docs/skills/platform/skill-022-tst-create-from-openapi.md`
-
-37. Atomic card: Create `.tst` from WSDL service definition
-- Endpoint: `POST /v6/files/tsts/wsdl` (+ optional rollback `DELETE /v6/files?id=...`)
-- Status: Defined and validated in `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
-
-38. Atomic card: Create `.tst` from RAML service definition
-- Endpoint: `POST /v6/files/tsts/raml` (+ optional rollback `DELETE /v6/files?id=...`)
-- Status: Defined (endpoint contract validated) in `docs/skills/platform/skill-024-tst-create-from-raml.md`; runtime validation pending reachable RAML source
-
-39. Atomic card: Create `.tst` from XSD definition
-- Endpoint: `POST /v6/files/tsts/xsd` (+ optional rollback `DELETE /v6/files?id=...`)
-- Status: Defined and validated in `docs/skills/platform/skill-025-tst-create-from-xsd.md`
-
-40. REST Client constrained creation cards (Skills 026/027)
-- Status: Retired from active skill list for now due to unreliable constrained-mode outcomes; use Skill 020 until constrained API behavior is stable.
-
-41. Atomic card: JSON Data Bank extraction workflow (cross-tool)
-- Endpoints: `POST/PUT/GET /v6/tools/jsonDataBanks` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined in `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`; runtime validation pending.
-
-42. Atomic card: JSON Validator workflow (cross-tool)
-- Endpoints: `POST/PUT/GET /v6/tools/jsonValidators` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined in `docs/skills/validation/skill-029-json-validator-workflow.md`; runtime validation pending.
-
-43. Atomic card: XML Validator workflow (cross-tool)
-- Endpoints: `POST/PUT/GET /v6/tools/xmlValidators` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined in `docs/skills/validation/skill-030-xml-validator-workflow.md`; runtime validation pending.
-
-44. Atomic card: Diff Tool workflow with mode matrix (XML/JSON/Text/Binary)
-- Endpoints: `POST/PUT/GET /v6/tools/diffTools` + `POST /v6/testExecutions` + `GET /v6/testExecutions/{id}/status` + `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-- Status: Defined in `docs/skills/validation/skill-031-diff-tool-workflow.md`; per-mode ignore-setting validation pending.
-
-45. Cross-cutting card: client header ownership policy
-- Scope: define explicit-vs-tool-managed request headers for client tools; default rule is payload-driven `Content-Type` and no manual override.
-- Status: Defined in `docs/skills/cross-cutting/skill-032-client-header-ownership.md`.
-
-46. Composite orchestration card: service-test intent intake and plan branching
-- Scope: gather user testing scope from underspecified requests, summarize choices, and map confirmed plan to atomic generation/validation/data-exchange skills.
-- Status: Defined in `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`; first live run completed with hardening items captured, rerun pending.
-
-47. Atomic card: subset prune for generated service-definition suites/tests
-- Scope: remove non-selected operation suites/tests after full-definition generation so final `.tst` matches user-selected subset intent.
-- Status: Defined and validated in `docs/skills/structure/skill-047-generated-subset-prune.md`.
-
-48. Composite orchestration hardening rerun (Skill 033)
-- Scope: validate source snapshot capture, fresh-id/parent guards, strict subset pruning, deterministic negative naming, and response-output validator/assertor chaining.
-- Status: In progress; rerun executed with source snapshot + subset prune + naming/id guards + response-output JSON validator/assertor chaining.
-
-49. Cross-cutting card: tool PUT read-merge-write update policy
-- Scope: require GET -> mutate -> PUT for editing any pre-configured tool (SOAtest/Virtualize) to preserve existing configuration and prevent sparse PUT regressions.
-- Status: Defined in `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`.
-
-50. Cross-cutting card: server API capability preflight
-- Scope: verify endpoint-method compatibility before orchestration writes and route to documented fallback paths for unsupported methods.
-- Status: Defined in `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`.
-
-51. Cross-cutting card: datasource introspection and column discovery
-- Scope: discover available data sources in `.tst`/suite scope, classify datasource families, resolve columns/sample rows where supported, and emit normalized outputs with explicit unresolved fallback reasons.
-- Endpoints: `GET /v6/descendants/assets` + family-specific `GET /v6/datasources/*` + `GET /v6/datasources/*/columns` + optional `GET /v6/datasources/*/data`.
-- Status: Defined in `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`; runtime validation by datasource family pending.
-
-52. Cross-cutting card: TST configuration analysis and dataflow trace
-- Scope: produce `ExecutionContextMap`, `UnifiedStepFlowMap`, `ValidationMap`, and `DatasourceAvailabilityMap` for deep "how configured?" analysis using downloaded `.tst` YAML as the source of truth.
-- Endpoints: `GET /v6/files/download` only (for `.tst` retrieval).
-- Dependencies: `docs/skills/platform/skill-002-shared-file-transfer.md`.
-- Status: Defined in `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`; runtime validation pending on representative suites.
-
-## Virtualize-Specific (Later)
-
-13. Identify and classify `.pva` assets under `/VirtualAssets`
-14. Reuse shared lifecycle for `.pva` local edit flow
-15. Add deploy-aware upload handling for virtual assets
+## Virtualize Future Track
+- Deeper `.pva` lifecycle and deployment-aware workflows.
+- Virtualize-specific validation of shared policies already written at the cross-cutting/platform layers.
+- Additional operator-facing routing once Virtualize coverage grows beyond the current shared foundation.

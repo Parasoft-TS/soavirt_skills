@@ -92,8 +92,9 @@ This skill is a shared foundation for:
 - No rollback required (no mutation endpoints).
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes.
-- Applies to Virtualize: Not validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared endpoint set:
   - `GET /v6/descendants/assets`
   - `GET /v6/datasources/*`
@@ -103,7 +104,3 @@ This skill is a shared foundation for:
   - dataflow/configuration analysis skill,
   - datasource-aware parameterization skill,
   - structural datasource move/refactor workflows (preflight and impact checks).
-
-## 11) Current Validation Status
-- Defined from API schema and intended as foundational read-only capability.
-- Runtime validation by datasource family should be captured incrementally as evidence in future sessions.

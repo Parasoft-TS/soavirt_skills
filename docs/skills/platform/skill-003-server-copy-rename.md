@@ -15,6 +15,12 @@ Server-Side File Copy and Rename (`/v6/files/copy`)
   - Editing YAML content.
   - Moving files across environments.
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md` for collision checks and post-copy verification.
+
 ## 4) Inputs
 - Required:
   - `baseUrl` (for example `http://localhost:9080/soavirt/api/v6`)
@@ -61,8 +67,9 @@ Server-Side File Copy and Rename (`/v6/files/copy`)
   - Delete mistakenly copied file via `DELETE /v6/files?id=<newId>`.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: yes (`.tst` files).
-- Applies to Virtualize: yes (`.pva` files).
+- SOAtest usage: copy/rename `.tst` files.
+- Virtualize usage: copy/rename `.pva` files.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Preferred over download/upload for copy/rename-only use cases because it avoids client-side encoding and payload round-trip risk.
 
 ## 11) Examples

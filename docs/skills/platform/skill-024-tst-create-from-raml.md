@@ -16,6 +16,13 @@ Create a brand-new `.tst` with generated tests from a RAML definition using `POS
   - traffic-based generation
   - post-generation customization
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md` (post-create traceability/tagging handoff)
+
 ## 4) Inputs
 - Required:
   - `parent.id` (directory id, for example `/TestAssets`)
@@ -45,10 +52,10 @@ Create a brand-new `.tst` with generated tests from a RAML definition using `POS
 
 ## 5.1) Service-Definition Source Readiness Preflight
 Run this preflight before `POST /v6/files/tsts/raml`:
-1. Confirm source location mode (URL vs file path).
-2. For URL mode, probe the exact RAML URL and expect `200` from server runtime.
-3. Confirm content matches endpoint expectation (RAML for this skill).
-4. Confirm `parent.id` exists and is writable.
+1. Apply Skill 050 Profile B for `.tst` generation create/readback compatibility.
+2. Confirm source location mode (URL vs file path).
+3. For URL mode, probe the exact RAML URL and expect `200` from server runtime.
+4. Confirm content matches endpoint expectation (RAML for this skill).
 5. If preflight fails, correct source/parent and retry.
 
 ## 6) Procedure
@@ -87,11 +94,8 @@ Run this preflight before `POST /v6/files/tsts/raml`:
 - Write operation; rollback by deleting created `.tst`.
 
 ## 11) Reuse Notes
-- Applies to SOAtest: Endpoint contract validated from OpenAPI spec.
+- Primary target: SOAtest.
+- Covers the `POST /v6/files/tsts/raml` generation path for RAML source inputs.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - API-first authoring required; no dependency on pre-existing generated examples.
-
-## 12) Current Validation Status (2026-03-03)
-- Contract validated:
-  - endpoint exists: `POST /v6/files/tsts/raml`
-  - request schema: `tstsRamlRequest` (`parent`, `name`, `location` required)
-- Runtime validation pending a reachable live RAML source.
+- If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.

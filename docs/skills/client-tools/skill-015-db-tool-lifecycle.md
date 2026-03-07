@@ -6,7 +6,10 @@ Updates to DB Tool objects must follow baseline gating, output chaining, and rea
 Before performing any mutation or lifecycle operation, perform capability preflight checks as described in Skill 050.
 
 ## Cross-Cutting Dependencies
-Depends on: Skill 017 (output chaining), Skill 049 (read-merge-write update), Skill 050 (capability preflight)
+Depends on:
+- `docs/skills/cross-cutting/skill-017-output-chaining-model.md` (output chaining)
+- `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md` (read-merge-write update)
+- `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` (capability preflight)
 
 # Skill 015: DB Tool Lifecycle (Create/Update/Copy/Move/Delete)
 
@@ -78,6 +81,9 @@ Do not call create endpoints until required values are provided/confirmed.
 - If deterministic ordering is required, full root-child ordering can be read first.
 
 ## 6) Procedure
+0. Apply capability preflight before first write:
+   - use Skill 050 Profile E for tool mutation steps,
+   - use Skill 050 Profile D for execution/traffic-observation validation steps.
 1. Inspect current placement context:
    - `GET /v6/children?id=<suite-id>`
 2. Create DB Tool(s):
@@ -127,8 +133,9 @@ Do not call create endpoints until required values are provided/confirmed.
   - restore previous child order via saved `children` snapshot
 
 ## 10) Reuse Notes
-- Applies to SOAtest: Yes (validated).
-- Applies to Virtualize: not validated.
+- Primary target: SOAtest.
+- Virtualize applicability may differ by product object model and should be checked before reuse.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Related endpoints:
   - `GET/PUT/DELETE /v6/tools`
   - `POST /v6/tools/copy`
@@ -138,26 +145,11 @@ Do not call create endpoints until required values are provided/confirmed.
 - Cross-cutting dependency for chained downstream tools:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - Chain assertors/validators to semantic DB outputs (for example `Results as XML`) rather than diagnostics-first traffic outputs.
-
-## 11) Validated Configuration Pattern
+## 11) Example Configuration Pattern
+Example DB Tool connection fields (example only, not implicit defaults):
 Example validated DB Tool connection fields (example only, not implicit defaults):
 - `toolSettings.connection.local.driver = org.hsqldb.jdbcDriver`
 - `toolSettings.connection.local.url = jdbc:hsqldb:hsql://localhost:9021/parabank`
 - `toolSettings.connection.local.username = sa`
-- validated SQL query field example:
+- SQL query field example:
   - `toolSettings.sqlQuery.value.fixed = select * from Account where ID=12345`
-
-## 12) Current Validation Status (2026-03-03)
-- Created at root suite and placed between root REST client test and first child suite:
-  - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/DB Tool - Root Between Test And Child`
-- Created inside first child suite:
-  - `/TestAssets/Basic_Test_Construction_Learning.tst/Test Suite Edited/Child Test Suite/DB Tool - First Child Suite`
-- Validated lifecycle operations:
-  - update (`PUT /v6/tools/dbTools`)
-  - copy (`POST /v6/tools/copy`)
-  - move (`POST /v6/tools/move`)
-  - delete (`DELETE /v6/tools`)
-- Validated SQL query update/readback on both created tools:
-  - `select * from Account where ID=12345`
-- Evidence folder:
-  - `work/runs/2026-03-03/tst-current/db-tool-skill-build/`

@@ -17,6 +17,12 @@ Shared File Introspection (roots, folders, and typed descendants)
   - Uploading changes.
   - Editing asset internals.
 
+## 3.1) Dependencies
+- Required:
+  - none
+- Additive:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` when this skill is used as a runtime capability-preflight or target-resolution foundation.
+
 ## 4) Inputs
 - Required:
   - `baseUrl` (for example `http://localhost:9080/soavirt/api/v6`)
@@ -38,6 +44,15 @@ Shared File Introspection (roots, folders, and typed descendants)
   - `GET /v6/children?id=<tst-id>` for direct root-suite discovery,
   - `GET /v6/descendants/assets?id=<tst-id>` for broader asset context.
   - Do not assume class-specific file GET endpoints are available for structure reads.
+
+### 6.1) Endpoint Selection Rule (Required)
+- Use `GET /v6/descendants/files` for filesystem discovery only:
+  - folders/files under workspace roots,
+  - `.tst`/`.pva` file resolution by path/name/type.
+- Use `GET /v6/children?id=<asset-id>` and `GET /v6/descendants/assets?id=<asset-id>` for asset-graph discovery only:
+  - suites, tests, tools, datasources, environments, and other in-file objects.
+- Do not use `GET /v6/descendants/assets` with directory ids (for example `/TestAssets`); resolve file ids first.
+- Parse response payloads from the `children` array for both descendants endpoints.
 
 ## 7) Validation
 - Expected HTTP status codes:
@@ -64,8 +79,9 @@ Shared File Introspection (roots, folders, and typed descendants)
 - Rollback plan for writes: Not applicable (no writes in this skill).
 
 ## 10) Reuse Notes
-- Applies to SOAtest: yes, list `.tst` under `/TestAssets` via `type=tst`.
-- Applies to Virtualize: yes, list `.pva` under `/VirtualAssets` via `type=pva`.
+- SOAtest usage: list `.tst` under `/TestAssets` via `type=tst`.
+- Virtualize usage: list `.pva` under `/VirtualAssets` via `type=pva`.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank): not required for this skill.
 
 ## 11) Examples

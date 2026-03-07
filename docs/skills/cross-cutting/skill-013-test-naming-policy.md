@@ -59,5 +59,6 @@ Example:
   - `soatestOptions.testNames` being coarse name-based selection.
 
 ## 11) Reuse Notes
-- Applies to SOAtest: Yes.
-- Applies to Virtualize: partially relevant (naming hygiene still useful), execution-selection behavior no applicable.
+- Primary target: SOAtest.
+- Virtualize naming hygiene may still be useful even when the specific execution-selection constraint differs.
+- Use `docs/skills/backlog.md` for current validation and coverage status.

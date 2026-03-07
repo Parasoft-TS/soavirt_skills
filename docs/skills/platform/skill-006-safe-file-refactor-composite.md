@@ -15,6 +15,8 @@ Safe File Refactor (copy → optional rename → verify → optional cleanup)
 - `skill-004-server-rename.md` (in-place rename)
 - `skill-005-server-delete.md` (cleanup/remove temporary files)
 - Optional verification support: `skill-001-shared-introspection.md`
+- Mandatory guard:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
 
 ## 5) Inputs
 - Required:

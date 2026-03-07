@@ -15,6 +15,12 @@ Shared File Transfer (download for local edit, upload for server update)
   - Semantic editing of YAML internals.
   - Product-specific behavior beyond generic transfer.
 
+## 3.1) Dependencies
+- Required for write flows:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md` for pre/post transfer verification.
+
 ## 4) Inputs
 - Required:
   - `baseUrl` (for example `http://localhost:9080/soavirt/api/v6`)
@@ -74,8 +80,9 @@ Shared File Transfer (download for local edit, upload for server update)
   - Re-download and verify rollback content.
 
 ## 10) Reuse Notes
-- Applies to SOAtest: yes (`.tst` files under `/TestAssets`).
-- Applies to Virtualize: yes (`.pva` files under `/VirtualAssets`).
+- SOAtest usage: transfer `.tst` files under `/TestAssets`.
+- Virtualize usage: transfer `.pva` files under `/VirtualAssets`.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank): transfer layer is shared regardless of tool type.
 
 ## 11) Examples

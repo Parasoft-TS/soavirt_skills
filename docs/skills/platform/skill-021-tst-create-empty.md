@@ -16,6 +16,13 @@ Create a brand-new test asset with default root `Test Suite` using `POST /v6/fil
   - importing service definitions (handled by Skill 022)
   - creating from traffic
 
+## 3.1) Dependencies
+- Required:
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+- Additive:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md` (post-create traceability/tagging handoff)
+
 ## 4) Inputs
 - Required:
   - parent directory id (for example `/TestAssets`)
@@ -37,9 +44,9 @@ Create a brand-new test asset with default root `Test Suite` using `POST /v6/fil
 4. Verify response/resolved id:
    - response `id` ends with `.tst`
 5. Verify root suite with compatibility-safe reads:
-  - preferred: `GET /v6/children?id=<tst-id>` and confirm `testSuite` child exists,
-  - optional context: `GET /v6/descendants/assets?id=<tst-id>`.
-  - do not assume `GET /v6/files/tsts?id=<tst-id>` is supported on every server.
+  - apply Skill 050 Profile B readback route:
+    - primary: `GET /v6/children?id=<tst-id>` and confirm `testSuite` child exists,
+    - optional context: `GET /v6/descendants/assets?id=<tst-id>`.
 6. Optional cleanup:
    - `DELETE /v6/files?id=<created-tst-id>`
 
@@ -72,13 +79,8 @@ Create a brand-new test asset with default root `Test Suite` using `POST /v6/fil
 - Rollback: delete created `.tst` with `DELETE /v6/files?id=...`.
 
 ## 11) Reuse Notes
-- Applies to SOAtest: Yes (validated).
+- Primary target: SOAtest.
+- Use `docs/skills/backlog.md` for current validation and coverage status.
 - API-first rule:
   - Author payload directly from endpoint schema (`tstsRequest`), not from existing workspace templates.
-
-## 12) Current Validation Status (2026-03-03)
-- Validated create and cleanup in this workspace.
-- Evidence artifacts:
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill21_create_empty_tst_request.json`
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill21_create_empty_tst_response.json`
-  - `work/runs/2026-03-03/tst-current/db-tool-root-traffic-run/skill21_delete_empty_tst_response.json`
+- If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
