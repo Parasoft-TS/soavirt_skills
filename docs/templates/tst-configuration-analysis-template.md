@@ -31,7 +31,7 @@ Use this template when producing Skill 052 output.
 	- columns
 
 ## Required Output Rules
-- Section order is mandatory: `0`, `A`, `B`, `C`, `D`.
+- Section order is mandatory: `A`, `B`, `C`, `D`.
 - Do not rename, omit, or reorder template sections in default mode.
 - Preserve YAML order when listing suites/tests/tools/steps.
 - Normalize all variable references to `${...}`.
@@ -39,4 +39,3 @@ Use this template when producing Skill 052 output.
 - `Consumes` must exclude variables used only by assertor/validator definitions when those variables are already represented under `AppliesValidation`.
 - De-duplicate and stable-sort `Consumes` and `Produces` lists.
 - Use `Unknown (<reason>)` for unresolved required fields; do not omit fields.
-- Use confidence labels exactly: `confirmed`, `inferred`, `partial`.

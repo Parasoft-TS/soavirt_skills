@@ -3,9 +3,7 @@
 Use this template when explaining a `.tst` file to users.
 
 ## 0) Output Profile
-- **Audience:** non-technical / mixed / technical
 - **Depth:** brief / standard / deep
-- **Voice:** operator handoff (default) / explanatory walkthrough
 
 ## 0.1) Default Detail Heuristic
 - Determine size from YAML structure counts: number of suites and tests.
@@ -60,3 +58,6 @@ When Environment Reference is used:
 Guidance:
 - Name each flow by the suite that encapsulates it.
 - If the root suite alone is the flow, explicitly state that.
+
+## Required Output Rules
+- Section order is mandatory, only show: `A`, `B`, `C`, `D`.

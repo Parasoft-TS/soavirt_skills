@@ -48,6 +48,7 @@ Define how canonical docs, logs, indexes, templates, and transient artifacts sta
   - temporary diffs and experiment outputs
   - caches and ledgers that are session/runtime evidence rather than reusable guidance
 - Treat `work/` artifacts as optional transient evidence for reproducibility, not as required input for future skill execution.
+- For live runtime tasks, `work/` artifacts may support reproducibility or post hoc comparison, but they do not override canonical runtime targeting and routing rules in `docs/workflow/agent-workflow.md`.
 - Do not encode target-specific facts (for example one file's suite names) into reusable skill cards or workflow docs.
 
 ## Required Follow-Through by Change Type

@@ -36,6 +36,7 @@ This skill is intended for questions like:
   - `depth` (`brief`, `standard`, `deep`)
 
 ## 5) Dependencies
+- `docs/skills/platform/skill-001-shared-introspection.md`
 - `docs/skills/platform/skill-002-shared-file-transfer.md`
 - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
 - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
@@ -60,6 +61,10 @@ This skill is intended for questions like:
 4. Build YAML-only variable/dataflow graph:
   - detect producers from YAML-defined producer tools and extension outputs,
   - detect consumers from non-validation execution/configuration fields (for example endpoint/router/baseUrl/schema/wsdl/query/path/body/connection and SQL fields),
+  - apply step-attribution boundary before emitting `Consumes`:
+    - for a tool-backed step, `Consumes` must be attributed only from the step's primary executable node and other non-validation execution/configuration fields owned by that step,
+    - do not attribute variables from chained assertor/validator child-tool configuration to the parent step's `Consumes`,
+    - treat chained assertor/validator child-tool references as validation scope and emit them under `AppliesValidation`,
   - include environment-variable consumes from `${...}` references in execution/configuration fields.
     - include direct references in the current step (for example router/baseUrl/schema/wsdl fields),
     - include transitive references when the step binds to shared configuration by name (for example DB connection properties referenced through `propertyName`),
@@ -68,6 +73,9 @@ This skill is intended for questions like:
     - walk the entire tool/test YAML subtree and collect parameterization markers from any nested object path,
     - treat discovered `columnName`, `parameterizedValue.column`, and `${...}` placeholders as consumed variables only when they are not in producer-definition blocks and not validation-only fields,
     - normalize consumed values to `${...}` in output.
+  - apply validation-reference precedence before finalizing `Consumes`:
+    - if a variable is discovered only inside chained assertor/validator fields, emit it only under `AppliesValidation` and never under `Consumes`, even if recursive subtree scanning found it first,
+    - only emit a variable in both `Consumes` and `AppliesValidation` when YAML evidence shows it is used by both non-validation execution/configuration fields and validation configuration fields in the same scoped step,
   - resolve explicit datasource binding using `dataSourceNames` as authoritative source
 5. Build validation inventory from YAML:
   - capture assertor/validator tools in scope,
@@ -112,12 +120,16 @@ This skill is intended for questions like:
 ## 6.3) Common Divergence Traps (Required Handling)
 - Trap: continuing API asset introspection after target resolution.
   - Required handling: stop API exploration and continue with YAML-only evidence.
+- Trap: searching repo-local snapshots or `work/` artifacts before Phase A when the prompt names a runtime `.tst`.
+  - Required handling: resolve `tstFileId` via `GET /v6/children` / `GET /v6/descendants/files`, then download via `GET /v6/files/download?id=<tstFileId>`, then continue with YAML-only evidence.
 - Trap: returning narrative summary instead of template contract.
   - Required handling: regenerate output in exact template structure.
 - Trap: mixing discovery evidence and analysis evidence without source distinction.
   - Required handling: use API reads only for target resolution; all analysis claims must be YAML-evidenced.
 - Trap: populating `Consumes` with variables that are only used by assertor/validator tools.
   - Required handling: move those references to `AppliesValidation` and exclude them from `Consumes` unless they are also used by non-validation execution/configuration fields.
+- Trap: recursive subtree scanning finds a validation-child variable before step ownership is resolved.
+  - Required handling: apply the step-attribution boundary first, then apply validation-reference precedence so child assertor/validator references cannot be emitted as parent-step `Consumes`.
 - Trap: missing environment-variable consumes in endpoint/baseUrl/connection configuration.
   - Required handling: extract `${...}` references from execution/configuration fields, including transitive shared-property bindings (for example named DB property references).
 
@@ -127,6 +139,7 @@ This skill is intended for questions like:
 - Ensure all datasources in focus scope appear in `Available Data Sources`.
 - Ensure all validation tools in focus scope appear under `Step Flow -> AppliesValidation`.
 - Ensure `Step Flow -> Consumes` excludes validation-only variable references that are already represented in `AppliesValidation`.
+- Ensure `Step Flow -> Consumes` for a tool-backed step is attributed from the primary executable node's non-validation execution/configuration fields, not from chained assertor/validator child-tool configuration.
 - Ensure `Step Flow -> Consumes` includes environment-variable references used by execution/configuration fields, including transitive shared-property bindings.
 - Ensure each reported consume/produce variable has YAML evidence anchor.
 - Mandatory pre-response compliance checklist:
@@ -136,7 +149,7 @@ This skill is intended for questions like:
   4. Template sections/fields are present in exact order.
   5. Required maps are present (`Execution Context`, `Step Flow`, `Available Data Sources`).
   6. Claims about flows/variables/validations/datasources include YAML evidence anchors.
-  7. `Consumes` excludes validation-only references and includes direct/transitive environment-variable consumes.
+  7. `Consumes` excludes validation-only references, respects step-attribution boundary, and includes direct/transitive environment-variable consumes.
 
 ## 8) Failure Modes
 - YAML variants across product versions may relocate or rename fields.

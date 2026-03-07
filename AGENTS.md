@@ -34,6 +34,7 @@ For task execution, always enforce the rules defined by full policy in `docs/wor
 5. Prefer API-first mutation; use YAML fallback only when a selected skill explicitly allows it.
 6. Reconcile ambiguous writes with deterministic readback before any retry.
 7. For any branch requiring baseline/verification execution or traffic observation, load `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md` before `/v6/testExecutions` or `/traffic` calls.
+8. On every new user prompt, re-run intent routing from `docs/skills/skill-index.md` before reusing the previously selected target skill.
 
 ## Session Start — Required Reading
 Load these documents at session start:
@@ -63,6 +64,7 @@ Do not bypass these gates based on missing dependency declarations in a target c
 For SOAtest/Virtualize runtime asset tasks (for example create/edit/run/diagnose tests, suites, tools, or virtual assets):
 1. Resolve target assets with server API discovery first (for example `GET /children`, then descendants/asset lookup by id/name/path).
 2. Do not use local filesystem search to discover runtime server assets (for example `.tst`/`.pva`/suite/tool ids or names).
+   - This includes repository files, `work/` snapshots, and prior run artifacts; do not use them as substitutes for the required server-API discovery flow.
 3. Local filesystem reads/edits are allowed only when:
    - the user explicitly requests a local-file task by path, or
    - the selected skill explicitly permits download/edit/upload fallback and capability preflight confirms no supported API write path for the intended mutation.
@@ -104,6 +106,7 @@ Routing defaults:
 - Service-test authoring requests -> start with `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`.
 - All other intents -> first apply any explicit routing rules in `docs/skills/skill-index.md`; if none apply, select a domain entry point from `docs/skills/skill-index.md`, then load only required cards per workflow loading policy.
 - For server-API-mediated requests, apply the runtime prelude first; if the task escalates into writes, also apply the write-branch bundle from the workflow loading/escalation rule before target-card dependencies.
+- For each new user prompt, perform a fresh routing pass against `docs/skills/skill-index.md` even when a prior card is already loaded; switch cards when the normalized intent changes.
 
 If intent is unclear, ask a targeted clarification question and route from the normalized intent.
 

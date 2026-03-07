@@ -642,7 +642,7 @@ Purpose: chronological working log of our skill-building sessions.
     - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
     - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
 - Skill 050 in-session reuse hardening:
-  - made capability ledger usage mandatory (lookup before probe, persist after probe).
+  - clarified capability ledger usage as opportunistic transient-cache reuse rather than a required preflight prerequisite.
   - set canonical ledger location:
     - `work/cache/capability-ledger/<baseurl-key>.json`
   - defined canonical cache key tuple:
@@ -652,6 +652,10 @@ Purpose: chronological working log of our skill-building sessions.
     - auth-context change
     - force-refresh
     - contradictory runtime evidence.
+  - clarified cache behavior:
+    - if the ledger is present and readable, reuse it before probing.
+    - if the ledger is missing or unreadable, continue with live preflight.
+    - persist cache updates on a best-effort basis without blocking execution.
 - Skill 050 architecture clarification pass:
   - clarified Skill 050 as a broader runtime API capability-preflight surface, not only a pre-write helper.
   - aligned global/bootstrap routing and loading docs:
@@ -674,6 +678,10 @@ Purpose: chronological working log of our skill-building sessions.
   - removed stale roadmap/build-order content from `docs/skills/structure/skill-family-tst-object-manipulation.md`.
   - updated `docs/skills/skill-card-template.md` so new cards point status tracking to `docs/skills/backlog.md` by default.
   - preserved execution semantics, validation criteria, and stable behavior constraints in the cards while retiring dated progress/evidence framing.
+- Skill 052 attribution-hardening pass:
+  - added an explicit step-attribution boundary so `Consumes` for a tool-backed step is derived from the primary executable node's non-validation execution/configuration fields rather than chained assertor/validator child-tool config.
+  - added a validation-reference precedence rule so recursive subtree scanning cannot emit validation-only child-tool variables as parent-step `Consumes`.
+  - extended Skill 052 divergence traps and validation checklist to enforce the new attribution order.
 
 ### Notes
 - The workflow directory now has distinct runtime vs contributor-maintenance workflow docs instead of one overloaded file.
@@ -684,6 +692,12 @@ Purpose: chronological working log of our skill-building sessions.
 - Cache safety boundary:
   - Skill 050 ledger is capability metadata only and not a replacement for live resource-state reads/writes in other cards.
 - `docs/skills/backlog.md` now functions as contributor continuity/status guidance, while `docs/skills/skill-index.md` remains the operator-facing routing surface.
+- Clarified runtime target-resolution precedence after a contributor review of a mis-executed `.tst` analysis:
+  - updated `AGENTS.md` to say repository files, `work/` snapshots, and prior run artifacts must not substitute for required server-API asset discovery
+  - updated `docs/workflow/agent-workflow.md` to make the same rule explicit in both runtime targeting policy and session-continuity guidance
+  - updated `docs/workflow/documentation-sync-workflow.md` to keep `work/` artifacts clearly optional for runtime tasks
+  - updated `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md` with a concrete divergence trap covering repo-local snapshots and `work/` artifacts before Phase A
+  - added a `docs/logs/decision-log.md` entry for the clarification rationale and impact
 
 ---
 

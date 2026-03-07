@@ -39,9 +39,9 @@ Minimize trial-and-error during server interactions by standardizing per-session
 ## 5) Preconditions
 - Server is reachable on network.
 - Authentication requirements are satisfied.
-## 5.1) Preflight Evidence Artifact (Required)
-- Persist and read capability outcomes from `work/cache/capability-ledger/<baseurl-key>.json`.
-- Ledger lookup is mandatory before any runtime capability probe.
+## 5.1) Preflight Evidence Cache (Optional, Recommended)
+- When available, read and persist capability outcomes in `work/cache/capability-ledger/<baseurl-key>.json`.
+- Treat the ledger as an opportunistic transient cache: if it is present and readable, consult it before probing; if it is missing or unreadable, continue with live preflight and do not block probing.
 - Reuse existing verified results for unchanged cache keys to avoid redundant probing across:
   - multi-skill composition for one operator request,
   - multiple operator prompts in the same ongoing agent session.
@@ -53,7 +53,7 @@ Minimize trial-and-error during server interactions by standardizing per-session
 
 ## 6) Procedure
 1. Determine operation class for the pending branch (see Section 6.1 profiles).
-2. Load capability ledger from `work/cache/capability-ledger/<baseurl-key>.json` (create if missing).
+2. Attempt to load capability ledger from `work/cache/capability-ledger/<baseurl-key>.json`; if it is missing or unreadable, continue with an empty in-memory cache and do not block preflight.
 3. Resolve cache keys for planned endpoint-method checks.
 4. For each planned check:
   - if a valid cache entry exists and no invalidation condition applies (Section 6.4), reuse cached classification and skip runtime probe.
@@ -64,7 +64,7 @@ Minimize trial-and-error during server interactions by standardizing per-session
   - when cached OpenAPI is available, confirm endpoint-path/method presence before runtime probe.
 7. Apply the matching preflight profile from Section 6.1.
 8. Classify each new runtime probe result using Section 6.2.
-9. Update ledger entries for new/invalidated checks and persist ledger file.
+9. Update ledger entries for new/invalidated checks and persist ledger file on a best-effort basis; if cache persistence fails, continue with the current session's preflight results.
 10. Select fallback route only from the matched profile and documented references in Section 7.
 11. Continue execution using only profile-verified endpoint-method pairs.
 
@@ -128,8 +128,8 @@ For each probed endpoint-method pair, store:
 - cache key tuple fields from Section 5.2.
 
 Reuse rules (mandatory):
-- do not re-probe unchanged endpoint-method tuples within the same session when ledger contains valid verified outcomes.
-- always persist ledger updates after preflight completion so subsequent prompts in the same session can reuse them.
+- do not re-probe unchanged endpoint-method tuples within the same session when a valid verified outcome is already available from the loaded ledger or the current session's in-memory preflight state.
+- attempt to persist ledger updates after preflight completion so subsequent prompts in the same session can reuse them when cache write succeeds.
 
 ### 6.4) Cache Invalidation Rules (Mandatory)
 Invalidate and re-probe a cached entry when any of the following is true:

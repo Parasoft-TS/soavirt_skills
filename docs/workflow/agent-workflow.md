@@ -37,6 +37,12 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
   - do not force skill loading from `docs/skills/`.
 - When confidence is low or cues conflict, ask one targeted clarification question before mutation.
 
+### Per-Turn Intent Re-Routing Rule (Global)
+- On every new user prompt, re-run intent routing from `docs/skills/skill-index.md` before reusing the previously selected target skill.
+- Do not assume continuity of prior skill selection when user intent shifts (for example deep analysis -> high-level summary, or summary -> datasource introspection).
+- If a new prompt maps to a different routing rule/card, switch to that target card and load only required dependencies for the new branch.
+- If intent remains ambiguous after re-routing, ask one targeted clarification question before proceeding.
+
 ### Read-Only Analysis Routing Rule (Global)
 - For Parasoft-domain read-only analysis requests, consult `docs/skills/skill-index.md` routing rules before selecting a skill card.
 - When a routing rule in `docs/skills/skill-index.md` selects an analysis card, treat that card's evidence policy and output contract as binding.
@@ -48,6 +54,7 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
   - treat server API as the source of truth for resolving runtime targets (`.tst`/`.pva`, suites, tools, data sources, and ids).
   - resolve target identity via API discovery first (for example `GET /v6/children` then descendants/asset reads).
   - do not use local filesystem search (`ripgrep`, glob scans, local path heuristics) to discover runtime server assets.
+  - do not inspect repository files, `work/` snapshots, or prior run artifacts as a substitute for API-first runtime asset resolution when the task names a runtime asset.
 - API-first mutation policy:
   - if a supported API write path exists, use API mutation.
   - use download/edit/upload only when file content must actually change and no suitable API mutation path is available for the intended operation.
@@ -126,4 +133,4 @@ This policy prevents local-search misrouting while preserving legitimate YAML fa
   - `docs/logs/decision-log.md`
   - include `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` for server-API runtime work
 - Use `docs/skills/skill-index.md` as the routing surface after re-intake.
-- Optionally review latest transient run artifacts under `work/runs/<date>/<run-name>/` when runtime context is relevant.
+- Optionally review latest transient run artifacts under `work/runs/<date>/<run-name>/` when runtime context is relevant, but treat them as supplementary evidence only; they must not replace API-first target resolution when the active workflow requires server-side discovery.

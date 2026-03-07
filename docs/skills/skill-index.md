@@ -157,17 +157,18 @@ Use for multi-step conversational intake and cross-skill planning/execution.
 - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
 
 ## Selection Heuristic
-1. Determine whether the request is:
+1. For each new user prompt, re-run this routing heuristic before reusing any previously selected target card.
+2. Determine whether the request is:
    - authoring/generation
    - read-only analysis
    - structural mutation
    - tool lifecycle/configuration
    - execution diagnostics
-2. Apply any explicit routing registry above.
-3. If no explicit routing rule applies, choose the smallest matching skill family from the Primary Navigation section.
-4. Load the target card and its declared dependencies.
-5. For server-API-mediated Parasoft requests, also apply the workflow-mandated runtime prelude from `docs/workflow/agent-workflow.md`; for write-capable requests, also apply the operation-class bundles.
-6. Avoid loading unrelated cards.
+3. Apply any explicit routing registry above.
+4. If no explicit routing rule applies, choose the smallest matching skill family from the Primary Navigation section.
+5. Load the target card and its declared dependencies.
+6. For server-API-mediated Parasoft requests, also apply the workflow-mandated runtime prelude from `docs/workflow/agent-workflow.md`; for write-capable requests, also apply the operation-class bundles.
+7. Avoid loading unrelated cards.
 
 ## Architectural Layering Model (Secondary View)
 This section is for dependency reasoning and long-term architecture. It is not the primary operator-facing navigation model.
