@@ -47,3 +47,6 @@ SOAtest/Virtualize use a custom interoperability engine that maps XPath-style se
 - Virtualize behavior may differ by tool family and should be checked before reuse.
 - Use `docs/skills/backlog.md` for current validation and coverage status.
 - Should be loaded as a dependency whenever configuring selector expressions on JSON payload tools.
+- Boundary with XML scalar extraction normalization:
+  - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md` governs XML scalar text-node normalization.
+  - JSON selector fields should remain in XPath-over-JSON form and generally should not be rewritten solely to append `/text()`.

@@ -28,6 +28,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+  - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
 
 ## 4) Inputs
 - Required:
@@ -81,6 +82,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - for `regularExpressionAssertion`, treat patterns as full-string match semantics by default:
     - use explicit wildcard wrapping for contains intent (for example `.*token.*`),
     - state case intent explicitly (case-sensitive default unless configured otherwise).
+  - for scalar XML value comparisons, apply Skill 054 XPath normalization and use text-node terminal selectors when needed (for example `/account/balance/text()`).
 5. Read back assertor to confirm persisted settings.
 6. Optional copy flow:
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
@@ -92,9 +94,8 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 9. If XML parser errors occur (for example `Content is not allowed in prolog`), treat it as input-binding mismatch and re-check the chosen output-provider/input source.
 
 ## 6.0) Authoring Rule (API-First)
-- Construct new XML Assertor payloads directly from REST API schema + skill semantics.
-- Existing XML Assertor instances in the workspace are optional references for sanity checks only.
-- Do not require pre-built examples to author new assertions.
+- Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
+- Construct XML Assertor payloads from REST API schema + skill semantics.
 
 ## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
 This example is shape-only and must not be copied with literal values.

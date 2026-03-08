@@ -1,6 +1,50 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-08 (Exemplar-efficiency centralization + dedup cleanup)
+
+### Actions Completed
+- Added centralized exemplar-lookup efficiency guard to:
+  - `docs/workflow/agent-workflow.md` (Decision Rule section)
+- Hardened DB Tool authoring payload guidance in:
+  - `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
+  - added `6.0` API-first authoring rule reference to global policy
+  - added `6.0.1` minimal create/update payload-shape examples
+- Reduced duplicated per-card authoring wording and standardized references to global policy in:
+  - `docs/skills/validation/skill-010-json-assertor-workflow.md`
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+  - `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
+  - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+  - `docs/skills/validation/skill-029-json-validator-workflow.md`
+  - `docs/skills/validation/skill-030-xml-validator-workflow.md`
+- Updated decision rationale in:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass intentionally kept operation-specific skill behavior in individual cards while moving anti-pattern prevention (workspace exemplar scanning when canonical shapes exist) to the runtime-global policy surface.
+## Session 2026-03-08 (XPath scalar-normalization hardening)
+
+### Actions Completed
+- Added new cross-cutting selector policy card:
+  - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
+- Wired Skill 054 as a dependency in databank/assertor cards:
+  - `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+  - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+  - `docs/skills/validation/skill-010-json-assertor-workflow.md`
+- Added XML-first normalization guidance:
+  - for XML scalar extraction/assertion intent, normalize to text-node selectors (append `/text()` when needed).
+- Added explicit JSON boundary guidance:
+  - for JSON XPath-over-JSON selectors, do not require XML text-node normalization.
+- Updated cross-cutting semantics/reference surfaces:
+  - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- The hardening was prompted by a validated runtime failure mode where XML element-node extraction propagated serialized tags into downstream URL substitution.
+- Policy now treats selector normalization as a canonical cross-cutting dependency instead of repeating ad hoc guidance in each tool workflow card.
 
 ## Session 2026-03-07 (Skill hardening follow-up)
 

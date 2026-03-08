@@ -28,6 +28,7 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+  - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
 
 ## 4) Inputs
 - Required:
@@ -74,9 +75,8 @@ This skill supports case-by-case assertion authoring composed from user intent (
 7. Copy with `POST /v6/tools/copy` (`from.id`, `to.parent.id`, optional `to.name`) and verify new id placement.
 
 ## 6.0) Authoring Rule (API-First)
-- Construct new JSON Assertor payloads directly from REST API schema + skill semantics.
-- Existing JSON Assertor instances in the workspace are optional references for sanity checks only.
-- Do not require pre-built examples to author new assertions.
+- Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
+- Construct JSON Assertor payloads from REST API schema + skill semantics.
 
 ## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
 This example is shape-only and must not be copied with literal values.
@@ -145,6 +145,7 @@ Rules:
     - mostly static response data -> prefer Diff Tool JSON mode for simpler full-response comparison (see Skill 031),
     - when unsure, start with Diff Tool; switch to JSON Assertor if the ignored-differences list grows large.
 4. Configure selectors with XPath-style expressions (Skill 011), not JSONPath.
+  - Skill 054 boundary: XML scalar text-node normalization (`/text()`) is not required for JSON selectors; keep XPath-over-JSON selector form.
 5. Select assertion type to match data semantics:
   - numeric parity/range -> `numericAssertion` / `numericRangeAssertion`
   - string/domain/pattern -> `regularExpressionAssertion`

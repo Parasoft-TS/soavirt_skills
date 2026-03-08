@@ -29,6 +29,8 @@ Do not use this file as the primary operator-facing routing surface.
 - Decide whether the remaining structural-manipulation gaps should become standalone cards or be retired as unneeded complexity:
   - class-specific move/copy/rename/delete/reorder cards beyond the current family + existing validated coverage
 - Continue refining contributor-facing canonical docs so `skill-index.md`, `backlog.md`, and workflow docs stay tightly aligned.
+- Validate and tune the new cross-cutting XPath scalar-normalization policy in mixed XML/JSON tool chains:
+  - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
 
 ## Skill Status Registry
 ### 1) Platform / File Operations
@@ -159,6 +161,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
   - **State:** Defined
   - **Notes:** policy-level counterpart to Skill 049 for non-tool objects.
+- `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
+  - **State:** Defined
+  - **Notes:** centralizes XML scalar-selector `/text()` normalization guidance with explicit JSON boundary behavior.
 
 ### 10) Composite Orchestration
 - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`

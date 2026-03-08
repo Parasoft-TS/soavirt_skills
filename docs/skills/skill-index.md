@@ -138,6 +138,7 @@ Use these as required dependencies when a target skill calls for them. These are
 #### Naming / Query / Semantics
 - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
 - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
+- `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
 
 #### Output Chaining / Tool Attachment
 - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`

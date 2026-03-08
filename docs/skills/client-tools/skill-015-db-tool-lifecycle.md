@@ -135,6 +135,68 @@ Do not call create endpoints until required values for the selected mode are pro
 7. Delete temporary/obsolete tools:
    - `DELETE /v6/tools?id=<tool-id>`
 
+## 6.0) Authoring Rule (API-First)
+- Follow global authoring + exemplar-efficiency policy in:
+  - `docs/workflow/agent-workflow.md` (Decision Rule).
+- Build DB Tool payloads from user input + REST API schema + this card's field model.
+
+## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
+This example is shape-only and must not be copied with literal values.
+
+Rules:
+- Replace all `{{...}}` placeholders from user-provided values and confirmed runtime intent.
+- Do not reuse sample ids/names/driver/url/query literals unless explicitly requested.
+- For updates, use `PUT /v6/tools/dbTools?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049.
+
+Configured create shape:
+```json
+{
+  "parent": {
+    "id": "{{PARENT_SUITE_ID}}"
+  },
+  "name": "{{DB_TOOL_NAME}}",
+  "toolSettings": {
+    "connection": {
+      "local": {
+        "driver": "{{JDBC_DRIVER_CLASS}}",
+        "url": "{{JDBC_URL}}",
+        "username": "{{DB_USERNAME}}",
+        "password": "{{DB_PASSWORD_OR_EMPTY}}"
+      }
+    },
+    "sqlQuery": {
+      "value": {
+        "type": "fixed",
+        "fixed": "{{SQL_QUERY_TEXT}}"
+      }
+    }
+  }
+}
+```
+
+Update shape (read-merge-write envelope):
+```json
+{
+  "name": "{{DB_TOOL_NAME}}",
+  "toolSettings": {
+    "connection": {
+      "local": {
+        "driver": "{{JDBC_DRIVER_CLASS}}",
+        "url": "{{JDBC_URL}}",
+        "username": "{{DB_USERNAME}}",
+        "password": "{{DB_PASSWORD_OR_EMPTY}}"
+      }
+    },
+    "sqlQuery": {
+      "value": {
+        "type": "fixed",
+        "fixed": "{{SQL_QUERY_TEXT}}"
+      }
+    }
+  }
+}
+```
+
 ## 7) Validation
 - Expected success pattern:
   - create/update/copy/move/read/delete calls return `200` on valid inputs.

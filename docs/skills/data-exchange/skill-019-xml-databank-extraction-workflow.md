@@ -28,6 +28,7 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+  - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
 
 ## 4) Inputs
 - Required:
@@ -62,18 +63,20 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
      - `dataSourceColumn.customColumn.customColumnName`
      - `selectedElement.xpath`
      - `selectedElement.options.contentOnly` (for example `textContent`)
-4. Read back tool and verify mappings persisted.
-5. Optional copy flow:
+4. Apply XPath scalar normalization (Skill 054):
+  - when extraction intent is scalar text (`contentOnly`) for downstream value consumers, normalize terminal selectors to text nodes (append `/text()` when needed).
+  - do not apply text-node normalization for subtree/entire-element intent.
+5. Read back tool and verify mappings persisted.
+6. Optional copy flow:
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
   - verify copied XML Data Bank via `GET /v6/tools/xmlDataBanks?id=<new-id>`.
-6. Optional delete flow:
+7. Optional delete flow:
   - `DELETE /v6/tools?id=<databank-id>` and verify absence in descendants/children.
-7. Execute focused run and confirm no parser/input-binding mismatch.
+8. Execute focused run and confirm no parser/input-binding mismatch.
 
 ## 6.0) Authoring Rule (API-First)
-- Construct new XML Data Bank payloads directly from REST API schema + skill semantics.
-- Existing XML Data Bank instances in the workspace are optional references for sanity checks only.
-- Do not require pre-built examples to author new extraction mappings.
+- Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
+- Construct XML Data Bank payloads from REST API schema + skill semantics.
 
 ## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
 This example is shape-only and must not be copied with literal values.

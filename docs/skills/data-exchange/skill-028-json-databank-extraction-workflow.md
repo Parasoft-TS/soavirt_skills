@@ -31,6 +31,7 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+  - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
 
 ## 4) Inputs
 - Required:
@@ -69,6 +70,7 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
      - selected element XPath
 4. Apply selector rule:
    - for JSON payloads, provide XPath-style selectors (Skill 011), not JSONPath.
+  - Skill 054 boundary: XML text-node normalization (`/text()`) is not required for JSON selector fields; keep JSON selectors in XPath-over-JSON form.
 5. Read back tool and verify mappings persisted.
 6. Optional copy flow:
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
@@ -78,9 +80,8 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
 8. Execute focused run and confirm extraction is stable.
 
 ## 6.0) Authoring Rule (API-First)
-- Construct new JSON Data Bank payloads directly from REST API schema + skill semantics.
-- Existing JSON Data Bank instances in the workspace are optional references for sanity checks only.
-- Do not require pre-built examples to author new extraction mappings.
+- Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
+- Construct JSON Data Bank payloads from REST API schema + skill semantics.
 
 ## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
 This example is shape-only and must not be copied with literal values.

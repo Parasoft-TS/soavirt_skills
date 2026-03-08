@@ -61,6 +61,9 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - For assertion authoring, compose logic from the user prompt at runtime (field/rule/source), and avoid codifying domain-specific fixed assertion recipes as mandatory patterns.
 - For Diff/Assertor stabilization branches, summarize runtime differences in human-readable form (field/XPath/property and expected vs actual) and require explicit user confirmation before adding ignore rules.
 - Build new tool configurations from endpoint contracts and skill rules first; existing workspace tool instances may be used only as optional verification, never as a required source template.
+- Exemplar-lookup efficiency guard:
+  - when the selected skill already provides sufficient canonical payload-shape guidance, do not scan the workspace for same-type tool exemplars before create/update.
+  - prefer user inputs + endpoint schema + skill guidance; use workspace exemplars only as optional troubleshooting evidence after a concrete payload-shape issue appears.
 
 ### Capability Preflight Gate (Global)
 - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` is the canonical preflight policy surface for server-API runtime work.

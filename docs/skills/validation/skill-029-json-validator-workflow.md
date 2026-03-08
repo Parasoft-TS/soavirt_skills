@@ -112,9 +112,8 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
 9. Execute focused run and inspect runtime results.
 
 ## 6.0) Authoring Rule (API-First)
-- Construct new JSON Validator payloads directly from REST API schema + skill semantics.
-- Existing JSON Validator instances in the workspace are optional references for sanity checks only.
-- Do not require pre-built examples to author validator configuration.
+- Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
+- Construct JSON Validator payloads from REST API schema + skill semantics.
 
 ## 6.0.1) Minimal Payload Shape Example (Disambiguation Only)
 This example is shape-only and must not be copied with literal values.

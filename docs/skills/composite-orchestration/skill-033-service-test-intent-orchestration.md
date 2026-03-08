@@ -67,6 +67,14 @@ Conversation-first default: favor natural-language solicitation and interpretati
 2.4 Do not call `GET /v6/descendants/assets` with directory ids (for example `/TestAssets`); resolve file/asset ids first.
 2.5 Parse descendants responses from `children` arrays and validate expected type before branching.
 
+### 6.1.3 Authoring Efficiency Boundary (Required)
+2.6 Follow global exemplar-efficiency policy from `docs/workflow/agent-workflow.md` (Decision Rule):
+  - do not perform workspace-wide same-type exemplar scans before create/update when selected skills provide sufficient canonical payload-shape guidance,
+  - use user inputs + endpoint schema + selected skill guidance as the primary payload-authoring path.
+2.7 Allowed targeted readback remains:
+  - inspect only in-scope producer/test artifacts needed for the active branch (for example baseline media-type evidence, generated test context, or post-write verification),
+  - do not broaden this into general \"find another tool of same type\" lookup behavior.
+
 ### 6.2 Source Strategy Branch
 3. If service definition/schema is missing or ambiguous, ask targeted question and wait.
 4. If user has service definition/schema, confirm format and location type (URL vs file path).
