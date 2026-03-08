@@ -101,6 +101,30 @@ Key details:
    - results JSON
   - extracted `xmlReport` (base64 payload) and decoded `.xml` file.
   - optional traffic diagnostics responses.
+## 6.0) Traffic Response Shape Notes (Required)
+- Treat traffic responses as shape-sensitive; do not assume `toolSettings` exists at the response root.
+- Suite-level traffic discovery commonly returns a wrapper such as:
+```json
+{
+  "trafficViewers": [
+    {
+      "id": "<traffic-viewer-id>",
+      "name": "Traffic Viewer",
+      "toolSettings": {
+        "testRuns": []
+      }
+    }
+  ]
+}
+```
+- Viewer-id traffic retrieval may still return a `trafficViewers[]` wrapper on some servers rather than exposing `toolSettings` at the root.
+- Practical read rule:
+  1. inspect `trafficViewers[0]` first when present,
+  2. then inspect `toolSettings.testRuns`,
+  3. only treat root-level `toolSettings` as authoritative when no wrapper is present.
+- For datasource-driven runs, representative request/response evidence commonly lives under:
+  - `trafficViewers[0].toolSettings.testRuns[].dataSourceRows.values[].trafficData.request`
+  - `trafficViewers[0].toolSettings.testRuns[].dataSourceRows.values[].trafficData.response`
 
 ## 6.1) Execution Analysis Triad (Reusable Default)
 Use this triad as the default post-run workflow for diagnostics:
@@ -133,6 +157,9 @@ When in doubt, complete all three steps before drawing conclusions about failure
 - Empty `testRuns` from viewer traffic despite execution:
   - can occur for non-target viewers or sparse run capture,
   - requires viewer reselection and XML-report fallback before concluding missing traffic evidence.
+- Wrong traffic-path assumption:
+  - some viewer-id lookups still return `trafficViewers[]` wrappers,
+  - assuming root-level `toolSettings` without checking for the wrapper can produce false null/empty reads.
 
 ## 8.1) Known Execution-Selection Constraints
 - `soatestOptions.testNames` is **coarse name-based filtering**, not suite-path addressing.

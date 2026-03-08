@@ -53,6 +53,18 @@ Shared File Introspection (roots, folders, and typed descendants)
   - suites, tests, tools, datasources, environments, and other in-file objects.
 - Do not use `GET /v6/descendants/assets` with directory ids (for example `/TestAssets`); resolve file ids first.
 - Parse response payloads from the `children` array for both descendants endpoints.
+### 6.2) Common Response Type Literals (Practical Reference)
+- File/root discovery commonly returns API `type` values such as:
+  - `directory`
+  - `tst`
+  - `pva`
+- Asset-graph discovery commonly returns API `type` values such as:
+  - `testSuite`
+  - `restClient`
+  - `excelDataSource`
+  - `environment`
+- These are API literals, not UI labels.
+- When filtering or matching objects, use the observed `type` values returned by the API instead of guessing from display names such as "suite" or "REST Client".
 
 ## 7) Validation
 - Expected HTTP status codes:

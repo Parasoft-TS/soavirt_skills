@@ -46,7 +46,7 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
 - Parent output channel emits JSON payloads.
 - Parent id resolves to an output-provider location that accepts chained tools.
 - Target producer is an API client tool response output (REST Client today; SOAP/Messaging client outputs when those skills are available).
-- Runtime response media type for target output is JSON (confirmed from baseline run evidence).
+- Runtime response media type for target output is JSON and must be confirmed from baseline run evidence before family selection.
 - JSON selector/query rule must be loaded when selector fields are used:
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
   - use XPath-style selectors for JSON fields, not JSONPath.
@@ -64,9 +64,12 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
 1.1 Fail-closed guard:
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring JSON Validator.
   - do not guess or locally invent parent-path mappings.
-1.1 Run baseline execution and confirm observed response media type is JSON before creating/updating JSON Validator.
-  - if payload is XML, route to Skill 030.
-  - if payload is plain text, route to Skill 031 (text mode).
+1.2 Fail-closed media-type gate:
+  - run baseline execution and inspect response content type/payload from runtime traffic before create/update.
+  - if observed payload is JSON, continue JSON Validator flow.
+  - if observed payload is XML, route to Skill 030 instead of creating/updating JSON Validator.
+  - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating JSON Validator.
+  - do not select JSON Validator only because the producer is a REST Client or other API client tool.
 2. Resolve validator identity before writes (idempotent upsert rule):
   - derive deterministic target id as `<parent-id>/<validator-name>`,
   - if that id exists, update it in place,
@@ -174,6 +177,7 @@ Rules:
 - Standalone validator with no input: if created under a suite (not under an output provider), the validator has no chained input to validate and fails with `Invalid JSON: unable to find a JSON object...`.
 - Selector mismatch when JSONPath is used where XPath-over-JSON is expected.
 - Media-type mismatch when JSON Validator is attached to XML/plain-text traffic.
+- Family-selection drift when JSON Validator is chosen from producer class or expectation instead of observed runtime payload type.
 - Scope-violation risk when JSON Validator is attached to DB Tool outputs (JSON Validator workflow is API-client response-output only).
 - Missing schema/service-definition configuration when default schema-validation mode is expected.
 - User prompt required when schema/service-definition cannot be inferred may pause orchestration until input is provided (intentional blocking behavior).

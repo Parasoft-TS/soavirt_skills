@@ -36,6 +36,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - XML Assertor name
   - assertion XPath and expected value
 - Optional:
+  - `dataSource` binding when expected values come from a suite/object datasource column
   - `trimContent` option
   - execution filter (`testNames`) for focused runtime checks
   - copy target parent/name
@@ -44,7 +45,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 - API reachable and authenticated.
 - Target test/tool produces XML output at runtime.
 - Parent id resolves to an output-provider location that accepts assertor children.
-- Runtime response media type for target output is XML (confirmed from baseline run evidence).
+- Runtime response media type for target output is XML and must be confirmed from baseline run evidence before family selection.
 - Baseline execution evidence is required before assertion authoring decisions.
 
 ## 6) Procedure
@@ -57,17 +58,16 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 1.1 Fail-closed guard:
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating the XML Assertor.
   - do not guess or locally invent parent-path mappings.
-2. Run baseline execution first and observe live XML payload shape/content from runtime traffic.
-  - if observed payload is not XML, stop XML Assertor flow and route validation intent to the appropriate tool family:
-    - JSON payload -> Skill 010/029 family
-    - plain text payload -> Skill 031 Diff Tool in text mode.
-  - if the user explicitly requested XML Assertor but observed payload is not XML, ask for one of two explicit actions before continuing:
-    - switch to matching tool family for observed media type, or
-    - update producer behavior to emit XML, then rerun baseline.
-  - if observed payload is XML, select between XML Assertor and Diff Tool XML mode based on response data volatility:
-    - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer XML Assertor with targeted XPath assertions on stable fields,
-    - mostly static response data -> prefer Diff Tool XML mode for simpler full-response comparison (see Skill 031),
-    - when unsure, start with Diff Tool; switch to XML Assertor if the ignored-differences list grows large.
+1.2 Fail-closed media-type gate:
+  - run baseline execution and inspect response content type/payload from runtime traffic before create/update.
+  - if observed payload is XML, continue XML Assertor flow.
+  - if observed payload is JSON, route to Skill 010/029 instead of creating/updating XML Assertor.
+  - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating XML Assertor.
+  - do not select XML Assertor only because the producer is a REST Client, DB Tool, or other tool that often emits XML.
+2. If observed payload is XML, select between XML Assertor and Diff Tool XML mode based on response data volatility:
+  - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer XML Assertor with targeted XPath assertions on stable fields,
+  - mostly static response data -> prefer Diff Tool XML mode for simpler full-response comparison (see Skill 031),
+  - when unsure, start with Diff Tool; switch to XML Assertor if the ignored-differences list grows large.
 3. Create XML Assertor:
    - `POST /v6/tools/xmlAssertors`
    - payload must include `parent.id` and typically `name`.
@@ -78,6 +78,11 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
      - `type: valueAssertion`
      - `selectedElement.xpath`
      - `configuration.expectedValue` (`type: fixed`, `fixed: ...`)
+  - when expected values come from datasource columns:
+    - set tool-level `dataSource` to the datasource name accepted in the current object context,
+    - encode `configuration.expectedValue` as `type=parameterized` with `parameterized.columnName=<column>`,
+    - do not encode datasource columns as fixed `${column}` literals,
+    - do not assume the full datasource asset id is accepted when the tool only exposes local datasource names.
   - when using `hasContentAssertion`, set `selectedElement.extractionType=entireElement` (do not use `contentOnly` for this assertion type).
   - for `regularExpressionAssertion`, treat patterns as full-string match semantics by default:
     - use explicit wildcard wrapping for contains intent (for example `.*token.*`),
@@ -109,6 +114,7 @@ Rules:
 - Do not reuse sample ids/names/xpaths/expected values unless explicitly requested.
 - For assertion types not shown here, keep the same envelope (`type` + matching assertion object + `selectedElement` + `configuration`) and use OpenAPI (`assertionXml` + matching `<type>Assertion` schema).
 - For updates, use `PUT /v6/tools/xmlAssertors?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049 (same assertion envelope shape, no `parent` field).
+- For datasource-backed expected values, set tool-level `dataSource` to the datasource name accepted in the current object context and encode expected-value fields as `type=parameterized` with `parameterized.columnName=<column>`; do not encode datasource columns as fixed `${column}` literals.
 
 ```json
 {
@@ -152,17 +158,7 @@ Rules:
   - whether expected values are literals or variables from upstream tools
 2. Chain XML Assertor under semantic response output anchor:
   - `<producer-tool-id>/Response Traffic` (or other Skill 018-mapped semantic XML output channel)
-3. Run a baseline execution first and observe live response payload shape/content from runtime traffic.
-  - if observed payload is not XML, stop XML Assertor flow and route validation intent to the appropriate tool family:
-    - JSON payload -> Skill 010/029 family
-    - plain text payload -> Skill 031 Diff Tool in text mode.
-  - if the user explicitly requested XML Assertor but observed payload is not XML, ask for one of two explicit actions before continuing:
-    - switch to matching tool family for observed media type, or
-    - update producer behavior to emit XML, then rerun baseline.
-  - if observed payload is XML, select between XML Assertor and Diff Tool XML mode based on response data volatility:
-    - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer XML Assertor with targeted assertions on stable fields,
-    - mostly static response data -> prefer Diff Tool XML mode for simpler full-response comparison (see Skill 031),
-    - when unsure, start with Diff Tool; switch to XML Assertor if the ignored-differences list grows large.
+3. Apply the fail-closed media-type gate from Procedure step 1.2 before authoring assertion logic.
 4. Configure selectors with XPath expressions against observed XML payload structure.
 5. Select assertion type to match data semantics:
   - value/parity checks -> `valueAssertion` / `numericAssertion`
@@ -176,6 +172,7 @@ Rules:
     - for substring intent, use explicit wildcard patterning (for example `.*token.*`),
     - declare case intent explicitly (case-sensitive default unless configured otherwise).
 6. Configure assertions based on user intent against observed payload.
+  - when expected values come from datasource columns, set tool-level `dataSource` to the datasource name available in the current object context and encode expected-value fields as parameterized column references rather than fixed `${column}` literals.
 7. Validate with focused verification run and collect run-results-traffic evidence triad.
 
 ## 7) Validation
@@ -191,6 +188,9 @@ Rules:
 - Runtime XML parse failure indicates non-XML input binding, even when assertion XPath is valid.
 - Media-type mismatch risk when XML Assertor is attached to JSON/plain-text traffic.
 - False mismatch risk when `hasContentAssertion` uses `selectedElement.extractionType=contentOnly`; use `entireElement` for this assertion type.
+- `Variable "<column>" could not be resolved` usually means a datasource-backed expectation was modeled as a fixed literal/variable string instead of a parameterized datasource column reference.
+- `No Data Source column named <column>` usually means tool-level `dataSource` is missing, uses the wrong datasource name for the current object context, or uses a full asset id where the tool expects the local datasource name.
+- Secondary numeric/string formatting errors can appear after datasource-binding failures and should not be treated as the primary root cause until binding is corrected.
 - copy placement/name collisions can produce unintended target placement unless readback is performed.
 - Over-softening risk: relaxing strict assertion intent after first failure can hide real regressions.
 

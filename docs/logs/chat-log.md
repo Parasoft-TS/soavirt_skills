@@ -1,6 +1,31 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-08 (Validation-family media-type gate + datasource binding hardening)
+
+### Actions Completed
+- Hardened assertor cards with explicit datasource-backed expected-value guidance:
+  - `docs/skills/validation/skill-010-json-assertor-workflow.md`
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+  - added tool-level `dataSource` + `parameterized.columnName` guidance for datasource-column expectations
+  - added failure-mode cues for unresolved-variable / missing-datasource-column errors
+- Normalized fail-closed runtime media-type gating across validation-family cards:
+  - `docs/skills/validation/skill-010-json-assertor-workflow.md`
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+  - `docs/skills/validation/skill-029-json-validator-workflow.md`
+  - `docs/skills/validation/skill-030-xml-validator-workflow.md`
+  - `docs/skills/validation/skill-031-diff-tool-workflow.md`
+  - clarified that tool family/mode selection must follow observed runtime payload type, not producer class alone
+- Added traffic response-shape clarification to:
+  - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+  - documented `trafficViewers[]` wrapper expectations for both suite-level and viewer-level reads
+- Added common API type-literal reference to:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
+  - clarified practical asset/file `type` values such as `testSuite`, `restClient`, `excelDataSource`, and `environment`
+
+### Notes
+- This pass was prompted by a live runtime mutation where media type, traffic response shape, suite type matching, and datasource-backed assertor binding each had enough ambiguity to cause avoidable first-pass mistakes.
+- The hardening deliberately kept datasource-binding failure cues local to assertor cards rather than introducing a broader cross-cutting parameterization policy.
 ## Session 2026-03-08 (Exemplar-efficiency centralization + dedup cleanup)
 
 ### Actions Completed

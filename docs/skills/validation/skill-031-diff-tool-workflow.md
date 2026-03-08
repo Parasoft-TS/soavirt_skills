@@ -47,7 +47,7 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 - API reachable and authenticated.
 - Parent output channel provides stable runtime response content.
 - Parent id resolves to an output-provider location that accepts chained tools.
-- Baseline execution evidence is required before mode selection.
+- Baseline execution evidence is required before mode selection, and observed runtime payload type must drive the selected Diff Tool mode.
 
 ## 6) Procedure
 0. Apply capability preflight before first write:
@@ -63,6 +63,7 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
   - baseline source must be the executed test's response traffic payload (`/testExecutions/{id}/traffic` -> selected `Traffic Viewer`).
   - do not seed expected values from ad-hoc external endpoint calls because headers/content negotiation may differ from the configured parent tool's run.
 3. Select diff mode from observed runtime payload type:
+  - this gate is fail-closed: do not infer mode from producer class or apply a user-preferred mode when runtime evidence shows a different payload type.
   - XML response -> `xml`
   - JSON response -> `json`
   - plain text response -> `text`
@@ -181,6 +182,7 @@ Text mode baseline:
 - `400` invalid payload shape or unsupported mode/config fields.
 - `404` invalid tool id or parent id.
 - False failures when mode does not match actual response content type.
+- Mode-selection drift when mode is chosen from producer class or user preference instead of observed runtime payload type.
 - False failures when expected baseline is sourced outside runtime traffic (for example external call with different negotiation headers).
 - False negatives/positives when ignore-difference settings are misconfigured.
 - Cross-mode portability risk: ignore settings valid in one mode may not map directly to another mode.

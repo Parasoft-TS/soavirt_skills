@@ -45,7 +45,7 @@ Important: schema-validation mode is only considered correctly configured when t
 - Parent output channel emits XML payloads.
 - Parent id resolves to an output-provider location that accepts chained tools.
 - Target producer is an API client tool response output (REST Client today; SOAP/Messaging client outputs when those skills are available).
-- Runtime response media type for target output is XML (confirmed from baseline run evidence).
+- Runtime response media type for target output is XML and must be confirmed from baseline run evidence before family selection.
 
 ## 6) Procedure
 0. Apply capability preflight before first write:
@@ -60,9 +60,12 @@ Important: schema-validation mode is only considered correctly configured when t
 1.1 Fail-closed guard:
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring XML Validator.
   - do not guess or locally invent parent-path mappings.
-1.1 Run baseline execution and confirm observed response media type is XML before creating/updating XML Validator.
-  - if payload is JSON, route to Skill 029.
-  - if payload is plain text, route to Skill 031 (text mode).
+1.2 Fail-closed media-type gate:
+  - run baseline execution and inspect response content type/payload from runtime traffic before create/update.
+  - if observed payload is XML, continue XML Validator flow.
+  - if observed payload is JSON, route to Skill 029 instead of creating/updating XML Validator.
+  - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating XML Validator.
+  - do not select XML Validator only because the producer is a REST Client or other API client tool.
 2. Resolve validator identity before writes (idempotent upsert rule):
   - derive deterministic target id as `<parent-id>/<validator-name>`,
   - if that id exists, update it in place,
@@ -147,6 +150,7 @@ Rules:
 - `404` invalid tool id or parent id.
 - XML parser/prolog errors from non-XML input binding.
 - Media-type mismatch when XML Validator is attached to JSON/plain-text traffic.
+- Family-selection drift when XML Validator is chosen from producer class or expectation instead of observed runtime payload type.
 - Scope-violation risk when XML Validator is attached to DB Tool outputs (XML Validator workflow is API-client response-output only).
 - Missing schema configuration when default schema-validation mode is expected.
 - User prompt required when schema/service-definition cannot be inferred may pause orchestration until input is provided (intentional blocking behavior).
