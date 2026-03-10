@@ -64,11 +64,12 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/modifying JSON Assertor chains.
   - do not guess or locally invent parent-path mappings.
 2.2 Fail-closed media-type gate:
-  - run baseline execution and inspect response content type/payload from runtime traffic before create/update.
+  - run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
   - if observed payload is JSON, continue JSON Assertor flow.
   - if observed payload is XML, route to Skill 016/030 instead of creating/updating JSON Assertor.
   - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating JSON Assertor.
   - do not select JSON Assertor only because the producer is a REST Client or other API client tool.
+  - if the caller/orchestration already approved JSON Assertor for this target, treat that family as binding and do not reopen JSON Assertor vs Diff Tool selection inside this card.
 3. Create JSON Assertor with `POST /v6/tools/jsonAssertors` using:
    - `parent.id`
    - `name`
@@ -142,10 +143,11 @@ Rules:
 2. Chain JSON Assertor under semantic response output anchor:
   - `<rest-client-id>/Response Traffic`
 3. Apply the fail-closed media-type gate from Procedure step 2.2 before authoring assertion logic.
-  - if observed payload is JSON, select between JSON Assertor and Diff Tool JSON mode based on response data volatility:
+  - if observed payload is JSON and family selection has not already been fixed by the caller, select between JSON Assertor and Diff Tool JSON mode based on response data volatility:
     - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer JSON Assertor with targeted assertions on stable fields,
     - mostly static response data -> prefer Diff Tool JSON mode for simpler full-response comparison (see Skill 031),
     - when unsure, start with Diff Tool; switch to JSON Assertor if the ignored-differences list grows large.
+  - if the caller/orchestration already approved JSON Assertor for this target, execute that approved assertor branch rather than substituting Diff Tool locally.
 4. Configure selectors with XPath-style expressions (Skill 011), not JSONPath.
   - Skill 054 boundary: XML scalar text-node normalization (`/text()`) is not required for JSON selectors; keep XPath-over-JSON selector form.
 5. Select assertion type to match data semantics:
@@ -177,12 +179,14 @@ Rules:
 - Copy/move conflicts on duplicate names in same parent.
 - Selector mismatch risk if JSONPath syntax is used in selector fields that require XPath-style expressions.
 - Media-type mismatch risk when JSON Assertor is attached to XML/plain-text traffic.
+- Header/body disagreement risk: trusting `Content-Type` over the observed payload/body can route plain-text or XML payloads into the JSON Assertor family incorrectly.
 - False mismatch risk from string-vs-number comparisons if assertion type does not match response value type.
 - False mismatch risk when `hasContentAssertion` uses `selectedElement.extractionType=contentOnly`; use `entireElement` for this assertion type.
 - `Variable "<column>" could not be resolved` usually means a datasource-backed expectation was modeled as a fixed literal/variable string instead of a parameterized datasource column reference.
 - `No Data Source column named <column>` usually means tool-level `dataSource` is missing, uses the wrong datasource name for the current object context, or uses a full asset id where the tool expects the local datasource name.
 - Secondary numeric/string formatting errors can appear after datasource-binding failures and should not be treated as the primary root cause until binding is corrected.
 - Over-softening risk: auto-relaxing strict assertions after failure can mask real regressions.
+- Approved JSON Assertor intent can be silently weakened if this card reopens Assertor-vs-Diff selection after orchestration approval.
 
 ## 8.1) Failure Handling Rule (No Ignore Branch)
 - JSON Assertor has no ignored-differences feature and should remain strict by default.

@@ -1,6 +1,153 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-10 (Level 1 constrained REST Client YAML fallback authoring)
+
+### Actions Completed
+- Added new atomic client-tools skill:
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - scoped it to existing service-definition-backed constrained REST Clients whose selected operation remains unchanged
+  - documented the safe-edit envelope, no-BOM round-trip flow, and focused verification rule
+  - included concrete same-operation examples for constrained path and query parameter edits
+  - explicitly marked `resourceMethod.resourceId` and operation retargeting as out of scope / high risk for Level 1
+- Refined existing routing/remediation cards:
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+    - clarified that constrained existing-client edits belong to Skill 059 rather than Skill 020
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+    - added Skill 059 as the constrained REST remediation fallback when the selected operation remains unchanged
+- Updated contributor-facing routing/status/history surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Runtime Probes and Findings
+- Downloaded `ValidationEnrichmentTest.tst` into `work/runs/2026-03-10/validationenrichment-constrained-rest-investigation/` and used it as a transient playground.
+- Proved same-operation constrained path editing by changing a persisted `customerId` path value in YAML, uploading, and getting a focused passing execution.
+- Proved same-operation constrained query editing by synchronizing mirrored `/deposit - POST` query fields (`router.HTTPClient_Endpoint`, `urlParameters.properties`, and `constrainedQuery.parameters`), uploading, and getting a focused passing execution.
+- Proved semantically equivalent literalization of `baseUrl.fixedValue`, `schemaURL.MessagingClient_SchemaLocation`, and `serviceDescriptor.location` on the constrained customer GET client without breaking focused execution.
+- Probed field coupling:
+  - isolated `resourceMethod.resourceId` change broke execution
+  - isolated `router.HTTPClient_Endpoint` change did not break execution in the same probe
+  - isolated `literalPath` change did not break execution in the same probe
+- Restored the playground `.tst` to its original state after each experiment batch.
+
+### Notes
+- This pass intentionally stops at Level 1: safe same-operation constrained-client edits only.
+- The longer-term v1-to-v2 OpenAPI migration/orchestration idea is recorded as future backlog work rather than implied support in the new skill.
+## Session 2026-03-10 (Skill 057/058 handoff hardening for fail-closed remediation)
+
+### Actions Completed
+- Refined `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`:
+  - tightened the readiness gate so underconfigured slices hard-stop validation-bundle design
+  - prohibited reuse of pre-remediation response/result evidence to choose Diff Tool vs Assertor for those slices
+  - required fresh post-remediation runtime evidence before validation enrichment resumes
+  - made mixed ready/underconfigured slices require an explicit user decision rather than implicit continuation
+- Refined `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`:
+  - added a required per-target remediation inventory
+  - added a mandatory remediation plan summary and explicit confirmation gate before downstream mutation handoff
+  - clarified that Skill 058 owns only the underconfigured slice, not ready-slice validation continuation
+  - added explicit `ready` / `deferred` / `still unresolved` return-state semantics so unresolved slices do not flow back into validation as though they were ready
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass is aimed at a specific failure mode where Skill 057 correctly detected underconfiguration and routed to Skill 058, but the agent could still drift into Diff Tool planning from the pre-remediation output evidence.
+- The hardened boundary now treats pre-remediation evidence as readiness-detection input only for underconfigured slices; validation-bundle design must wait for confirmed remediation and fresh ready-state evidence.
+## Session 2026-03-10 (client-tools + validation consistency-fix pass after orchestration refactor)
+
+### Actions Completed
+- Refined `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`:
+  - removed the lingering XML Validator path from direct DB Tool resultset enrichment
+  - kept DB Tool output-self-validation on XML Assertor or Diff Tool XML mode only
+- Refined validator leaves to match the stricter schema-source confirmation posture already established in Skill 057:
+  - `docs/skills/validation/skill-029-json-validator-workflow.md`
+  - `docs/skills/validation/skill-030-xml-validator-workflow.md`
+  - kept environment-variable and tool/tree inference support, but now require explicit user confirmation before inferred definition sources are used
+- Refined `docs/skills/validation/skill-031-diff-tool-workflow.md`:
+  - generalized wording from response-centric language to semantic runtime output language
+  - made the baseline/source guidance explicitly compatible with DB Tool semantic outputs such as `Results as XML`
+- Refined `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`:
+  - updated composition notes to direct repeated validation-enrichment intent to Skill 057 rather than leaving that branch to ad hoc leaf composition
+- Updated contributor-facing history/rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass intentionally keeps XML Validator API-response scoped; DB Tool resultset validation remains content-validation oriented rather than schema-validator oriented.
+- Validator cards still support discovering likely definition sources from environment variables or surrounding tool context, but the user must now explicitly confirm those inferred sources before configuration proceeds.
+## Session 2026-03-10 (Skill 033 phase-2 refactor toward specialist sequencing)
+
+### Actions Completed
+- Refined `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`:
+  - kept Skill 033 focused on underspecified broad authoring intake, generation-critical pre-write gates, and phase sequencing
+  - removed the detailed generalized request-parameter/materialization section that overlapped with the new remediation specialist
+  - added explicit sequencing that broad authoring may hand off to Skill 058 for readiness stabilization before negative derivation and later hand off to Skill 057 for validation enrichment
+  - trimmed orchestration mapping and prompt wording so Skill 033 no longer competes with specialist cards on remediation or enrichment semantics
+- Performed a follow-up consistency pass across the specialist orchestration cards:
+  - `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - aligned handoff wording with the new Skill 033 sequencing and removed lingering wording drift in Skill 057/058
+- Updated contributor-facing status/history surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This phase intentionally keeps `.tst` naming and happy-path payload approval inside Skill 033 because those are still generation-critical pre-write gates, not post-generation remediation behavior.
+- The intended broad-authoring sequencing is now explicit: Skill 033 resolves scope and starts generation, Skill 058 stabilizes readiness when needed, negatives derive from the finalized happy baseline, and Skill 057 owns later validation-enrichment behavior.
+## Session 2026-03-10 (DB Tool validation-enrichment boundary + readiness heuristic tightening)
+
+### Actions Completed
+- Refined `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`:
+  - expanded direct validation-enrichment ownership to include DB Tool resultset validation
+  - tightened readiness detection to require combined multi-signal evidence rather than one weak clue or failure alone
+  - added explicit exclusions for valid empty DB resultsets and generic connectivity/auth/server failures
+  - clarified that DB Tool resultset enrichment defaults to XML Assertor or Diff Tool XML mode unless the user explicitly wants schema validation with a confirmed schema source
+- Refined `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`:
+  - expanded remediation scope to include underconfigured DB Tools
+  - added DB Tool slices and handoff through `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
+  - kept SQL strategy and DB-side setup/remediation explicitly out of scope
+- Updated routing and contributor-facing status/history surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass draws a cleaner boundary between "validate DB Tool output itself" and "compare API response output with DB results"; both now belong under Skill 057, but they remain separate sub-branches.
+- The readiness-gate refinement is intentionally conservative so default-looking literals, single failures, and empty DB resultsets do not automatically trigger remediation.
+## Session 2026-03-10 (Validation-enrichment orchestration boundary + direct routing)
+
+### Actions Completed
+- Added new branch-specific composite orchestration card:
+  - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+  - made it the owner of direct validation-enrichment requests on existing or newly generated tests
+  - encoded live-runtime-evidence gating before bundle proposal or tool attachment
+  - encoded happy-path default bundle as schema validator plus content validation
+  - encoded conservative negative-test defaults and response-vs-database comparison as first-class orchestration behavior
+- Trimmed `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`:
+  - added direct validation-enrichment handoff to Skill 057
+  - reduced broad-authoring intake to high-level follow-on validation-enrichment planning
+  - removed detailed validation-bundle decision policy that now belongs to Skill 057
+- Refined `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`:
+  - added optional post-execution handoff to Skill 057 for direct one-client routes
+  - required Skill 056 to honor follow-on validation preference already resolved upstream so it does not duplicate Skill 033's question
+- Added new request-readiness remediation orchestration card:
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - made it the owner of detecting and repairing underconfigured existing/generated REST/SOAP client tests before validation proceeds
+  - encoded mixed REST/SOAP remediation as a normal orchestration case with grouped protocol-aware slices
+- Integrated `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md` with Skill 058:
+  - added a request-readiness gate before validation-bundle proposal
+  - made Skill 057 fail closed into Skill 058 when selected happy-path tests appear underconfigured
+  - preserved resume-after-remediation behavior instead of sending those tests back into broad authoring intake
+- Updated canonical routing/bootstrap/runtime surfaces:
+  - `docs/skills/skill-index.md`
+- Updated contributor-facing status/history surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass intentionally treats direct validation-enrichment as a separate repeated workflow family instead of continuing to expand Skill 033.
+- The new card requires runtime evidence from the selected tests' own execution traffic and does not allow contract-only or ad-hoc direct endpoint calls to stand in for validation-bundle design.
+- Phase 1 intentionally wires Skill 057 to the new remediation card without yet doing the larger Skill 033 request-remediation refactor.
 ## Session 2026-03-09 (SOAP Client first-pass lifecycle card + SOAP output mapping)
 
 ### Actions Completed
@@ -885,6 +1032,113 @@ Purpose: chronological working log of our skill-building sessions.
     - `docs/skills/backlog.md`
   - Logged reusable architecture/runtime rationale in:
     - `docs/logs/decision-log.md`
+- Session 2026-03-10 (service-test routing boundary refactor + new single-client orchestration skill):
+  - Re-read the canonical bootstrap, routing, workflow, backlog, and decision surfaces before revisiting service-test intent routing:
+    - `AGENTS.md`
+    - `docs/workflow/agent-workflow.md`
+    - `docs/skills/skill-index.md`
+    - `docs/skills/backlog.md`
+    - `docs/logs/decision-log.md`
+  - Re-read the relevant authoring leaves and current orchestration card:
+    - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+    - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+    - `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
+    - `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
+    - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+    - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
+  - Derived and documented a new routing boundary:
+    - Skill 033 remains the canonical entry point for underspecified service-test prompts
+    - already-specific direct generation requests should route straight to the smallest suitable generation card
+    - already-specific one-client requests should route to a dedicated branch-specific orchestration card instead of relying on ad hoc atomic-skill composition
+  - Added a new composite orchestration card:
+    - `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
+  - Framed single-client contract usage consistently across REST and SOAP:
+    - OpenAPI/WSDL may be used as planning input for one client
+    - broad multi-operation generation remains owned by the generation cards
+    - WSDL-guided SOAP single-client flows end in Skill 034's validated HTTP-focused SOAP Client surface rather than claiming full WSDL-bound authoring parity
+  - Updated the canonical routing/bootstrap surfaces to reflect the new split:
+    - `docs/skills/skill-index.md`
+    - `AGENTS.md`
+    - `docs/workflow/agent-workflow.md`
+  - Updated contributor-facing status/rationale surfaces:
+    - `docs/skills/backlog.md`
+    - `docs/logs/decision-log.md`
+
+## Session 2026-03-10
+
+### Context
+- Goal: harden request-readiness and validation-enrichment guardrails after the `ValidationEnrichmentTest.tst` remediation/validation failure review.
+
+### Actions Completed
+- Re-read the canonical bootstrap, workflow, routing, backlog, decision-log, and target skill surfaces before implementation:
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+- Validated constrained payload-edit behavior live on `ValidationEnrichmentTest.tst` using `/billpay - POST` as the playground:
+  - downloaded the `.tst`, preserved the original as rollback, and confirmed the billpay tool was an existing constrained REST Client (`resourceMode: 3`, service-definition-backed).
+  - proved that editing `literal.text.MessagingClient_LiteralMessage` alone was a false-safe path:
+    - the YAML round-trip persisted the new literal,
+    - but API readback still reported `payload.input.literal.text = "{}"`,
+    - and focused traffic still sent `{}` at runtime.
+  - used a constrained REST Client read-merge-write PUT as a mapping probe and confirmed the runtime-authoritative payload change populated:
+    - the schema-derived `formJson.value` tree, and
+    - `literal.text.MessagingClient_LiteralMessage`.
+  - re-downloaded the API-updated `.tst`, replayed that exact state back through `files/upload`, and confirmed the YAML download-edit-upload path also sent the edited JSON payload in focused traffic.
+  - restored the original `ValidationEnrichmentTest.tst` on the server after the research run.
+- Updated the skill/docs surfaces to encode the new guardrails:
+  - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This note captures the earlier same-day YAML-centric payload branch and is superseded by the later API-first constrained payload session below.
+- Literal-only payload edits are now explicitly treated as insufficient evidence for constrained body remediation.
+- The earlier YAML payload branch was fail-closed on existing tree coverage and did not authorize schema-derived payload-tree construction from contract guesses.
+- The remediation/validation phase boundary is now documented as non-transferable approval: remediation confirmation does not authorize validation writes.
+
+## Session 2026-03-10
+
+### Context
+- Goal: validate whether constrained `Form JSON` request payload remediation should move from YAML-tree construction to an API-first REST Client `GET/PUT/GET` path that trusts server normalization.
+
+### Actions Completed
+- Used `ValidationEnrichmentTest.tst` fresh constrained REST Clients as live payload-normalization probes:
+  - `/billpay - POST (fresh)`
+  - `/v1/demoAdmin/preferences - PUT (fresh)`
+- On `/billpay - POST (fresh)`:
+  - confirmed baseline API readback showed `payloadLiteral = "{}"`.
+  - updated `payload.input.literal.text` through REST Client `GET/PUT/GET`.
+  - re-downloaded the `.tst` and confirmed the server expanded the sparse payload into persisted constrained `formJson` plus `MessagingClient_LiteralMessage`.
+  - ran focused execution and confirmed the edited JSON body was sent on the wire.
+  - restored the tool to its original payload state afterward.
+- On `/v1/demoAdmin/preferences - PUT (fresh)`:
+  - updated the constrained request payload through the same REST Client `GET/PUT/GET` path.
+  - validated normalization for enums, booleans, optional strings, and an array field.
+  - re-downloaded the `.tst` and confirmed the persisted constrained payload state updated accordingly.
+  - ran focused execution and confirmed the edited JSON body was sent on the wire.
+  - restored the tool to its original payload state afterward.
+- Updated the contributor-facing docs to encode the new policy:
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- Constrained JSON request payload editing is now documented as API-first for existing same-operation constrained `Form JSON` REST Clients.
+- The policy assumption is that the agent derives payload shape from the selected operation's request schema/OpenAPI definition, constructs valid schema-conformant JSON, and trusts the server-side REST Client PUT path to normalize that JSON into the authoritative persisted constrained payload model.
+- YAML remains the documented path for same-operation resource/config edits such as base URL, schema URL, path parameters, and query parameters.
 
 ---
 

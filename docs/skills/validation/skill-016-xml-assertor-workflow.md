@@ -59,15 +59,17 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating the XML Assertor.
   - do not guess or locally invent parent-path mappings.
 1.2 Fail-closed media-type gate:
-  - run baseline execution and inspect response content type/payload from runtime traffic before create/update.
+  - run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
   - if observed payload is XML, continue XML Assertor flow.
   - if observed payload is JSON, route to Skill 010/029 instead of creating/updating XML Assertor.
   - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating XML Assertor.
   - do not select XML Assertor only because the producer is a REST Client, DB Tool, or other tool that often emits XML.
-2. If observed payload is XML, select between XML Assertor and Diff Tool XML mode based on response data volatility:
+  - if the caller/orchestration already approved XML Assertor for this target, treat that family as binding and do not reopen XML Assertor vs Diff Tool selection inside this card.
+2. If observed payload is XML and family selection has not already been fixed by the caller, select between XML Assertor and Diff Tool XML mode based on response data volatility:
   - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer XML Assertor with targeted XPath assertions on stable fields,
   - mostly static response data -> prefer Diff Tool XML mode for simpler full-response comparison (see Skill 031),
   - when unsure, start with Diff Tool; switch to XML Assertor if the ignored-differences list grows large.
+  - if the caller/orchestration already approved XML Assertor for this target, execute that approved assertor branch rather than substituting Diff Tool locally.
 3. Create XML Assertor:
    - `POST /v6/tools/xmlAssertors`
    - payload must include `parent.id` and typically `name`.
@@ -187,12 +189,14 @@ Rules:
 - `404` for invalid parent/id.
 - Runtime XML parse failure indicates non-XML input binding, even when assertion XPath is valid.
 - Media-type mismatch risk when XML Assertor is attached to JSON/plain-text traffic.
+- Header/body disagreement risk: trusting `Content-Type` over the observed payload/body can route JSON/plain-text payloads into the XML Assertor family incorrectly.
 - False mismatch risk when `hasContentAssertion` uses `selectedElement.extractionType=contentOnly`; use `entireElement` for this assertion type.
 - `Variable "<column>" could not be resolved` usually means a datasource-backed expectation was modeled as a fixed literal/variable string instead of a parameterized datasource column reference.
 - `No Data Source column named <column>` usually means tool-level `dataSource` is missing, uses the wrong datasource name for the current object context, or uses a full asset id where the tool expects the local datasource name.
 - Secondary numeric/string formatting errors can appear after datasource-binding failures and should not be treated as the primary root cause until binding is corrected.
 - copy placement/name collisions can produce unintended target placement unless readback is performed.
 - Over-softening risk: relaxing strict assertion intent after first failure can hide real regressions.
+- Approved XML Assertor intent can be silently weakened if this card reopens Assertor-vs-Diff selection after orchestration approval.
 
 ## 8.1) Failure Handling Rule (No Ignore Branch)
 - XML Assertor has no ignored-differences feature and should remain strict by default.

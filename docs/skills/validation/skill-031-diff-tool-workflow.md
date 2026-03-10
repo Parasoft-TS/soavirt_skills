@@ -1,10 +1,10 @@
 # Skill 031: Diff Tool Modes Workflow (XML/JSON/Text/Binary)
 
 ## 1) Skill Name
-Add and validate Diff Tool chained to live response output (multi-mode)
+Add and validate Diff Tool chained to live semantic runtime output (multi-mode)
 
 ## 2) Objective
-Create a reusable workflow for chaining a Diff Tool to a live response output and comparing runtime output against expected content, including mode-specific ignored-difference configuration.
+Create a reusable workflow for chaining a Diff Tool to live semantic runtime output and comparing observed output against expected content, including mode-specific ignored-difference configuration.
 
 ## 3) Scope
 - In scope:
@@ -22,7 +22,7 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
     - Binary mode
 - Out of scope:
   - domain-specific expected-payload authoring strategies
-  - auto-remediation of response mismatches
+  - auto-remediation of runtime-output mismatches
 
 ## 3.1) Dependencies
 - Required:
@@ -35,9 +35,9 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 
 ## 4) Inputs
 - Required:
-  - target output-provider parent id (typically response output)
+  - target output-provider parent id (typically response output, but may also be another semantic output such as DB Tool `Results as XML`)
   - Diff Tool name
-  - expected response source/content
+  - expected runtime output source/content
 - Optional:
   - selected diff mode (`xml`, `json`, `text`, `binary`) when preselected by user
   - ignore-difference settings (mode-specific)
@@ -45,9 +45,9 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 
 ## 5) Preconditions
 - API reachable and authenticated.
-- Parent output channel provides stable runtime response content.
+- Parent output channel provides stable semantic runtime output content.
 - Parent id resolves to an output-provider location that accepts chained tools.
-- Baseline execution evidence is required before mode selection, and observed runtime payload type must drive the selected Diff Tool mode.
+- Baseline execution evidence is required before mode selection, and observed runtime output type must drive the selected Diff Tool mode.
 
 ## 6) Procedure
 0. Apply capability preflight before first write:
@@ -59,17 +59,21 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 1.1 Fail-closed guard:
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring Diff Tool.
   - do not guess or locally invent parent-path mappings.
-2. Run baseline execution first and capture observed response payload + content type from traffic evidence.
-  - baseline source must be the executed test's response traffic payload (`/testExecutions/{id}/traffic` -> selected `Traffic Viewer`).
-  - do not seed expected values from ad-hoc external endpoint calls because headers/content negotiation may differ from the configured parent tool's run.
-3. Select diff mode from observed runtime payload type:
+2. Run baseline execution first and capture observed semantic runtime output + type from the producer's canonical evidence source.
+  - for API-client response outputs, baseline source must be the executed test's response traffic payload (`/testExecutions/{id}/traffic` -> selected `Traffic Viewer`).
+  - for DB Tool outputs, baseline source must be the canonical semantic result output from Skill 018 (for example `Results as XML`), not diagnostic traffic.
+  - do not seed expected values from ad-hoc external endpoint calls or non-canonical diagnostics because they may not match the configured parent tool's actual runtime output.
+  - classify payload type from the observed semantic payload/body first; use response headers such as `Content-Type` only as supporting evidence.
+  - if response headers and observed payload disagree, select diff mode from the observed payload/body rather than the header value.
+3. Select diff mode from observed runtime output type:
   - this gate is fail-closed: do not infer mode from producer class or apply a user-preferred mode when runtime evidence shows a different payload type.
-  - XML response -> `xml`
-  - JSON response -> `json`
-  - plain text response -> `text`
+  - XML output -> `xml`
+  - JSON output -> `json`
+  - plain text output -> `text`
   - binary payload -> `binary`
-  - For JSON responses, Diff Tool is preferred when response data is mostly static (few volatile fields). If many response fields are dynamic (timestamps, generated ids, session tokens), consider JSON Assertor (Skill 010) instead — Diff Tool would require many ignored differences, reducing its value since those elements are not tested anyway.
-  - For XML responses, apply the same static/dynamic heuristic between Diff Tool XML mode and XML Assertor (Skill 016).
+  - For JSON outputs, Diff Tool is preferred when payload data is mostly static (few volatile fields). If many fields are dynamic (timestamps, generated ids, session tokens), consider JSON Assertor (Skill 010) instead — Diff Tool would require many ignored differences, reducing its value since those elements are not tested anyway.
+  - For XML outputs, apply the same static/dynamic heuristic between Diff Tool XML mode and XML Assertor (Skill 016).
+  - if the caller/orchestration has already approved JSON/XML Assertor or Validator coverage for this target, do not use Diff Tool as a silent substitute; use Diff Tool only when it is the approved family for that target or when plain-text fallback applies.
 4. Resolve Diff Tool identity before writes (idempotent upsert rule):
   - derive deterministic target id as `<parent-id>/<diff-name>` for the selected comparison intent,
   - if that id exists, update in place,
@@ -80,9 +84,9 @@ Create a reusable workflow for chaining a Diff Tool to a live response output an
 6. Configure base comparison settings:
    - `PUT /v6/tools/diffTools?id=<diff-id>` with expected content/source and mode.
   - for updates to existing Diff Tools, follow read-merge-write (`GET` -> mutate -> `PUT`) per Skill 049.
-  - set each tool's `diffMode.type` from that tool's own observed response media type; do not bulk-apply one mode to multiple tools.
-  - immediately read back the tool and verify persisted `diffMode.type` matches the intended mode for that endpoint.
-  - for plain-text responses, default expected value source to baseline live response captured in step 2, then refine only with explicit user intent.
+  - set each tool's `diffMode.type` from that tool's own observed runtime output type; do not bulk-apply one mode to multiple tools.
+  - immediately read back the tool and verify persisted `diffMode.type` matches the intended mode for that target output.
+  - for plain-text outputs, default expected value source to the baseline live output captured in step 2, then refine only with explicit user intent.
 7. Read back tool and capture exact persisted config shape.
 8. Execute focused verification run and inspect mismatch/pass behavior.
 9. If diff fails, extract and summarize human-readable differences (field/XPath/property, expected vs actual, source tool context).
@@ -174,6 +178,7 @@ Text mode baseline:
 - Repeat executions/update passes do not create additional Diff Tools for the same parent/name intent.
 - For each mode, persisted ignore settings are documented from real readback payloads.
 - Baseline run evidence confirms mode selection used observed payload type (not assumption).
+- When response headers and observed payload disagree, readback/configuration and runtime verification reflect the observed payload/body rather than the header value.
 - Baseline expected content origin is traceable to the same test execution traffic payload used for media-type detection.
 - Per-tool readback confirms no unintended mode overwrite across sibling Diff Tools.
 - Post-config verification run is required before concluding skill success.
@@ -181,20 +186,21 @@ Text mode baseline:
 ## 8) Failure Modes
 - `400` invalid payload shape or unsupported mode/config fields.
 - `404` invalid tool id or parent id.
-- False failures when mode does not match actual response content type.
+- False failures when mode does not match actual runtime output type.
 - Mode-selection drift when mode is chosen from producer class or user preference instead of observed runtime payload type.
-- False failures when expected baseline is sourced outside runtime traffic (for example external call with different negotiation headers).
+- False failures when expected baseline is sourced outside the canonical runtime evidence for the target output (for example external call with different negotiation headers or diagnostic-only output).
 - False negatives/positives when ignore-difference settings are misconfigured.
 - Cross-mode portability risk: ignore settings valid in one mode may not map directly to another mode.
 - Multi-endpoint overwrite risk: a bulk update can unintentionally set all Diff Tools to one mode (for example `text`).
 - Over-broad ignore risk: ignoring unstable fields without user confirmation can mask real regressions.
 - Skipping baseline capture for text mode can leave expected-value seed empty or stale.
+- Approved JSON/XML Assertor or Validator coverage can be silently replaced by Diff Tool if this card is used outside its intended target-specific fallback boundary.
 
 ## 8.1) Plain-Text Fallback Rule
-- When validation intent is requested but observed runtime response is plain text:
+- When validation intent is requested but observed runtime output is plain text:
   1. do not attach JSON/XML assertor/validator by default,
-  2. create Diff Tool in `text` mode,
-  3. seed expected text from baseline live response,
+  2. create Diff Tool in `text` mode for that specific plain-text target only,
+  3. seed expected text from baseline live output,
   4. run verification and present concise diff summary before any ignore changes.
 
 ## 9) Safety / Rollback
@@ -221,6 +227,7 @@ Text mode baseline:
   - whether difference appears volatile across runs
 - Ask user whether to add ignored differences for those specific fields.
 - Do not auto-apply ignores unless user explicitly confirms.
+- Do not use diff failure as justification to replace an approved JSON/XML Assertor or Validator branch without a new approval step.
 
 ## 11) Optional Mode-Matrix Evidence Capture
 When validating this starter card, capture one example per mode with:

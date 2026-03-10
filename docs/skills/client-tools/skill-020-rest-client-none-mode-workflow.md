@@ -20,6 +20,7 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
 - Out of scope:
   - creating a fully OpenAPI-bound REST Client from scratch through API only
   - schema-driven operation picker automation (Swagger UI-equivalent flow)
+  - editing existing service-definition-backed constrained REST Clients via YAML fallback (owned by `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`)
 
 ## 3.1) Dependencies
 - Required:
@@ -228,8 +229,10 @@ Do not call create/update endpoints until required fields for the selected mode 
   - `POST /v6/testExecutions`
   - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
 - Composition note:
-  - After REST client creation, optionally compose downstream validators/assertors based on user-requested test intent (see `skill-010-json-assertor-workflow.md` + `skill-011-xpath-over-json-query-semantics.md`).
+  - After REST client creation, if the user's intent is broader validation enrichment on existing/new tests, route to `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md` rather than composing validator/assertor/diff leaves ad hoc.
+  - Use direct validator/assertor/diff leaves only when the routing is already explicit and the downstream tool choice is intentionally narrowed.
   - For updates to existing REST Clients, load `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md` and use GET -> mutate -> PUT.
+  - For same-operation edits on existing constrained REST Clients (`resource.type=swagger` / constrained YAML model), route to `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` rather than treating Skill 020 as the mutation owner.
 
 ### JSON Tooling Reminder
 - When this REST Client is chained to JSON tools (for example JSON Assertor, JSON Data Bank), selector-expression fields use XPath-over-JSON semantics.

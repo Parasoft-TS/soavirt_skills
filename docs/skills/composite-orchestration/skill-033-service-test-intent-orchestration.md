@@ -4,20 +4,29 @@
 Gather user testing intent and orchestrate service-test authoring across atomic skills.
 
 ## 2) Objective
-Convert underspecified requests (for example "create tests for this service") into a confirmed, executable test-authoring plan before any write operations are performed.
+Convert underspecified requests (for example "create tests for this service") into a confirmed, executable broad authoring plan before any write operations are performed, and act as the canonical ambiguity-resolution entry point for service-test authoring when routing-critical intent is still unresolved.
 
 Conversation-first default: favor natural-language solicitation and interpretation over rigid UI choice widgets when collecting scope and preference input.
 
 ## 3) Scope
 - In scope:
-  - intent intake for endpoint-only or service-definition-driven requests
+  - intent intake for underspecified endpoint-only or service-definition-driven requests
+  - classify routing-critical ambiguity such as:
+    - new `.tst` vs existing `.tst` vs one-client-only intent
+    - broad generated coverage vs one operation/client
+    - contract as generation source vs contract as planning input
+    - REST vs SOAP branch
   - confidence-gated required-input resolution
   - operation/contract summarization for user scope decisions
-  - progressive question bundles (coverage, negative tests, validators, DB validation)
-  - deterministic orchestration plan mapped to existing atomic skills
-  - staged execution with verification checkpoints
+  - progressive question bundles (coverage, negative tests, follow-on validation-enrichment intent) when broad authoring scope is still in play
+  - high-level phase sequencing across broad generation/authoring, readiness stabilization, negative derivation, and optional validation follow-on
+  - deterministic orchestration handoff to branch-specific orchestration cards or atomic/workflow skills once the branch is clear
+  - staged execution only for branches that still require multi-step orchestration after clarification
 - Out of scope:
   - replacing endpoint-specific behavior in atomic cards
+  - acting as the mandatory route for already-specific direct requests that the routing registry can send to a smaller matching card
+  - repeated clarified request-readiness remediation semantics now owned by Skill 058
+  - repeated clarified validation-enrichment semantics now owned by Skill 057
   - domain-specific business test recipes as mandatory defaults
   - autonomous write execution without explicit user confirmation
 
@@ -33,7 +42,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - Optional:
   - preferred service-definition format (`openapi`, `wsdl`, `raml`, `xsd`)
   - preferred operation scope (all/subset)
-  - validation strategy preferences
+  - follow-on validation-enrichment preferences
   - DB validation intent and known connection/query constraints
 
 ## 5) Preconditions
@@ -47,7 +56,18 @@ Conversation-first default: favor natural-language solicitation and interpretati
    - endpoint-only request,
    - service-definition-provided request,
    - mixed/ambiguous request.
-2. Resolve missing required inputs by precedence:
+2. Determine whether any routing-critical dimensions are still unresolved:
+   - target artifact scope (`new .tst`, `existing .tst`, or `single client/test`),
+   - operation scope (`broad coverage` vs `single operation/client`),
+   - source role (`generation source` vs `planning input`),
+   - protocol branch (`REST` vs `SOAP`),
+   - target asset/parent scope.
+3. If all routing-critical dimensions are already resolved, hand off immediately using the routing registry instead of continuing broad intake:
+   - direct single-client intent -> Skill 056,
+   - direct validation-enrichment intent -> Skill 057,
+   - direct file-level generation intent -> Skills 022-025,
+   - direct existing-asset WSDL suite-generation intent -> Skill 055.
+4. Resolve remaining missing required inputs by precedence:
    - explicit values in current prompt,
    - values confirmed earlier in current session,
    - relevant environment variables.
@@ -76,21 +96,21 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - do not broaden this into general \"find another tool of same type\" lookup behavior.
 
 ### 6.2 Source Strategy Branch
-3. If service definition/schema is missing or ambiguous, ask targeted question and wait.
-4. If user has service definition/schema, confirm format and location type (URL vs file path).
-5. If user only has endpoint and no service definition:
+5. If service definition/schema is missing or ambiguous, ask targeted question and wait.
+6. If user has service definition/schema, confirm format and location type (URL vs file path).
+7. If user only has endpoint and no service definition:
    - offer two paths:
-     - quick-start endpoint tests (Skill 020 path), or
+     - one-client authoring (Skill 056 -> Skill 020/034 path), or
      - pause and supply service definition for broader generation (Skills 022-025 path).
 
 ### 6.2.1 Source Normalization (Internal, Not User-Facing)
-6. Normalize user-provided source to API-compatible location fields:
+8. Normalize user-provided source to API-compatible location fields:
    - URL input -> `location.url`
    - local/relative file path -> convert to workspace-accessible location:
      - prefer uploading/resolving to workspace file and using `location.id`, or
      - when runtime supports direct file URI, convert to canonical file URI form and validate reachability.
-7. Do not ask users for `location.id` terminology directly unless they explicitly request API-level detail.
-8. For deterministic parsing and traceability, materialize a transient source snapshot under `work/` before generation:
+9. Do not ask users for `location.id` terminology directly unless they explicitly request API-level detail.
+10. For deterministic parsing and traceability, materialize a transient source snapshot under `work/` before generation or contract-informed planning:
    - fetch/download the service definition using a deterministic transport (for example `curl`/HTTP client),
    - avoid UI/browser save dialogs,
    - parse operation/response metadata from the transient copy used for planning.
@@ -99,12 +119,10 @@ Conversation-first default: favor natural-language solicitation and interpretati
 8. Ask concise high-impact intake questions one at a time, waiting for the user's answer before asking the next:
    - Coverage: all operations vs subset.
    - Depth: happy-path only vs include negative tests.
-   - Validation: minimal (expected response code baked into client tool) vs explicit validator/assertor/diff stack.
-   - Data consistency: include DB-backed validation or not.
+   - Follow-on enrichment: leave generated tests at client-level baseline validation only vs plan an explicit validation-enrichment pass after generation.
 9. Ask advanced follow-ups only for selected branches, one question at a time:
    - Negative scope: spec-defined non-2xx only vs additional AI-suggested error cases.
-   - Validation scope: user-specified checks vs AI-proposed baseline then review.
-   - DB scope: connection readiness, candidate SQL strategy, correlation keys.
+   - Validation-enrichment follow-on: happy-path-only enrichment vs explicit negative/DB enrichment later.
 
 ### 6.3.2 Mandatory Artifact and Write-Request Gates
 9.1 Before any create/copy/write action, resolve target test-asset naming:
@@ -141,30 +159,28 @@ Conversation-first default: favor natural-language solicitation and interpretati
 13. Build a human-readable execution plan summary:
    - selected operation scope,
    - planned test count profile,
-   - planned tool chain per operation/profile,
+   - planned generation/authoring branch,
   - target `.tst` file name,
-  - write-request materialization summary (including payload source for `POST`/`PUT`/`PATCH`),
+   - write-request gate summary (including payload source for `POST`/`PUT`/`PATCH`),
+   - planned follow-on phases (readiness remediation if needed, negatives, validation enrichment if approved),
    - assumptions/unknowns requiring confirmation.
 14. Require explicit user confirmation before writes.
 15. If confirmation is partial, execute only confirmed slices.
 
 ### 6.5 Orchestration Mapping (Examples)
-16. Map confirmed plan to atomic skills:
+16. Map confirmed plan to downstream skills:
+   - Branch-specific orchestration handoff:
+     - single-client authoring (endpoint-only or contract-informed) -> Skill 056
+     - request-readiness/configuration remediation after broad generation or on existing targets -> Skill 058
+     - direct validation-enrichment or approved follow-on enrichment -> Skill 057
    - Service-definition generation:
-     - OpenAPI -> Skill 022
-     - WSDL -> Skill 023
-     - RAML -> Skill 024
-     - XSD -> Skill 025
-   - Endpoint-only bootstrap:
-     - REST client baseline -> Skill 020
-   - Validation layer:
-     - JSON/XML Validator -> Skills 029/030
-     - JSON/XML Assertor -> Skills 010/016
-     - Diff Tool -> Skill 031
-   - Data extraction/correlation:
-     - JSON/XML Data Bank -> Skills 028/019
-   - DB validation:
-     - DB Tool lifecycle -> Skill 015
+     - OpenAPI new `.tst` -> Skill 022
+     - WSDL new `.tst` -> Skill 023
+     - RAML new `.tst` -> Skill 024
+     - XSD new `.tst` -> Skill 025
+     - WSDL into existing `.tst` -> Skill 055
+   - Structural stabilization:
+     - generated subset pruning -> Skill 047
    - Runtime verification/diagnostics:
      - execution triad -> Skills 012/014
 
@@ -174,26 +190,24 @@ Conversation-first default: favor natural-language solicitation and interpretati
    - phase by top-N operations,
    - phase by profile (happy-path first, then negatives, then DB).
 
-### 6.6.1 Request Parameter Discovery and Materialization
-After generation and subset pruning (rule 15), inspect the generated happy-path REST Clients for configurable request parameters beyond path parameters already resolved during intake.
+### 6.6.1 Post-Generation Readiness Stabilization
+After generation and subset pruning when applicable, determine whether the selected/generated happy-path targets are sufficiently configured to act as the stable baseline for later phases.
 
-**Discovery scope** (cross-reference each in-scope REST Client config with the service definition):
-- path parameters not yet materialized from intake,
-- required query parameters,
-- optional query parameters,
-- request body fields for write operations (POST/PUT/PATCH) — distinguish required vs optional.
-
-**Materialization modes** — present the user with a per-operation parameter summary and offer:
-- a) **AI proposes, user confirms** (recommended default): inspect the service definition for `example` values, `default` values, type constraints, and enum options; propose concrete values for every unconfigured parameter; present the proposals for the user to accept, override, or skip (for optional params).
-- b) **User provides all**: walk through each REST Client that has unconfigured parameters and ask the user to supply values.
-- c) **AI fills autonomously**: fill from spec examples or generated reasonable defaults without confirmation. Offer this mode only when the user explicitly opts in.
-
-**Rules:**
-- Always surface required parameters — do not leave required parameters unconfigured or silently filled.
-- Flag optional parameters but allow the user to skip them (leave unconfigured).
-- Apply confirmed values to happy-path REST Clients before creating negative variants, since negatives derive from the concretized happy baseline (rule 26).
-- For request body operations, present the body schema structure with required/optional annotations so the user understands what fields exist.
-- When AI proposes values, cite the source (for example `example` from spec, type-based generation, enum first-value) so the user can judge quality.
+Rules:
+- Keep generation-critical pre-write gates in this card:
+  - `.tst` naming resolution,
+  - explicit payload approval for happy-path `POST`/`PUT`/`PATCH` bodies,
+  - intake-resolved concrete path/query values that are already known before generation.
+- If generated or existing happy-path targets still need broader request/configuration remediation after those gates are applied:
+  - do not keep that generalized remediation logic in Skill 033,
+  - hand off to `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`,
+  - resume broad authoring only after Skill 058 verifies readiness.
+- Skill 058 owns:
+  - readiness heuristics,
+  - AI-proposes vs user-provides remediation modes,
+  - grouped REST/SOAP/DB remediation slices,
+  - verification execution for readiness.
+- Use the finalized ready happy-path baseline before creating negative variants or handing off to validation enrichment.
 
 ### 6.7 Execution Hardening Rules (Required)
 14.5 Enforce preflight route selection for write-phase calls:
@@ -258,108 +272,37 @@ After generation and subset pruning (rule 15), inspect the generated happy-path 
   - load `cross-cutting/skill-049-tool-put-read-merge-write-policy.md` when updating existing tool instances.
 20.1 Validation sequencing guard (required):
   - execution order for generated REST service tests must be:
-    1) configure happy-path request data,
-    2) clone/create negative variants from the finalized happy baseline,
-    3) run negative calibration execution and finalize negative expected-code settings,
-    4) attach validation tools to happy-path tests according to rules 21-23,
-    5) attach validation tools to negative variants only when explicitly requested.
-  - do not attach validation tools to happy tests before cloning negatives; this prevents copied validator/assertor/diff children from leaking into negatives by default.
+    1) apply intake-resolved happy-path request data during broad authoring,
+    2) if generated or existing happy-path targets still need broader readiness/configuration work, hand off to Skill 058 and resume only after readiness verification,
+    3) clone/create negative variants from the finalized happy baseline,
+    4) run negative calibration execution and finalize negative expected-code settings,
+    5) hand off approved happy-path validation enrichment to Skill 057,
+    6) hand off negative validation enrichment only when explicitly requested.
+  - do not attach validation tools to happy tests before cloning negatives; this prevents copied validator/assertor/diff children from leaking into negatives by default before validation-enrichment policy is applied.
   - if validation tools already exist on a happy-path parent before cloning, cloned negatives must remove inherited validation children unless user explicitly requested negative validation tooling.
 20.2 Approved-plan completion guard (required):
   - after plan confirmation, do not interrupt execution with repeated proceed/stop prompts for known runtime failures unless a true blocker is hit,
   - treat business-level test failures as diagnostics outputs, not orchestration stop conditions,
   - continue remaining approved stages (for example negatives, calibration, validation tooling) and report residual failures in a final summary,
   - prompt the user only when a dependency is blocked (for example cannot resolve ids, cannot chain tool due invalid parent type, missing required source/schema with no safe fallback).
-21. Validation-tool selection defaults for REST service requests:
-  - run a pre-creation baseline execution for candidate happy tests and capture observed response media type/body shape,
-  - capture baseline evidence from the executed REST Client output traffic (`/testExecutions/{id}/traffic` using the REST Client's `Traffic Viewer`), not from ad-hoc external endpoint calls,
-  - choose validator/assertor families from observed runtime media type:
-    - JSON response -> JSON Validator + (JSON Assertor or Diff Tool JSON mode),
-    - XML response -> XML Validator + (XML Assertor or Diff Tool XML mode),
-    - plain-text response -> do not attach JSON/XML tools by default; route to Diff Tool text mode workflow,
-  - if user request is generic (for example "add an assertion"), choose tool family strictly from observed media type and rule 21.1,
-  - if user explicitly requests a mismatched tool family (for example JSON Assertor while observed media type is XML), do not force attachment:
-    - ask user to either switch tool family to the observed media type, or
-    - approve producer media-type changes, then rerun baseline before tool creation.
-  - apply selection per endpoint/test independently; never propagate one endpoint's media type decision to other endpoints,
-  - never attach JSON tools to non-JSON traffic or XML tools to non-XML traffic,
-  - when schema validation is requested, configure with user-provided service-definition location and explicit message mapping,
-  - when service-definition source is OpenAPI/Swagger and location is known, JSON happy-path validators must be configured as schema validators (not well-formedness-only) for JSON responses,
-  - schema validator configuration must be applied per endpoint and must not be downgraded globally because another endpoint is non-JSON or fails tool creation,
-  - for JSON responses, choose between Diff Tool JSON mode and JSON Assertor based on response data volatility:
-    - mostly static response data -> prefer Diff Tool in JSON mode (simpler setup, full-response baseline comparison with minimal configuration),
-    - significant dynamic/volatile data (timestamps, generated ids, session tokens) -> prefer JSON Assertor with targeted assertions on stable fields (Diff Tool would require many ignored differences, reducing its value since those dynamic elements are not tested anyway),
-    - when unsure, start with Diff Tool and switch to JSON Assertor if the ignored-differences list grows large,
-  - for XML responses, apply the same static/dynamic heuristic between Diff Tool XML mode and XML Assertor.
-21.3 Per-endpoint validator and diff-mode integrity guard (required):
-  - when rule 21.1 resolves a JSON or XML validator for an endpoint, creation of that validator is mandatory for that endpoint unless tool creation fails.
-  - if validator creation fails for one endpoint, mark that endpoint validator as failed/skipped with reason and continue other endpoints; do not silently downgrade to Diff-only for that endpoint.
-  - for each Diff Tool, set mode from that endpoint's observed response media type only (`json`/`xml`/`text`/`binary`) and verify readback for that tool id before moving to the next endpoint.
-  - do not run bulk mode updates that can overwrite previously configured Diff Tool modes across endpoints.
-21.1 Normative validation decision table (happy-path REST tests):
-
-| Observed response media type | Schema validation requested | Volatility profile | Default tool set to attach |
-|---|---|---|---|
-| JSON | yes | low | JSON Validator + Diff Tool (JSON mode) |
-| JSON | yes | high | JSON Validator + JSON Assertor |
-| JSON | no | low | Diff Tool (JSON mode) |
-| JSON | no | high | JSON Assertor |
-| XML | yes | low | XML Validator + Diff Tool (XML mode) |
-| XML | yes | high | XML Validator + XML Assertor |
-| XML | no | low | Diff Tool (XML mode) |
-| XML | no | high | XML Assertor |
-| plain text | n/a | any | Diff Tool (text mode) |
-| binary | n/a | any | Diff Tool (binary mode) |
-
-21.2 Precedence order (required):
-  - apply decision precedence in this order:
-    1) explicit user override,
-    2) media-type gate safety,
-    3) normative table in rule 21.1,
-    4) volatility fallback heuristic (only when table inputs are incomplete).
-  - if rule 21.1 and any other narrative guidance conflict, rule 21.1 wins.
-22. Chaining attachment rule:
-  - discover outputs from the producer tool itself and select semantic response/results output,
-  - never infer chain parent from sibling tool presence (for example `Traffic Viewer`).
-23. Validation bundle expectation when user requests "validation tools":
-  - include validator + comparison baseline by default only when media-type gate is satisfied (JSON/XML):
-    - comparison tool is selected by rule 21.1 (assertor for high volatility, Diff Tool for low volatility),
-  - for JSON/XML comparison tools, seed expected baseline content from the same test execution's response traffic payload that established media type,
-  - for plain-text responses, default to Diff Tool text mode using baseline live response as expected value seed,
-  - for plain-text responses, do not attach JSON/XML validator or assertor tools,
-  - include Diff Tool when an expected/baseline artifact exists or user explicitly requests diff-based comparison,
-  - de-duplicate validation intents per parent/output:
-    - if both fallback routing and explicit diff request select Diff Tool for the same parent, create/update one Diff Tool only,
-    - collapse repeated diff triggers into a single idempotent Skill 031 invocation.
-24. Validation phase resilience (required):
-  - if a validation tool fails to create or chain (for example 400 parent type error, output provider not found), log the failure and continue with the next validation tool in the plan,
-  - do not let a single tool-creation failure abort the entire validation phase for a test or suite,
-  - after the validation phase completes, report all skipped or failed tools with failure reasons so the user can address them,
-  - retry failed tools only after root cause is identified and resolved (for example wrong parent id corrected).
-24.1 Validation fallback policy (required):
-  - if schema-based validator setup is requested but schema/message mapping inputs are missing or low-confidence, fall back to well-formedness validator mode for supported media type and continue,
-  - do not block the approved orchestration plan solely due missing schema-mapping details unless the user explicitly required strict schema validation only.
-24.2 Schema-validator strictness rule for known OpenAPI source (required):
-  - if OpenAPI/Swagger source location is known from intake and observed response media type is JSON, do not use well-formedness fallback for that endpoint,
-  - required behavior is explicit schema mapping (`autoDetectMessage=false`, direction/path/method/responseCode) and `validationType=validateAgainstSchema`,
-  - if schema mapping cannot be resolved for one endpoint, mark that endpoint's validator as skipped/failed and continue other endpoints; do not silently downgrade successful JSON candidates.
-25. Pre-execution URL readiness check (REST Client flows):
+21. Validation-enrichment handoff policy:
+  - if the approved plan includes explicit validation enrichment beyond client-level expected response handling, hand off to Skill 057 after generation, subset pruning, readiness stabilization, and negative calibration reach a stable state.
+  - Skill 057 owns live-response baseline collection, happy-path validation bundle proposal, schema-source confirmation, response-vs-database enrichment, negative validation defaults, and validation-tool attachment behavior.
+  - if the user requested generated tests only and did not approve a follow-on validation-enrichment pass, stop after the generation/negative-calibration phase.
+22. Pre-execution URL readiness check (REST Client flows):
   - before invoking execution skills, sample targeted REST Clients and confirm `resource.literalText.fixed` is non-empty,
-  - if empty URL is detected, stop execution and repair configuration before run.
-26. Intake-parameter materialization for happy-path URLs:
+  - if empty URL is detected, stop execution and repair configuration before run; use Skill 058 when the branch now requires generalized readiness remediation rather than one local fix.
+23. Intake-parameter materialization for happy-path URLs:
   - when user provides concrete path/query values during intake (for example `customerId=12212`), apply them to happy-path REST Client resource templates before cloning negatives,
   - do not leave unresolved placeholders (for example `{customerId}`) in happy-path URLs when concrete intake values were provided,
   - derive negative variants from the concretized happy baseline so spec-default negatives retain realistic context.
-27. Validator schema-mapping path rule (JSON/XML validators):
-  - keep validator schema/message operation paths aligned to service-definition templates (for example `/customers/{customerId}`),
-  - do not propagate concretized happy URL path values (for example `/customers/12212`) into validator definition mapping fields,
-  - concretized runtime values are for request execution context; template paths are for schema/contract mapping context.
 
 ## 7) Validation
 - No write operation occurs before explicit plan confirmation.
 - No write operation occurs before `.tst` naming is resolved (explicit name or explicit auto-name approval).
 - For `POST`/`PUT`/`PATCH` happy-path tests, no write occurs before payload source and payload content are explicitly approved.
-- Every confirmed branch maps to explicit atomic skills.
+- Generalized post-generation readiness remediation is handed off to Skill 058 rather than duplicated locally in Skill 033.
+- Every confirmed branch maps to explicit downstream skills.
 - Produced plan is auditable (inputs, assumptions, selected scope).
 - Runtime verification uses execution-triad skills for executed slices.
 - Subset requests result in subset-only suites/tests after prune step.
@@ -372,10 +315,10 @@ After generation and subset pruning (rule 15), inspect the generated happy-path 
 - Scope explosion when user requests all operations + all depth dimensions at once.
 - File asset created with unintended auto-name because naming gate was skipped.
 - `POST`/`PUT`/`PATCH` tests fail due to unapproved or mismatched AI-generated payload.
-- DB validation blocked by missing connection or uncertain correlation keys.
+- Generated or existing happy-path targets remain underconfigured but are not handed off to Skill 058 before later phases proceed.
 - Generated full-definition suites left unpruned despite subset user intent.
 - Copy/move failures caused by stale ids or incorrect parent-id derivation.
-- Incorrect validator type/chaining due to output inference from sibling tools.
+- Negative derivation or follow-on enrichment begins before the happy-path baseline has been stabilized.
 
 ## 9) Safety / Rollback
 - Orchestration-first policy: avoid speculative writes before confirmation gate.
@@ -383,20 +326,25 @@ After generation and subset pruning (rule 15), inspect the generated happy-path 
 
 ## 10) Reuse Notes
 - This is a composite orchestration card; it does not replace atomic endpoint cards.
+- Use this card when service-test authoring intent is still materially underspecified.
+- If the request is already specific enough to match a direct branch in `docs/skills/skill-index.md`, route to that smaller card instead of forcing Skill 033.
+- Keep this card focused on ambiguity resolution, generation-critical pre-write gates, and high-level phase sequencing.
+- Use Skill 058 for generalized post-generation or existing-target readiness/configuration remediation, and use Skill 057 for detailed validation-enrichment behavior after readiness is stable.
 - Preferred location for this class of cards: `docs/skills/composite-orchestration/`.
 - Keep branch logic service-agnostic; keep target quirks in transient run artifacts.
 
 ## 11) Prompt Sequence Template (Default)
-Use this condensed sequence in order, asking one question at a time and waiting for each answer before continuing:
-1. "Do you want tests for all operations or a subset?"
-2. "Should I generate only happy-path tests, or include negative tests too?"
-3. "For negatives, limit to spec-defined non-2xx cases, or also propose AI-generated error cases for review?"
-4. "What should I name the `.tst` file?"
-5. "Some operations have additional request parameters (query params, request body fields). Want me to propose values from the spec for you to review, or would you prefer to provide them yourself?"
-6. "For write-method payloads (`POST`/`PUT`/`PATCH`), do you want to provide payloads, review AI-proposed payloads, or explicitly allow autonomous fill?"
-7. "Do you want validator/assertor tooling added automatically with a review pass?"
-8. "Do you want DB-backed validation included where feasible?"
-9. "Proceed with this plan summary: <scope + counts + tool chain + tst name + payload mode>?"
+Use this condensed sequence in order for prompts that still require broad authoring intake, asking one question at a time and waiting for each answer before continuing. If steps 1-2 resolve to one-client intent, hand off to Skill 056 instead of continuing this broader sequence.
+1. "Do you want a new `.tst`, tests added into an existing `.tst`, or one REST/SOAP Client only?"
+2. "Do you want broad generated coverage, or just one operation/client?"
+3. "Do you want tests for all operations or a subset?"
+4. "Should I generate only happy-path tests, or include negative tests too?"
+5. "For negatives, limit to spec-defined non-2xx cases, or also propose AI-generated error cases for review?"
+6. "What should I name the `.tst` file?"
+7. "For write-method payloads (`POST`/`PUT`/`PATCH`), do you want to provide payloads, review AI-proposed payloads, or explicitly allow autonomous fill?"
+8. "After generation, should I leave the tests with client-level baseline validation only, or plan a follow-on validation-enrichment pass?"
+9. "If you want that follow-on pass, should it also include response-vs-DB checks where feasible?"
+10. "Proceed with this plan summary: <scope + counts + branch + tst name + payload mode + follow-on phases>?"
 
 ### 11.2 Subset Selection Prompt Pattern (Conversational)
 When subset scope is requested:

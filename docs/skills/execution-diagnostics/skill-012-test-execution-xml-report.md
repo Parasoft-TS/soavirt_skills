@@ -126,6 +126,12 @@ Key details:
   - `trafficViewers[0].toolSettings.testRuns[].dataSourceRows.values[].trafficData.request`
   - `trafficViewers[0].toolSettings.testRuns[].dataSourceRows.values[].trafficData.response`
 
+## 6.0.1) Payload-Type Classification Rule (Required)
+- When traffic evidence is being used for validation-family or parser-family selection, classify payload type from the observed response payload/body first.
+- Treat response headers such as `Content-Type` as supporting evidence only.
+- If response headers and the observed payload disagree, treat the disagreement as runtime behavior of the API under test and route tool-family selection from the observed payload/body.
+- Example: if the header advertises `application/json` but the observed response body is plain text, route to plain-text validation rather than JSON tooling.
+
 ## 6.1) Execution Analysis Triad (Reusable Default)
 Use this triad as the default post-run workflow for diagnostics:
 1. Run tests (`POST /v6/testExecutions`, poll `/status`).

@@ -65,6 +65,23 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
   - when the selected skill already provides sufficient canonical payload-shape guidance, do not scan the workspace for same-type tool exemplars before create/update.
   - prefer user inputs + endpoint schema + skill guidance; use workspace exemplars only as optional troubleshooting evidence after a concrete payload-shape issue appears.
 
+### Approved-Plan Preservation Rule (Global)
+- When a composite/orchestration card presents a per-target execution plan and the user explicitly approves it, downstream leaf skills must treat that plan as binding for that branch.
+- After approval, leaf skills may refine only configuration details within the approved family and intent.
+- Leaf skills must not silently:
+  - change tool family,
+  - omit approved coverage,
+  - downgrade schema validation to content-only validation,
+  - convert approved field/assertor intent into full-body diffing,
+  - add ignored-difference rules.
+- If an approved tool cannot be created or configured, mark that target `blocked` or `partial`, report the reason, and return for explicit user decision rather than substituting another family automatically.
+
+### Observed Payload Media-Type Authority (Global)
+- For validation-family selection and other payload-sensitive routing, classify response type from the observed semantic payload/body first.
+- Treat response headers such as `Content-Type` as supporting evidence only.
+- If response headers and the observed payload disagree, follow the observed payload and parser-compatible content shape for tool-family selection.
+- Do not attach JSON/XML validation tools only because the producer class or response headers suggest JSON/XML when the observed payload is actually plain text or another type.
+
 ### Capability Preflight Gate (Global)
 - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` is the canonical preflight policy surface for server-API runtime work.
 - Before first write in a branch/session, resolve and normalize the active API base path with a read probe (for example `GET /v6/children`).
@@ -123,10 +140,10 @@ This policy prevents local-search misrouting while preserving legitimate YAML fa
 - Before any create retry, run a same-name collision read check and branch to safe handling (reuse/delete-and-recreate/new-name) when the artifact already exists.
 
 ### Multi-Step Orchestration Ownership (Global)
-- Use `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` as the canonical interaction model for intake, conversational scope selection, plan confirmation, approved-plan continuation, and staged execution for service-test authoring.
+- Use `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` as the canonical interaction model for underspecified service-test-authoring intake, conversational scope selection, plan confirmation, approved-plan continuation, and staged execution where ambiguity still requires orchestration.
 - Keep this workflow doc focused on global safety/loading/failure policy.
 - Do not duplicate full conversational intake scripts or branch-specific orchestration logic in this file when Skill 033 already owns it.
-- Other workflow/composite cards may define only branch-specific deltas relative to Skill 033.
+- Other workflow/composite cards may define branch-specific deltas or repeated clarified workflows relative to Skill 033, including direct validation-enrichment workflows once authoring scope is already clear; `docs/skills/skill-index.md` owns when direct routing should bypass Skill 033 and target those cards instead.
 
 ## Session Continuity
 - After session compaction or continuity loss, re-intake the canonical runtime surfaces before proceeding:

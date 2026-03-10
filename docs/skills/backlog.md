@@ -19,6 +19,12 @@ Do not use this file as the primary operator-facing routing surface.
 - **Deferred/Retired**: intentionally not being expanded right now.
 
 ## Active Priorities
+- Harden and validate the new validation-enrichment orchestration path so happy-path bundle proposal, DB Tool resultset enrichment, multi-signal readiness heuristics, schema-source confirmation, and response-vs-database routing behave consistently:
+  - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+- Define and validate the new request-readiness remediation orchestration path so underconfigured existing/generated REST/SOAP client tests and DB Tools can be repaired before validation or later orchestration continues:
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+- Maintain and refine the API-first constrained REST Client same-operation edit path that uses REST Client `GET/PUT/GET` for constrained JSON request payloads and YAML fallback for same-operation resource/config edits, while keeping operation retargeting and migration work out of scope:
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
 - Broaden Virtualize coverage beyond shared platform/policy surfaces.
 - Convert remaining partially-defined validation/data-exchange cards into fully validated workflows:
   - `docs/skills/platform/skill-024-tst-create-from-raml.md`
@@ -108,6 +114,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
   - **State:** Defined
   - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
+- `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - **State:** Validated
+  - **Notes:** API-first same-operation edit path for existing constrained REST Clients; validated in contributor research for same-operation path/query value edits, semantically equivalent base/service-definition literalization, and constrained `Form JSON` request payload editing through REST Client `GET/PUT/GET`, where the server normalizes valid schema-conformant JSON into persisted `formJson` plus `MessagingClient_LiteralMessage`.
 
 ### 6) Validation Tools
 - `docs/skills/validation/skill-010-json-assertor-workflow.md`
@@ -174,7 +183,16 @@ Do not use this file as the primary operator-facing routing surface.
 ### 10) Composite Orchestration
 - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
   - **State:** In progress
-  - **Notes:** core orchestration card exists and has completed meaningful live runs, but remains the main hardening surface for multi-step authoring flows.
+  - **Notes:** canonical underspecified-intent entry point for service-test authoring; now focuses on ambiguity resolution, generation-critical pre-write gates, and high-level phase sequencing, while routing repeated clarified sub-workflows to Skills 056, 057, and 058 instead of continuing to absorb detailed branch policy.
+- `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
+  - **State:** Defined
+  - **Notes:** branch-specific orchestration card for one-client authoring intent across endpoint-only and contract-informed REST/SOAP flows; routes to Skills 020 and 034 rather than broad generation cards.
+- `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+  - **State:** Defined
+  - **Notes:** branch-specific orchestration card for adding validation to existing or newly generated tests and DB Tool resultsets, with live-runtime-evidence gating, multi-signal readiness fail-closed behavior, an explicit remediation-approval-vs-validation-approval boundary, happy-path schema-plus-content bundle defaults for API responses, DB Tool assertion/diff enrichment defaults, conservative negative-test policy, and response-vs-database orchestration.
+- `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - **State:** Defined
+  - **Notes:** branch-specific orchestration card for detecting and repairing underconfigured existing/generated REST/SOAP client tests and DB Tools before validation or later orchestration proceeds; now enforces a strict candidate-value sourcing ladder (user/session/contract/same-`.tst` only by default), best-guess proposal gating, and no autonomous live-service probing unless the user explicitly approves it, while supporting REST-only, SOAP-only, DB-only, and mixed remediation slices and keeping SQL strategy and DB-side setup out of scope.
 
 ## Coverage Gaps / Planned New Cards
 - Structural manipulation coverage beyond current validated cards remains incomplete if the project still wants fine-grained standalone cards for:
@@ -185,6 +203,8 @@ Do not use this file as the primary operator-facing routing surface.
   - explicit reorder cards/overlays
 - Virtualize-specific skill coverage remains shallow beyond shared platform/policy surfaces.
 - Additional datasource-family validation evidence is still desirable for Skill 051 and downstream datasource-aware workflows.
+- Repeated-execution response-volatility profiling for validation-bundle selection remains future work rather than part of the v1 validation-enrichment orchestration.
+- Higher-scope constrained REST Client work remains future research, including operation retargeting within the same service definition and longer-term v1-to-v2 OpenAPI migration orchestration with downstream chained-tool adaptation.
 
 ## Deferred / Retired
 - REST Client constrained creation cards (`Skills 026/027`)

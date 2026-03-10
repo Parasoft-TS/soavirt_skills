@@ -17,12 +17,82 @@ If cues are absent and the request appears general-purpose/non-Parasoft, do not 
 ### A) Service-Test Authoring
 Route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` when the user wants to:
 - create new service tests
-- generate tests from OpenAPI/WSDL/RAML/XSD
-- turn an endpoint/service definition into a `.tst`
-- add WSDL-generated tests into an existing `.tst` but still needs intake/branching help
+- generate tests from OpenAPI/WSDL/RAML/XSD but key routing dimensions are still unresolved
+- turn an endpoint/service definition into tests but has not yet clarified whether they want one client, a new `.tst`, or tests added into an existing `.tst`
+- add generated tests into an existing `.tst` but still needs intake/branching help
 - gather scope and plan before test authoring
+- resolve whether a contract is the generation source or only planning input
 
-If the user already has the target existing `.tst` / suite, WSDL source, and direct intent to generate into that existing asset, route directly to `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`.
+Use Skill 033 as the canonical route for underspecified service-test authoring prompts, not as the mandatory route for already-specific direct requests.
+#### Direct validation-enrichment routing
+Route to `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md` when the user wants to:
+- add validations to existing tests in a `.tst`
+- enrich generated tests with schema validation and/or content validation
+- add assertions or diff-style validation to DB Tool resultsets
+- compare service responses with DB results for consistency
+- add validation to a known set of happy-path or negative tests without re-opening broad authoring intake
+
+Preferred prompts:
+- `I have these tests in this .tst and want to add validations`
+- `add schema validation to these happy-path tests`
+- `enrich these generated tests with assertions`
+- `add an XML Assertor to this DB Tool resultset`
+- `compare these response tests with the DB`
+#### Direct request-readiness remediation routing
+Route to `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md` when the user wants to:
+- help configure existing tests whose requests still look default or incomplete
+- finish setting up request data for existing REST/SOAP client tests
+- repair underconfigured DB Tools whose connection/query settings are still incomplete
+- repair request-readiness before validation or later authoring steps continue
+- remediate multiple existing tests that are failing because the requests are not configured yet
+
+Preferred prompts:
+- `help me configure these tests`
+- `these clients still need request data`
+- `this DB Tool still needs its connection/query configured`
+- `these tests look default and need to be configured`
+- `fix these tests so they are ready before validation`
+#### Direct constrained existing-client edit routing
+Route to `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` when the user wants to:
+- edit request values on an existing OpenAPI-constrained REST Client without changing the selected operation
+- edit JSON request payload values on an existing constrained `Form JSON` REST Client without changing the selected operation
+- repair persisted path/query defaults on one known constrained REST Client
+- use the REST Client API path for constrained request payloads and the YAML path for same-operation resource/config edits on an existing constrained REST Client
+
+Preferred prompts:
+- `edit this constrained REST client's query parameters`
+- `update this constrained REST client's JSON body payload`
+- `update the path parameter on this existing swagger-backed REST client`
+- `fix this constrained REST client request value without changing the selected operation`
+
+#### Direct single-client routing
+Route to `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md` when the user wants to:
+- create one REST Client or one SOAP Client
+- create one operation-focused test rather than broad generated coverage
+- use OpenAPI/WSDL as planning input for one client
+- create a quick endpoint-focused client/test rather than a generated suite/file
+
+Preferred prompts:
+- `create one REST client for this endpoint`
+- `make one SOAP client for this operation`
+- `I only want one operation from this OpenAPI`
+- `use this WSDL to help create a single SOAP Client`
+
+#### Direct generation routing
+Route directly to the smallest matching generation workflow when the user is already specific:
+- new `.tst` from OpenAPI -> `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+- new `.tst` from WSDL -> `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
+- new `.tst` from RAML -> `docs/skills/platform/skill-024-tst-create-from-raml.md`
+- new `.tst` from XSD -> `docs/skills/platform/skill-025-tst-create-from-xsd.md`
+- WSDL-generated suite added into an existing `.tst` -> `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
+
+Tie-break rule:
+- If the request is vague, use Skill 033.
+- If the request is already clearly validation-enrichment intent on existing/generated tests, use Skill 057.
+- If the request is already clearly request-readiness/configuration-remediation intent on existing/generated tests, use Skill 058.
+- If the request is already clearly a same-operation edit on one existing constrained REST Client, use Skill 059.
+- If the request is already clearly one-client intent, use Skill 056.
+- If the request is already clearly direct generation intent and the target capability exists as a dedicated card, bypass Skill 033 and route directly to that card.
 
 ### B) Read-Only TST Analysis
 Use this registry before selecting overlapping read-only analysis cards for `.tst` requests.
@@ -115,6 +185,7 @@ Use for client-tool lifecycle and configuration.
 - `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
 - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
 - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
+- `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
 
 ### 6) Validation Tools
 Use for validators, assertors, and diff-based comparison.
@@ -161,6 +232,9 @@ Use these as required dependencies when a target skill calls for them. These are
 Use for multi-step conversational intake and cross-skill planning/execution.
 
 - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+- `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
+- `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+- `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 
 ## Selection Heuristic
 1. For each new user prompt, re-run this routing heuristic before reusing any previously selected target card.
