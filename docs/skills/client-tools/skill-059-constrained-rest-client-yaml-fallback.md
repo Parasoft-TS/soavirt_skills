@@ -37,6 +37,8 @@ This card owns same-operation edits for existing constrained REST Clients only. 
   - `docs/skills/platform/skill-002-shared-file-transfer.md`
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
   - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+- Required for YAML fallback branch:
+  - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
 - Additive:
   - `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
 
@@ -83,7 +85,11 @@ This card owns same-operation edits for existing constrained REST Clients only. 
      - `constrainedQuery.parameters`
    - constrained JSON body edits on constrained `Form JSON` clients -> derive the request payload from the selected operation's request schema, construct valid JSON literal text, and write it back through the REST Client API so the server normalizes the authoritative constrained payload state
    - semantically equivalent literalization -> only when replacing an environment-backed value with the same resolved literal value
-4. For path/query/resource/config edits, download the `.tst` using Skill 002 and immediately keep the original downloaded file as rollback source.
+4. For path/query/resource/config edits, invoke Skill 006 to establish the rollback-preserving local YAML edit workflow:
+   - create a server-side fallback copy when the branch needs a durable rollback artifact
+   - download the target `.tst`
+   - preserve the original local rollback source
+   - return control to this card for the exact scoped edit rules below
 5. For path/query/resource/config edits, locate the exact YAML block for the target REST Client.
   - anchor the block with stable identifiers from the current tool, including tool name plus operation-binding fields such as `resourceMethod` and `resourceMode`,
   - fail closed if the target block cannot be isolated unambiguously.
@@ -114,20 +120,18 @@ This card owns same-operation edits for existing constrained REST Clients only. 
    - update `payload.input.literal.text` in the live GET object
    - write the full updated tool back with `PUT /v6/tools/restClients?id=<tool-id>`
    - treat the server-side REST Client PUT path as the authoritative normalizer for converting valid schema-conformant JSON literal text into the persisted constrained `Form JSON` model
-8. For YAML-based path/query/resource/config edits, write the edited file as UTF-8 without BOM.
-9. For YAML-based path/query/resource/config edits, compare the target tool block locally before upload and confirm only the intended request-value surfaces changed.
-10. For YAML-based path/query/resource/config edits, upload the edited file with `replace=true`.
-11. Re-read the updated state and confirm that:
+8. For YAML-based path/query/resource/config edits, write the edited file as UTF-8 without BOM and confirm locally that only the intended request-value surfaces changed before Skill 006 uploads it.
+9. Re-read the updated state after the Skill 006 upload/readback cycle and confirm that:
    - for API-based payload edits, REST Client GET readback reflects the intended payload JSON
    - for YAML-based path/query/resource/config edits, intended edits persisted
    - for constrained JSON payload edits, the re-downloaded `.tst` shows the server-normalized constrained payload state, including persisted `formJson` and `MessagingClient_LiteralMessage`
    - for YAML-based edits, all required mirrored surfaces changed together
    - no unrelated drift appeared in the edited block or neighboring tool structure.
-12. For constrained payload edits, verify the actual request payload sent on the wire rather than relying only on UI-facing literal text.
-13. Run focused verification execution for the selected test and confirm the runtime effect matches the intended same-operation edit.
-14. If verification fails:
+10. For constrained payload edits, verify the actual request payload sent on the wire rather than relying only on UI-facing literal text.
+11. Run focused verification execution for the selected test and confirm the runtime effect matches the intended same-operation edit.
+12. If verification fails:
    - stop
-   - restore the original `.tst` or original tool JSON readback, depending on which path was used
+   - restore the original `.tst` through Skill 006 for the YAML-based branch, or restore the original tool JSON readback for the API-based branch
    - report the failure so the next step can focus on payload construction or runtime behavior rather than speculative YAML structure edits
 
 ## 6.1) Safe YAML Edit Examples
@@ -237,7 +241,7 @@ After `PUT /v6/tools/restClients`, treat the server as authoritative for expandi
 - Focused verification fails because the request payload values are wrong for the target scenario even though the constrained payload model normalized successfully.
 
 ## 9) Safety / Rollback
-- Always keep the original downloaded `.tst` as the rollback source for YAML-based edits.
+- Always route YAML-based rollback-preserving file-edit handling through Skill 006.
 - Always keep the original full REST Client GET payload as the rollback source for API-based payload edits.
 - Keep a local before/after snapshot of the target tool block so non-target drift can be detected before upload.
 - If update verification or focused execution fails, restore the original file or tool payload immediately and re-read to confirm restoration.

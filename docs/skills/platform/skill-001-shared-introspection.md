@@ -10,7 +10,7 @@ Shared File Introspection (roots, folders, and typed descendants)
 - In scope:
   - List workspace roots and immediate children.
   - Enumerate descendants under a folder.
-  - Filter descendants by type (for example `tst` or `pva`).
+  - Filter descendants by type (for example `tst`, `pva`, or `pvn`).
   - Resolve `.tst` structural children (for example root suite) using compatibility-safe paths.
 - Out of scope:
   - Downloading file content.
@@ -28,19 +28,33 @@ Shared File Introspection (roots, folders, and typed descendants)
   - `baseUrl` (for example `http://localhost:9080/soavirt/api/v6`)
 - Optional:
   - `id` (folder or file id such as `/TestAssets`)
-  - `type` (file type filter such as `tst` or `pva`)
+  - `type` (file type filter such as `tst`, `pva`, or `pvn`)
 
 ## 5) Preconditions
 - API base URL reachable.
 - Auth requirements satisfied.
 - Caller has read access to workspace content.
+## 5.1) Workspace Root Invariants (Practical)
+- The server always exposes these workspace-root directories:
+  - `/TestAssets`
+  - `/VirtualAssets`
+  - `/ProvisioningAssets`
+- Treat these as the canonical base-path roots for server-hosted files.
+- If the caller already provides a rooted server id/path under one of these directories, use it directly and do not relist roots first.
+- If the caller provides only a filename or partial path, choose the most likely root first:
+  - SOAtest `.tst` and related test assets -> `/TestAssets`
+  - Virtualize `.pva` -> `/VirtualAssets`
+  - Provisioning Assets `.pvn` and related Virtualize provisioning/support files -> `/ProvisioningAssets`
+- Broaden to sibling roots only after the likely-root query returns no match.
 
 ## 6) Procedure
-1. Call `GET /v6/children` with no `id` to list workspace roots.
-2. Choose a folder id and call `GET /v6/children?id=<id>` for immediate children if needed.
-3. Call `GET /v6/descendants/files?id=<id>` to retrieve recursive descendants.
-4. Add `type=<value>` (for example `tst` or `pva`) to narrow results.
-5. For `.tst` structure reads, prefer:
+1. If root context is unresolved, call `GET /v6/children` with no `id` to confirm workspace roots and base-path reachability.
+2. If the caller already has an exact rooted file/folder id under `/TestAssets`, `/VirtualAssets`, or `/ProvisioningAssets`, use that id directly.
+3. If only a filename, file type, or partial path is known, choose the likely root first using Section 5.1.
+4. Call `GET /v6/children?id=<id>` for immediate children when the target is likely a direct child of the chosen root.
+5. Call `GET /v6/descendants/files?id=<id>` to retrieve recursive descendants only when immediate-child lookup is insufficient.
+6. Add `type=<value>` (for example `tst`, `pva`, or `pvn`) to narrow recursive results.
+7. For `.tst` structure reads, prefer:
   - `GET /v6/children?id=<tst-id>` for direct root-suite discovery,
   - `GET /v6/descendants/assets?id=<tst-id>` for broader asset context.
   - Do not assume class-specific file GET endpoints are available for structure reads.
@@ -48,16 +62,18 @@ Shared File Introspection (roots, folders, and typed descendants)
 ### 6.1) Endpoint Selection Rule (Required)
 - Use `GET /v6/descendants/files` for filesystem discovery only:
   - folders/files under workspace roots,
-  - `.tst`/`.pva` file resolution by path/name/type.
+  - `.tst`/`.pva`/`.pvn` file resolution by path/name/type.
+- Prefer one of the canonical roots (`/TestAssets`, `/VirtualAssets`, `/ProvisioningAssets`) as the recursive discovery base instead of broad or synthetic root ids.
 - Use `GET /v6/children?id=<asset-id>` and `GET /v6/descendants/assets?id=<asset-id>` for asset-graph discovery only:
   - suites, tests, tools, datasources, environments, and other in-file objects.
 - Do not use `GET /v6/descendants/assets` with directory ids (for example `/TestAssets`); resolve file ids first.
-- Parse response payloads from the `children` array for both descendants endpoints.
+- Parse the collection field returned by the specific endpoint; do not assume every discovery response uses the `children` array.
 ### 6.2) Common Response Type Literals (Practical Reference)
 - File/root discovery commonly returns API `type` values such as:
   - `directory`
   - `tst`
   - `pva`
+  - `pvn`
 - Asset-graph discovery commonly returns API `type` values such as:
   - `testSuite`
   - `restClient`
@@ -74,10 +90,11 @@ Shared File Introspection (roots, folders, and typed descendants)
   - `403` forbidden
   - `404` item not found
 - Expected response shape:
-  - JSON object with `children` array.
-  - Child objects include fields such as `id`, `name`, `type`, and `url`.
+  - `GET /v6/children`: JSON object with `children` array.
+  - Descendants endpoints: JSON object with the endpoint-specific returned collection.
+  - Returned objects include fields such as `id`, `name`, `type`, and `url`.
 - Post-condition checks:
-  - Root listing contains expected top folders (for example `TestAssets`, `VirtualAssets`).
+  - Root listing contains expected top folders (`TestAssets`, `VirtualAssets`, `ProvisioningAssets`).
   - Type-filtered queries return only requested file type entries.
 
 ## 8) Failure Modes
@@ -93,13 +110,16 @@ Shared File Introspection (roots, folders, and typed descendants)
 ## 10) Reuse Notes
 - SOAtest usage: list `.tst` under `/TestAssets` via `type=tst`.
 - Virtualize usage: list `.pva` under `/VirtualAssets` via `type=pva`.
+- Provisioning usage: list `.pvn` under `/ProvisioningAssets` via `type=pvn`.
 - Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank): not required for this skill.
 
 ## 11) Examples
 - Example request(s):
   - `GET http://localhost:9080/soavirt/api/v6/children`
+  - `GET http://localhost:9080/soavirt/api/v6/children?id=%2FTestAssets`
   - `GET http://localhost:9080/soavirt/api/v6/descendants/files?id=%2FTestAssets&type=tst`
   - `GET http://localhost:9080/soavirt/api/v6/descendants/files?id=%2FVirtualAssets&type=pva`
+  - `GET http://localhost:9080/soavirt/api/v6/descendants/files?id=%2FProvisioningAssets&type=pvn`
 - Example response snippet(s):
   - `{"children":[{"id":"/TestAssets","name":"TestAssets","type":"directory"}]}`

@@ -40,24 +40,27 @@ Do not use this file as the primary operator-facing routing surface.
 
 ## Skill Status Registry
 ### 1) Platform / File Operations
+- `docs/skills/platform/skill-family-server-file-lifecycle.md`
+  - **State:** Defined
+  - **Notes:** canonical selection/anti-duplication surface for file-level lifecycle operations and shared rollback expectations.
 - `docs/skills/platform/skill-001-shared-introspection.md`
   - **State:** Defined
   - **Notes:** canonical shared read/discovery surface; used broadly across runtime routing.
 - `docs/skills/platform/skill-002-shared-file-transfer.md`
   - **State:** Validated
   - **Notes:** shared download/upload flow with no-BOM upload safety.
-- `docs/skills/platform/skill-003-server-copy-rename.md`
+- `docs/skills/platform/skill-003-server-copy.md`
   - **State:** Validated
-  - **Notes:** server-side copy + rename file workflow.
+  - **Notes:** server-side file copy workflow with optional destination naming; foundation for rollback-safe server fallback copies.
 - `docs/skills/platform/skill-004-server-rename.md`
   - **State:** Validated
   - **Notes:** in-place file rename workflow.
 - `docs/skills/platform/skill-005-server-delete.md`
   - **State:** Validated
   - **Notes:** file delete workflow.
-- `docs/skills/platform/skill-006-safe-file-refactor-composite.md`
+- `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
   - **State:** Defined
-  - **Notes:** composite orchestration over validated file primitives.
+  - **Notes:** rollback-preserving local YAML edit composite intended for YAML fallback write branches such as constrained REST edits and structural fallback workflows.
 
 ### 2) Asset Creation / Generation
 - `docs/skills/platform/skill-021-tst-create-empty.md`
@@ -93,7 +96,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** architectural family/intent map, not a full endpoint card.
 - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
   - **State:** Defined
-  - **Notes:** generalized move flow exists; further runtime evidence would improve confidence.
+  - **Notes:** generalized move flow exists; YAML fallback branch now aligns to the shared rollback-preserving local-edit composite.
 - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
   - **State:** Defined
   - **Notes:** broad suite lifecycle card exists; targeted runtime validation can continue incrementally.
@@ -116,7 +119,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - **State:** Validated
-  - **Notes:** API-first same-operation edit path for existing constrained REST Clients; validated in contributor research for same-operation path/query value edits, semantically equivalent base/service-definition literalization, and constrained `Form JSON` request payload editing through REST Client `GET/PUT/GET`, where the server normalizes valid schema-conformant JSON into persisted `formJson` plus `MessagingClient_LiteralMessage`.
+  - **Notes:** API-first same-operation edit path for existing constrained REST Clients; validated in contributor research for same-operation path/query value edits, semantically equivalent base/service-definition literalization, and constrained `Form JSON` request payload editing through REST Client `GET/PUT/GET`, with the YAML fallback branch intended to reuse the shared rollback-preserving local-edit composite.
 
 ### 6) Validation Tools
 - `docs/skills/validation/skill-010-json-assertor-workflow.md`

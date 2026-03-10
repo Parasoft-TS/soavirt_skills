@@ -14,7 +14,6 @@ TST Content Summarization (YAML-Authoritative)
 
 ## 4) Dependencies
 - `skill-002-shared-file-transfer.md` (download current YAML safely)
-- Optional: `skill-006-safe-file-refactor-composite.md` for safe pre-edit copy workflows
 
 ## 5) Inputs
 - Required:

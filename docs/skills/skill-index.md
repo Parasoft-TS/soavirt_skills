@@ -146,13 +146,14 @@ Preferred prompts:
 
 ### 1) Platform / File Operations
 Use for workspace-level discovery and file lifecycle operations.
+- `docs/skills/platform/skill-family-server-file-lifecycle.md`
 
 - `docs/skills/platform/skill-001-shared-introspection.md`
 - `docs/skills/platform/skill-002-shared-file-transfer.md`
-- `docs/skills/platform/skill-003-server-copy-rename.md`
+- `docs/skills/platform/skill-003-server-copy.md`
 - `docs/skills/platform/skill-004-server-rename.md`
 - `docs/skills/platform/skill-005-server-delete.md`
-- `docs/skills/platform/skill-006-safe-file-refactor-composite.md`
+- `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
 
 ### 2) Asset Creation / Generation
 Use for creating new `.tst` assets from scratch or from service definitions.

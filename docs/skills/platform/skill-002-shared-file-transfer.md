@@ -4,7 +4,7 @@
 Shared File Transfer (download for local edit, upload for server update)
 
 ## 2) Objective
-- Transfer asset files between SOAVirt server and local workspace using shared REST endpoints so YAML edits can be made safely when needed.
+- Transfer asset files between SOAVirt server and local workspace using shared REST endpoints so local inspection or edits can be made safely when needed.
 
 ## 3) Scope
 - In scope:
@@ -16,10 +16,20 @@ Shared File Transfer (download for local edit, upload for server update)
   - Product-specific behavior beyond generic transfer.
 
 ## 3.1) Dependencies
+- Required when target file id is unresolved or only a filename/partial path is known:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
 - Required for write flows:
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
-- Additive:
-  - `docs/skills/platform/skill-001-shared-introspection.md` for pre/post transfer verification.
+## 3.2) Canonical Root Awareness
+- These server root directories are always present and act as the base-path roots for server files:
+  - `/TestAssets`
+  - `/VirtualAssets`
+  - `/ProvisioningAssets`
+- If `id` already starts with one of these rooted paths, use it directly and skip root rediscovery.
+- If only a filename or partial path is known, resolve the exact rooted `id` first via Skill 001 using the likely-root-first rule:
+  - SOAtest `.tst` and related test assets -> `/TestAssets`
+  - Virtualize `.pva` -> `/VirtualAssets`
+  - Provisioning Assets `.pvn` and related provisioning/support files -> `/ProvisioningAssets`
 
 ## 4) Inputs
 - Required:
@@ -33,15 +43,18 @@ Shared File Transfer (download for local edit, upload for server update)
 ## 5) Preconditions
 - API base URL reachable.
 - Auth requirements satisfied.
-- Caller has read/write permission for target file id.
+- Caller has read permission for the target file id.
+- For upload/write-back flows, caller also has write permission for the target file id.
 - For upload, local file exists and is readable.
 
 ## 6) Procedure
-1. Download current server file with `GET /v6/files/download?id=<id>` and save locally.
-2. (Optional) Create a backup copy of the downloaded file before editing.
-3. Apply minimal local edits to the YAML.
-4. Upload edited file using `POST /v6/files/upload?id=<id>&replace=true` as multipart form-data (`file`).
-5. Re-download same id and confirm expected changes are present.
+1. Resolve the exact rooted file `id` first.
+2. Download current server file with `GET /v6/files/download?id=<id>` and save locally.
+3. If the workflow is read-only, stop after download and perform any local parse/hash/content checks needed by the consuming workflow.
+4. If the workflow includes edits, create a backup copy of the downloaded file before editing.
+5. Apply minimal local edits to the file content.
+6. Upload edited file using `POST /v6/files/upload?id=<id>&replace=true` as multipart form-data (`file`).
+7. Re-download same id and confirm expected changes are present.
 
 ## 7) Validation
 - Expected HTTP status codes:
@@ -54,9 +67,10 @@ Shared File Transfer (download for local edit, upload for server update)
   - Download: binary/octet-stream response body.
   - Upload: JSON response with file metadata.
 - Post-condition checks:
+  - Download-only branch: local content is readable/parseable for the consuming workflow.
   - Re-downloaded content reflects intended edits only.
-  - File remains parseable YAML.
-  - No unexpected asset/folder relocation.
+  - File remains parseable in its expected format (for example YAML when a YAML-backed workflow is in scope).
+  - No unexpected asset/folder/root relocation.
 
 ## 8) Failure Modes
 - `400` on upload: malformed multipart payload or incompatible content.
@@ -82,6 +96,7 @@ Shared File Transfer (download for local edit, upload for server update)
 ## 10) Reuse Notes
 - SOAtest usage: transfer `.tst` files under `/TestAssets`.
 - Virtualize usage: transfer `.pva` files under `/VirtualAssets`.
+- Provisioning usage: transfer `.pvn` files under `/ProvisioningAssets`.
 - Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank): transfer layer is shared regardless of tool type.
 
@@ -89,6 +104,8 @@ Shared File Transfer (download for local edit, upload for server update)
 - Example request(s):
   - `GET http://localhost:9080/soavirt/api/v6/files/download?id=%2FTestAssets%2FBasic_Test_Construction_Learning.tst`
   - `POST http://localhost:9080/soavirt/api/v6/files/upload?id=%2FTestAssets%2FBasic_Test_Construction_Learning.tst&replace=true`
+  - `GET http://localhost:9080/soavirt/api/v6/files/download?id=%2FProvisioningAssets%2Fexample.pvn`
+  - `POST http://localhost:9080/soavirt/api/v6/files/upload?id=%2FProvisioningAssets%2Fexample.pvn&replace=true`
 - Example command pattern (PowerShell):
   - `Invoke-WebRequest -UseBasicParsing -Uri "<downloadUrl>" -OutFile "<localPath>"`
   - `curl.exe -sS -o upload_response.json -w "%{http_code}" -X POST -F "file=@<localPath>" "<uploadUrl>"`

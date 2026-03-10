@@ -19,8 +19,8 @@ Move exactly one selected data source implementation type (for example `TableDat
 - Required:
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
   - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
-- Additive:
-  - `docs/skills/platform/skill-002-shared-file-transfer.md` for YAML fallback branch.
+- Required for YAML fallback branch:
+  - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
 
 ## 4) Inputs
 - Required:
@@ -41,10 +41,12 @@ Move exactly one selected data source implementation type (for example `TableDat
 2. Discover source suite children with `GET /v6/children?id=<source-suite-id>`.
 3. Attempt REST move via `POST /v6/datasources/move` using candidate datasource id.
 4. Download YAML and verify whether the target implementation type moved.
-5. If REST move selected a different implementation (ambiguous shared id), use YAML surgical move:
-   - move only the datasource block where `impl.$type == <target-type>`
-   - upload with `POST /v6/files/upload?id=<file-id>&replace=true`
-6. Re-download and verify implementation type distribution by suite.
+5. If REST move selected a different implementation (ambiguous shared id), invoke Skill 006 for the YAML fallback branch:
+   - establish rollback-preserving fallback copy/local rollback sources
+   - perform only the surgical YAML edit owned by this card
+   - upload/read back/restore/cleanup through the Skill 006 workflow
+6. For the YAML fallback edit itself, move only the datasource block where `impl.$type == <target-type>`.
+7. Re-download and verify implementation type distribution by suite.
 
 ## 7) Validation
 - Expected HTTP status codes:
@@ -65,15 +67,15 @@ Move exactly one selected data source implementation type (for example `TableDat
 ## 9) Safety / Rollback
 - Read-only by default? No (this is a write skill).
 - Rollback plan for writes:
-  - capture before YAML snapshot
-  - upload baseline with `replace=true`
-  - verify suite datasource type distribution restored
+  - for REST move branch, verify target-type distribution immediately and stop if the wrong implementation moved
+  - for YAML fallback branch, use the rollback-preserving workflow in Skill 006
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
 - Virtualize object models may differ and are outside this card's default scope.
 - Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved: `GET/POST /v6/suites/testSuites`, `POST /v6/datasources/move`, `GET /v6/files/download`, `POST /v6/files/upload`.
+- The YAML fallback branch should route through `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md` rather than re-documenting copy/upload/restore choreography locally.
 - Foundational dependency:
   - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
   - Use it before mutation to confirm available datasource families/columns and to improve move-impact analysis for downstream parameterized tests.

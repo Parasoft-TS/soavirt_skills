@@ -1,6 +1,54 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-10 (Platform file-lifecycle cleanup and YAML-fallback composite refactor)
+
+### Actions Completed
+- Added new platform family card:
+  - `docs/skills/platform/skill-family-server-file-lifecycle.md`
+  - made it the canonical selection/anti-duplication surface for file-level copy/rename/delete/local-edit workflows
+- Renamed and refined atomic file-copy skill:
+  - moved `docs/skills/platform/skill-003-server-copy-rename.md` -> `docs/skills/platform/skill-003-server-copy.md`
+  - clarified that Skill 003 owns server-side copy with optional destination naming, not in-place rename
+- Refined atomic lifecycle leaves:
+  - `docs/skills/platform/skill-004-server-rename.md`
+  - `docs/skills/platform/skill-005-server-delete.md`
+  - tightened separation of copy vs rename vs delete responsibilities and clarified verification/rollback semantics
+- Repurposed Skill 006:
+  - moved `docs/skills/platform/skill-006-safe-file-refactor-composite.md` -> `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
+  - redefined it as a rollback-preserving local YAML edit composite rather than a generic copy/rename/delete wrapper
+  - shifted its dependency model to file transfer + server-side fallback copy + cleanup support
+- Refactored consumer cards:
+  - removed the weak optional Skill 006 reference from `docs/skills/cross-cutting/skill-007-tst-content-summarization.md`
+  - updated `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` so the YAML-fallback branch routes through the re-scoped Skill 006
+  - updated `docs/skills/structure/skill-008-datasource-type-targeted-move.md` so the YAML fallback branch aligns to the re-scoped Skill 006
+- Updated canonical routing/status/history surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass preserves Skills 003-005 as atomic endpoint owners while moving shared lifecycle-selection guidance into a family card.
+- The re-scoped Skill 006 is being kept because it now has real intended consumers in YAML-fallback write branches rather than remaining a generic early composite.
+## Session 2026-03-10 (Shared root-aware introspection/transfer refinement)
+
+### Actions Completed
+- Refined `docs/skills/platform/skill-001-shared-introspection.md`:
+  - elevated `/TestAssets`, `/VirtualAssets`, and `/ProvisioningAssets` to explicit practical root invariants
+  - added likely-root-first discovery guidance so future agents prefer the canonical root before broad recursive scanning
+  - added `.pvn` as a practical file type literal and `/ProvisioningAssets` examples
+  - corrected response-shape guidance so descendants parsing is endpoint-specific rather than assuming `children`
+- Refined `docs/skills/platform/skill-002-shared-file-transfer.md`:
+  - clarified that Skill 001 is required when transfer targets are unresolved
+  - added root-aware transfer guidance tied to the canonical root directories
+  - split the procedure into download-only vs write-back intent within the same linear workflow
+  - added `.pvn` / `/ProvisioningAssets` transfer examples
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass is intended to reduce avoidable discovery churn during read-only summarization and future YAML-fallback workflows by making the stable server root layout operational rather than merely implied.
+- `/ProvisioningAssets` is treated as a first-class root alongside `/TestAssets` and `/VirtualAssets`, with `.pvn` documented as the provisioning-file extension.
 ## Session 2026-03-10 (Level 1 constrained REST Client YAML fallback authoring)
 
 ### Actions Completed
