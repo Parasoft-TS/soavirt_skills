@@ -91,6 +91,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
   - **State:** Defined
   - **Notes:** broad suite lifecycle card exists; targeted runtime validation can continue incrementally.
+- `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
+  - **State:** Validated
+  - **Notes:** suite-level WSDL generation workflow validated for disabled-environment generation, collision-aware managed generation, post-generation environment normalization into the original active environment, nested-parent placement readback, and a validated but non-default `referenceExistingEnvironment.file` branch that creates inactive reference nodes while runtime resolution still follows the active local environment.
 - `docs/skills/structure/skill-047-generated-subset-prune.md`
   - **State:** Validated
   - **Notes:** generated-suite prune workflow is validated and reusable.
@@ -102,6 +105,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
   - **State:** Validated
   - **Notes:** unconstrained REST Client creation/configuration is the current recommended path.
+- `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
+  - **State:** Defined
+  - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
 
 ### 6) Validation Tools
 - `docs/skills/validation/skill-010-json-assertor-workflow.md`

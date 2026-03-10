@@ -1,6 +1,47 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-09 (SOAP Client first-pass lifecycle card + SOAP output mapping)
+
+### Actions Completed
+- Added first-pass SOAP Client lifecycle skill card:
+  - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
+  - scoped to the API-exposed HTTP request/transport/misc surface with scaffold/configured create modes
+  - documented WSDL-originated-compatible behavior without claiming full WSDL/XML Schema tab parity
+- Updated SOAP output-parent mapping in:
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - added semantic response output:
+    - `<soap-client-id>/Response SOAP Envelope`
+  - added diagnostics output:
+    - `<soap-client-id>/Traffic Object`
+- Updated cross-cutting chaining guidance in:
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - added direct SOAP Client response-envelope path construction guidance
+- Updated canonical routing/status surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+
+### Runtime Probes and Findings
+- Confirmed direct SOAP Client REST endpoints in the cached server OpenAPI surface:
+  - `GET/POST/PUT /v6/tools/soapClients`
+- Read live scaffold SOAP Client under `Cool Demo.tst/Test Suite/SOAP`:
+  - observed API-exposed defaults on the HTTP branch (`request`, `transport`, `misc`)
+- Read live configured WSDL-originated SOAP Client under `Cool Demo.tst/Test Suite/SOAP/Test Suite/LoanProcessorServiceImplPort/requestLoan`:
+  - observed runnable request XML + HTTP endpoint/transport settings in API readback
+  - did not observe first-class WSDL/XML Schema resource-mode/url fields in the SOAP Client payload
+- Confirmed output-parent evidence from live children:
+  - semantic XML tools under `Response SOAP Envelope`
+  - diagnostics traffic under `Traffic Object`
+- Executed the configured SOAP Client and inspected live traffic:
+  - request and response were SOAP/XML over HTTP
+- Copied the WSDL-originated SOAP Client and applied read-merge-write PUT to an exposed field:
+  - visible request/transport/misc settings were preserved
+  - copied XML child tools were preserved
+  - copied tool remained runnable after the PUT
+
+### Notes
+- This pass intentionally treats SOAP Client lifecycle as the API-exposed runnable surface rather than asserting full UI parity for WSDL/XML Schema or WS-Policy tabs.
+- The SOAP Client first pass is strong enough to support contributor review and targeted follow-up validation without over-claiming non-HTTP transport support.
 ## Session 2026-03-08 (Validation-family media-type gate + datasource binding hardening)
 
 ### Actions Completed
@@ -809,6 +850,41 @@ Purpose: chronological working log of our skill-building sessions.
   - updated `docs/workflow/documentation-sync-workflow.md` to keep `work/` artifacts clearly optional for runtime tasks
   - updated `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md` with a concrete divergence trap covering repo-local snapshots and `work/` artifacts before Phase A
   - added a `docs/logs/decision-log.md` entry for the clarification rationale and impact
+- Session 2026-03-10 (suite-level WSDL generation workflow validation + new structure skill):
+  - Investigated cached v6 API coverage for service-definition generation and confirmed suite-level generation is documented for WSDL via `POST /v6/suites/testSuites/wsdl`, while equivalent suite-level OpenAPI/RAML/XSD paths were not present in the cached spec.
+  - Probed WSDL generation environment schema and matched UI concepts to API fields:
+    - `createEnvironment.enabled`
+    - `environmentSource.addNewEnvironment.name/prefix`
+    - `environmentSource.referenceExistingEnvironment.file`
+    - WSDL/XSD-only `variableTypes` (`wsdlUriFields`, `clientEndpoints`, `both`)
+  - Validated suite-level WSDL generation behavior in disposable copies of `Cool Demo.tst`:
+    - `createEnvironment.enabled=false` produced generated SOAP Clients with direct ParaBank WSDL/endpoint targeting and no new environment creation.
+    - `addNewEnvironment.name=Local` did not append into the active `Local` environment; instead the API created a new inactive suffixed environment `Local 2`.
+    - prefixed generation created `PARABANK_WSDL` / `PARABANK_ENDPOINT` in that new inactive environment.
+    - non-prefixed managed generation created `WSDL` / `ENDPOINT` in the new inactive environment and let active-environment variable resolution drift to the pre-existing LoanProcessor values.
+  - Validated nested-parent placement anomaly:
+    - for parent `.../Test Suite/SOAP`, the POST response id could point to a root-level named suite while the actual generated `ParaBankServiceImplPort` content appeared under the nested `SOAP` subtree.
+  - Validated the `referenceExistingEnvironment.file` branch using both the user's concrete example and a disposable API reproduction:
+    - generation added another inactive referenced environment node (for example `Environment Reference 2`) pointing to `/TestAssets/parabank-wsdl.env`
+    - the pre-existing active local environment remained active
+    - the generated suite could still land at root scope despite a nested `SOAP` parent request
+    - generated SOAP Clients still read back with `${ENDPOINT}` rather than an isolated file-bound endpoint binding
+  - Proved runtime resolution for the reference-file branch still followed the active local environment:
+    - after mutating the active local environment `ENDPOINT` to an intentionally wrong value, executing the generated `requestLoan` used `POST /parabank/services/SHOULD_NOT_BE_USED HTTP/1.1`
+    - this confirmed the referenced `.env` file was not taking over generated-client runtime resolution
+  - Derived architecture decision for the new skill:
+    - do not model suite-level WSDL generation as a raw POST-only atomic note;
+    - instead author a structure-layer workflow skill that owns safe end-to-end operator behavior for generation into an existing `.tst`.
+  - Refined the environment-handling conclusion after validating the reference-file branch:
+    - keep managed add-new-environment generation plus post-create normalization into the original active environment as the preferred default
+    - document `referenceExistingEnvironment.file` as validated but non-default rather than leaving it marked unvalidated
+  - Added new skill card:
+    - `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
+  - Updated routing/status docs:
+    - `docs/skills/skill-index.md`
+    - `docs/skills/backlog.md`
+  - Logged reusable architecture/runtime rationale in:
+    - `docs/logs/decision-log.md`
 
 ---
 

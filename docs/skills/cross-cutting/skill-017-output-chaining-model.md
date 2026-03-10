@@ -16,6 +16,7 @@ Provide deterministic rules for selecting the correct output-provider parent whe
 ## 4) Output Semantics Rule
 - Prefer semantic data outputs for chaining logic:
   - REST workflows: response-oriented outputs for JSON/XML assertors/validators/databanks and other JSON tools.
+  - SOAP workflows: `Response SOAP Envelope` for XML assertors, XML validators, XML databanks, and XML-oriented diff/comparison tools.
   - DB workflows: `Results as XML` for XML assertors, XML databanks, and other XML tools.
 - Apply strict media-type gate before tool-family selection:
   - JSON tools only when runtime response is JSON,
@@ -45,6 +46,7 @@ Provide deterministic rules for selecting the correct output-provider parent whe
 - Do not attempt to discover output provider IDs by enumerating children of the producer tool.
 - Instead, construct the output provider path directly using known patterns:
   - REST Client: `<rest-client-id>/Response Traffic`
+  - SOAP Client: `<soap-client-id>/Response SOAP Envelope`
   - DB Tool: `<db-tool-id>/Results as XML`
 - See `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md` Section 5 for the canonical path construction reference.
 

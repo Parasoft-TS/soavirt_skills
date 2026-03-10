@@ -19,7 +19,10 @@ Route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orch
 - create new service tests
 - generate tests from OpenAPI/WSDL/RAML/XSD
 - turn an endpoint/service definition into a `.tst`
+- add WSDL-generated tests into an existing `.tst` but still needs intake/branching help
 - gather scope and plan before test authoring
+
+If the user already has the target existing `.tst` / suite, WSDL source, and direct intent to generate into that existing asset, route directly to `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`.
 
 ### B) Read-Only TST Analysis
 Use this registry before selecting overlapping read-only analysis cards for `.tst` requests.
@@ -103,6 +106,7 @@ Use for suite/object creation, movement, reordering, and subset pruning.
 - `docs/skills/structure/skill-family-tst-object-manipulation.md`
 - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
 - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+- `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
 - `docs/skills/structure/skill-047-generated-subset-prune.md`
 
 ### 5) Client Tools
@@ -110,6 +114,7 @@ Use for client-tool lifecycle and configuration.
 
 - `docs/skills/client-tools/skill-015-db-tool-lifecycle.md`
 - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+- `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
 
 ### 6) Validation Tools
 Use for validators, assertors, and diff-based comparison.
