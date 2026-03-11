@@ -23,7 +23,7 @@ Do not use this file as the primary operator-facing routing surface.
   - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
 - Define and validate the new request-readiness remediation orchestration path so underconfigured existing/generated REST/SOAP client tests and DB Tools can be repaired before validation or later orchestration continues:
   - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
-- Maintain and refine the API-first constrained REST Client same-operation edit path that uses REST Client `GET/PUT/GET` for constrained JSON request payloads and YAML fallback for same-operation resource/config edits, while keeping operation retargeting and migration work out of scope:
+- Maintain and refine the validated v1 single constrained REST Client lifecycle path that uses shell-first YAML promotion for constrained binding and REST Client `GET/PUT/GET` for constrained JSON request payload normalization, while keeping broader orchestration work out of scope:
   - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
 - Broaden Virtualize coverage beyond shared platform/policy surfaces.
 - Convert remaining partially-defined validation/data-exchange cards into fully validated workflows:
@@ -119,7 +119,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - **State:** Validated
-  - **Notes:** API-first same-operation edit path for existing constrained REST Clients; validated in contributor research for same-operation path/query value edits, semantically equivalent base/service-definition literalization, and constrained `Form JSON` request payload editing through REST Client `GET/PUT/GET`, with the YAML fallback branch intended to reuse the shared rollback-preserving local-edit composite.
+  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work: read/copy/delete, same-operation edits on existing constrained clients, fresh non-body constrained creation through shell-first YAML promotion, and fresh JSON body-bearing constrained creation through minimal YAML promotion plus REST Client `GET/PUT/GET` body normalization; same-spec token reuse is preferred when consistent peers exist, while no-peer creation falls back to explicit literals or caller-supplied variable tokens.
 
 ### 6) Validation Tools
 - `docs/skills/validation/skill-010-json-assertor-workflow.md`
@@ -207,12 +207,12 @@ Do not use this file as the primary operator-facing routing surface.
 - Virtualize-specific skill coverage remains shallow beyond shared platform/policy surfaces.
 - Additional datasource-family validation evidence is still desirable for Skill 051 and downstream datasource-aware workflows.
 - Repeated-execution response-volatility profiling for validation-bundle selection remains future work rather than part of the v1 validation-enrichment orchestration.
-- Higher-scope constrained REST Client work remains future research, including operation retargeting within the same service definition and longer-term v1-to-v2 OpenAPI migration orchestration with downstream chained-tool adaptation.
+- Higher-scope constrained REST Client work remains future research, including broader operation-retargeting/multi-client orchestration beyond the validated shell-promotion workflow and non-JSON constrained body modes.
 
 ## Deferred / Retired
 - REST Client constrained creation cards (`Skills 026/027`)
   - **State:** Deferred/Retired
-  - **Notes:** current recommended path remains unconstrained REST Client creation via `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`.
+  - **Notes:** their original narrow scope is superseded by the validated single-client constrained lifecycle coverage in `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`; unconstrained REST Client creation still routes to `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`.
 
 ## Virtualize Future Track
 - Deeper `.pva` lifecycle and deployment-aware workflows.

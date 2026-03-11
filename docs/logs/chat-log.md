@@ -1188,6 +1188,35 @@ Purpose: chronological working log of our skill-building sessions.
 - The policy assumption is that the agent derives payload shape from the selected operation's request schema/OpenAPI definition, constructs valid schema-conformant JSON, and trusts the server-side REST Client PUT path to normalize that JSON into the authoritative persisted constrained payload model.
 - YAML remains the documented path for same-operation resource/config edits such as base URL, schema URL, path parameters, and query parameters.
 
+## Session 2026-03-11
+
+### Context
+- Goal: implement the broadened Skill 059 documentation after live research validated a full v1 single constrained REST Client lifecycle, including fresh JSON body-bearing constrained creation.
+
+### Actions Completed
+- Re-read the approved implementation plan and the target synchronized doc surfaces before finishing the implementation pass:
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `README.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Rewrote Skill 059 as the validated v1 owner for one constrained REST Client lifecycle:
+  - fresh constrained creation now starts from a plain REST Client shell rather than requiring a copy of an existing constrained client
+  - operation identity is documented as OpenAPI path plus HTTP method
+  - same-spec constrained peers are treated as style exemplars for schema/base-url token reuse, not as mandatory prerequisites
+  - no-peer creation is documented as valid from explicit literals or caller-supplied variable tokens
+  - JSON body-bearing create/update is documented as a two-phase flow: minimal YAML promotion followed by REST Client `GET/PUT/GET` body normalization
+- Synchronized the operator/contributor surfaces so the broadened scope is reflected consistently:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `README.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- Skill 059 now owns read/copy/delete plus same-client create/update for one constrained REST Client at the validated v1 boundary.
+- Broader multi-client orchestration and non-JSON constrained body modes remain future work.
+
 ---
 
 ## Session Template

@@ -50,6 +50,8 @@ Current capabilities are strongest for SOAtest `.tst` workflows and include:
 	- move specific datasource types
 - Create and manage tool chains:
 	- REST Client
+	  - unconstrained lifecycle in None mode
+	  - validated v1 single constrained lifecycle, including fresh constrained creation and JSON body-bearing create via YAML promotion plus API body normalization
 	- DB Tool
 	- JSON/XML Assertor
 	- JSON/XML Validator

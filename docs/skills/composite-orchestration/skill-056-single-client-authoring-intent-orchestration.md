@@ -13,13 +13,13 @@ Convert requests whose normalized intent is "create one client/test" into a conf
   - support endpoint-only and contract-informed planning branches
   - use OpenAPI/WSDL as planning input for one operation/client when available
   - resolve whether to place the client into an existing asset or create a minimal new host asset first
-  - route REST execution to Skill 020
+  - route REST execution to Skill 020 or Skill 059 based on whether the selected one-client branch is unconstrained/None-mode or constrained within Skill 059's validated boundary
   - route SOAP execution to Skill 034
   - optionally offer or hand off follow-on validation enrichment after successful one-client authoring/execution
 - Out of scope:
   - broad multi-operation generation from service definitions
-  - claiming durable OpenAPI/WSDL-bound client constraints after authoring
-  - replacing the endpoint-accurate behavior owned by Skills 020 and 034
+  - claiming client-constraint behavior beyond what the downstream leaf skill explicitly validates
+  - replacing the endpoint-accurate behavior owned by Skills 020, 034, and 059
 
 ## 3.1) Dependencies
 - Required:
@@ -28,6 +28,7 @@ Convert requests whose normalized intent is "create one client/test" into a conf
   - `docs/skills/platform/skill-021-tst-create-empty.md`
   - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
   - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
 
 ## 4) Inputs
@@ -76,7 +77,8 @@ Convert requests whose normalized intent is "create one client/test" into a conf
    - extract candidate method/path/request-body needs for REST,
    - extract candidate operation/request-envelope/endpoint hints for SOAP.
 6. For REST:
-   - treat OpenAPI as planning input for one client, then route final authoring to Skill 020.
+   - if the confirmed one-client plan is to create or update a constrained REST Client within Skill 059's validated shell/promotion boundary, route final authoring to Skill 059.
+   - otherwise treat OpenAPI as planning input for one client and route final authoring to Skill 020.
 7. For SOAP:
    - treat WSDL as planning input for one client, then route final authoring to Skill 034.
    - explicitly preserve Skill 034's boundary: this is contract-informed SOAP Client authoring, not full WSDL-bound SOAP Client parity.
@@ -89,7 +91,8 @@ Convert requests whose normalized intent is "create one client/test" into a conf
 
 ### 6.4) Downstream Handoff
 10. For REST single-client execution:
-   - route to `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`.
+   - route to `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md` when the target branch is unconstrained / None-mode REST authoring.
+   - route to `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` when the target branch is single constrained REST Client lifecycle work within Skill 059's validated shell/promotion boundary.
 11. For SOAP single-client execution:
    - route to `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`.
 12. Carry forward only explicitly confirmed values from intake/contract planning into the downstream leaf skill.
@@ -122,7 +125,7 @@ Convert requests whose normalized intent is "create one client/test" into a conf
 ## 7) Validation
 - One-client intent is normalized before execution.
 - Multi-operation generation requests are rerouted rather than forced through this card.
-- REST leaf execution always ends in Skill 020.
+- REST leaf execution always ends in Skill 020 or Skill 059 based on the confirmed one-client branch.
 - SOAP leaf execution always ends in Skill 034.
 - Contract-informed SOAP wording does not overclaim full WSDL-bound authoring parity.
 - Optional follow-on validation-enrichment handoff does not duplicate a preference already resolved upstream or reopen broader sequencing owned by Skill 033.
@@ -132,6 +135,7 @@ Convert requests whose normalized intent is "create one client/test" into a conf
 - Contract-informed planning is mistaken for durable contract binding.
 - Target hosting asset remains unresolved before client creation.
 - Operation-selection ambiguity is skipped when the source describes multiple operations.
+- Constrained single-client REST intent is collapsed into Skill 020 instead of routing to Skill 059 when the validated constrained boundary applies.
 - SOAP branch overclaims WSDL-constrained behavior that Skill 034 does not actually validate.
 - Direct one-client routing misses the post-execution opportunity to offer validation enrichment.
 - Skill 056 re-asks for follow-on validation when Skill 033 already resolved that preference upstream.
@@ -144,5 +148,6 @@ Convert requests whose normalized intent is "create one client/test" into a conf
 - Use this card for direct single-client requests and for contract-informed one-operation requests.
 - Use Skill 033 instead when service-test authoring intent is still materially underspecified.
 - Use generation cards (`Skills 022-025`, `Skill 055`) when the user wants broad generated coverage rather than one client.
+- For REST branches, choose Skill 020 for unconstrained / None-mode lifecycle work and Skill 059 for single constrained REST Client lifecycle work within the validated shell/promotion boundary.
 - This card may optionally hand off to Skill 057 after successful one-client execution when the user wants immediate validation enrichment.
 - Generalized readiness remediation and broader negative/validation phase sequencing remain owned by Skills 033 and 058 rather than by this card.

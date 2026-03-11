@@ -1,144 +1,209 @@
-# Skill 059: Existing Constrained REST Client Same-Operation Edit Workflow (API-First)
+# Skill 059: Single Constrained REST Client Lifecycle (YAML Promotion + API Body Normalization)
 
 ## 1) Skill Name
-Safely edit existing service-definition-backed constrained REST Client request values while keeping the selected operation unchanged, using REST Client API updates for constrained JSON request payloads and YAML fallback for resource/config surfaces.
+Create/read/update/copy/delete one service-definition-backed constrained REST Client, using shell-first YAML promotion for constrained binding and REST Client API `GET/PUT/GET` normalization for constrained JSON request bodies.
 
 ## 2) Objective
-Provide a reliable same-operation edit path for existing constrained REST Clients. For constrained `Form JSON` request bodies, this card treats `GET /v6/tools/restClients` plus `PUT /v6/tools/restClients` as the authoritative way to write schema-valid JSON literal payloads and let the server normalize them into the persisted constrained `Form JSON` model. For same-operation resource/config surfaces such as base URL, schema URL, path parameters, and query parameters, this card keeps the existing YAML fallback path.
+Provide one reliable v1 owner for single constrained REST Client lifecycle work. This card supports:
+- creating a fresh constrained REST Client from scratch
+- reading, copying, deleting, and same-client updating one existing constrained REST Client
+- same-operation request-value edits on an existing constrained client
+- JSON body-bearing create/update flows only through the validated two-phase path:
+  - minimal YAML promotion into constrained mode
+  - REST Client API body normalization through read-merge-write `PUT`
 
-This card owns same-operation edits for existing constrained REST Clients only. It does not broaden into operation retargeting, cross-spec migration, or creating new constrained REST Clients.
+Operation identity is defined by OpenAPI path plus HTTP method, not by `operationId`. This card fail-closes on broader multi-client orchestration, speculative environment-variable invention, non-JSON constrained body modes, and unvalidated operation-retargeting flows outside the shell/promotion workflow documented here.
 
 ## 3) Scope
 - In scope:
-  - existing REST Clients whose API readback indicates service-definition backing (for example `resource.type=swagger`) and whose persisted YAML indicates constrained mode (`resourceMode: 3`)
-  - same-operation edits to existing constrained request values for:
+  - one REST Client whose API readback indicates service-definition backing (for example `resource.type=swagger`) and whose persisted YAML indicates constrained mode (`resourceMode: 3`)
+  - read via `GET /v6/tools/restClients?id=...`
+  - create a fresh constrained REST Client by:
+    - creating or reusing a plain REST Client shell
+    - promoting it through isolated YAML edits inside one target tool block
+    - optionally normalizing a JSON request body through REST Client `GET/PUT/GET`
+  - update of one existing constrained REST Client when the work stays within the same selected operation
+  - copy via `POST /v6/tools/copy`
+  - delete via `DELETE /v6/tools?id=...`
+  - same-operation edits to constrained request/config surfaces for one target tool:
     - path parameters
     - query parameters
-    - JSON request body values for constrained `Form JSON` clients, using the selected operation's request schema to construct valid JSON literal text and the REST Client API to normalize the persisted constrained payload state
-  - semantically equivalent literalization of:
-    - `baseUrl.fixedValue`
-    - `schemaURL.MessagingClient_SchemaLocation`
-    - `serviceDescriptor.location`
-    when the replacement still points to the same resolved base URL or same resolved service-definition location
-  - REST Client `GET/PUT/GET` read-merge-write updates for constrained JSON request payloads
-  - download/edit/upload/re-download/focused-execution verification for same-operation resource/config edits
+    - semantically equivalent base URL / schema URL / service-definition literalization
+    - constrained JSON request body values for constrained `Form JSON` clients
+  - deterministic same-spec style reuse:
+    - reuse existing schema/base-url variable-token style from same-spec constrained peers when that style is internally consistent
+    - preserve hardcoded literal style when same-spec peers already use literals
+    - allow no-peer fresh creation from explicit literals or caller-supplied variable tokens
 - Out of scope:
-  - creating new constrained REST Clients
-  - changing the selected constrained operation
-  - changing `resourceMethod.resourceId`
-  - changing `resourceMethod.httpMethod`
-  - structural YAML edits such as create/delete/move/reorder of tests, tools, parameters, or suites
-  - switching payload modes away from constrained `Form JSON`
+  - broader multi-client refactor or migration orchestration
+  - operation retargeting outside the validated shell/promotion workflow in this card
+  - structural YAML edits outside one isolated target tool block
+  - autonomous invention of new environment-variable names
+  - switching constrained payload modes away from JSON `Form JSON`
   - non-JSON constrained payload modes
-  - OpenAPI v1-to-v2 migration orchestration and downstream chained-tool rewrites
 
 ## 3.1) Dependencies
 - Required:
   - `docs/skills/platform/skill-002-shared-file-transfer.md`
+  - `docs/skills/platform/skill-003-server-copy.md`
+  - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
   - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
-- Required for YAML fallback branch:
-  - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
 - Additive:
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
   - `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 
 ## 4) Inputs
 - Required:
   - target `.tst` file id/path
-  - target constrained REST Client id or unique test/tool name
-  - intended same-operation request-value edits
+  - target parent suite id when creating or copying
+  - target constrained REST Client id or unique test/tool name for read/update/delete
+  - OpenAPI/schema location and base URL source for fresh constrained creation when they cannot be reused from a same-spec peer
+  - selected OpenAPI path plus HTTP method
 - Optional:
+  - REST Client/test name
+  - caller-supplied variable tokens for base URL or schema URL
+  - intended path/query/body request values
   - local backup/output paths under `work/`
-  - request to literalize environment-backed base URL or schema URL values without changing semantics
-  - focused verification test name if the surrounding `.tst` contains multiple similarly named tests
+  - focused verification test name if the surrounding `.tst` contains similarly named tests
 
 ## 5) Preconditions
 - API reachable and authenticated.
-- Target `.tst` and target REST Client are resolvable.
-- API-first readback confirms the target is an existing constrained REST Client:
-  - REST Client GET indicates service-definition backing (for example `resource.type=swagger`), and
-  - downloaded YAML confirms constrained-mode structures for the selected tool block.
-- Requested edits stay within the current selected operation and do not require structural mutation.
-- For the constrained JSON body branch:
-  - the selected operation's request schema/service definition is resolvable,
-  - the intended request payload can be represented as valid JSON for that schema,
-  - payload values follow the sourcing and approval ladder defined by `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`.
+- Target `.tst` and target suite/tool are resolvable.
+- For update branches, API readback plus downloaded YAML confirm the target is already a constrained REST Client.
+- For create branches, the intended OpenAPI path plus HTTP method are known before mutation.
+- For JSON body-bearing branches:
+  - the selected operation's request schema/service definition is resolvable
+  - the intended payload can be represented as valid JSON for that schema
+  - payload values follow the sourcing and approval ladder in `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 
 ## 6) Procedure
 0. Apply capability preflight before first write:
-   - use Skill 050 Profile A/E to resolve the target file/tool and write branch,
-   - use Skill 050 Profile C for download/upload verification,
-   - use Skill 050 Profile D for focused verification execution.
-1. Resolve the target tool through API reads first:
+   - use Skill 050 Profile A/E for file/tool resolution and mutation steps
+   - use Skill 050 Profile C for download/upload verification
+   - use Skill 050 Profile D for focused execution and traffic observation
+1. Resolve the branch before mutation:
+   - read existing constrained client
+   - create a fresh constrained client
+   - update one existing constrained client without changing the selected operation
+   - copy one constrained client
+   - delete one constrained client
+2. Resolve the file, suite, tool, and operation context through API reads first:
    - locate the `.tst` with `GET /v6/descendants/files`
-   - locate the tool graph with `GET /v6/descendants/assets?id=<tst-id>`
-   - read the current tool with `GET /v6/tools/restClients?id=<tool-id>`
-2. Confirm that the edit belongs to this card:
-   - existing constrained REST Client
-   - same selected operation
-   - request-value edits confined to the same-operation surfaces for this card
-3. Classify the requested edit surface:
-   - path-parameter edits -> `constrainedPath.pathParameters`
-   - query-parameter edits -> keep all mirrored constrained-query fields synchronized:
+   - inspect parent/tool graph with `GET /v6/descendants/assets?id=<tst-id>`
+   - for existing tools, read the current tool with `GET /v6/tools/restClients?id=<tool-id>`
+   - identify the target constrained operation from the OpenAPI path plus HTTP method; do not treat `operationId` as the authoritative binding key
+3. Determine the schema/base-url style before editing:
+   - if same-spec constrained peers exist and consistently use `${TOKEN}` style for schema/base URL, reuse that exact style
+   - if same-spec constrained peers consistently use hardcoded literals, preserve that literal style
+   - if no same-spec constrained peer exists, proceed with explicit literal values or caller-supplied variable tokens
+   - never invent a new environment-variable name autonomously
+4. Read branch:
+   - use `GET /v6/tools/restClients?id=<tool-id>`
+   - confirm constrained/service-definition-backed state through API plus YAML evidence
+5. Copy branch:
+   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, and optional `to.name`
+   - verify the copied tool through `GET /v6/tools/restClients?id=<new-id>` plus parent readback
+6. Delete branch:
+   - `DELETE /v6/tools?id=<tool-id>`
+   - verify deletion through descendants/children readback
+7. For create or YAML-surface update branches, invoke Skill 006 to establish rollback-preserving local YAML edit handling:
+   - create a durable server-side fallback copy when needed
+   - download the `.tst`
+   - preserve the original local rollback source
+   - isolate one target tool block before editing
+8. Create/update the constrained YAML block with a shell-first envelope:
+   - for fresh creation:
+     - create or reuse a plain REST Client shell via `POST /v6/tools/restClients`
+     - use the shell as the target for constrained promotion; do not require copying an existing constrained client
+   - for existing-client same-operation YAML edits:
+     - keep the current selected operation unchanged
+   - in the isolated target tool block, set or preserve the minimum proven constrained structures:
+     - aligned tool/test name
+     - `serviceInfo.serviceDescriptor.location`
+     - `schemaURL.MessagingClient_SchemaLocation`
+     - `baseUrl.fixedValue.value`
+     - `router.HTTPClient_Endpoint`
+     - `literalPath`
+     - `resourceMethod.resourceId = <OpenAPI path>`
+     - `resourceMethod.httpMethod = <HTTP method>`
+     - `resourceMode: 3`
+   - path-plus-method is the authoritative operation binding rule for this card
+   - keep edits block-local:
+     - do not use whole-file/global regex as the default strategy
+     - preserve indentation, ordering, `$type` declarations, and list lengths
+     - do not modify neighboring tools or suite structure
+9. For path/query/resource/config surfaces in the YAML branch:
+   - path parameter edits stay within the existing `constrainedPath.pathParameters` nodes
+   - query parameter edits must keep all mirrored surfaces synchronized:
      - `router.HTTPClient_Endpoint`
      - `urlParameters.properties`
      - `constrainedQuery.parameters`
-   - constrained JSON body edits on constrained `Form JSON` clients -> derive the request payload from the selected operation's request schema, construct valid JSON literal text, and write it back through the REST Client API so the server normalizes the authoritative constrained payload state
-   - semantically equivalent literalization -> only when replacing an environment-backed value with the same resolved literal value
-4. For path/query/resource/config edits, invoke Skill 006 to establish the rollback-preserving local YAML edit workflow:
-   - create a server-side fallback copy when the branch needs a durable rollback artifact
-   - download the target `.tst`
-   - preserve the original local rollback source
-   - return control to this card for the exact scoped edit rules below
-5. For path/query/resource/config edits, locate the exact YAML block for the target REST Client.
-  - anchor the block with stable identifiers from the current tool, including tool name plus operation-binding fields such as `resourceMethod` and `resourceMode`,
-  - fail closed if the target block cannot be isolated unambiguously.
-6. Apply the safe-edit envelope for YAML-based path/query/resource/config edits:
-   - confine edits to one resolved target tool block at a time
-   - use block-local replacement or parser-aware editing; do not use whole-file/global regex or broad find/replace as the default strategy
-   - edit scalar values only within the existing target tool block
-   - preserve indentation, ordering, `$type` declarations, and list lengths
-   - do not add/remove sibling parameter nodes, schema nodes, or operation-binding nodes
-   - do not modify:
-     - `testID`
-     - `resourceMethod.resourceId`
-     - `resourceMethod.httpMethod`
-     - `resourceMode`
-     - output provider blocks
-     - suite/test/tool structure
-7. For constrained JSON payload edits:
-   - read the current tool with `GET /v6/tools/restClients?id=<tool-id>`
+   - semantically equivalent literalization is allowed only when the resolved value stays the same
+   - optional query parameters may remain structurally present but disabled/unset by default
+10. For JSON body-bearing create/update branches, use the required second phase after YAML promotion:
+   - read the live tool with `GET /v6/tools/restClients?id=<tool-id>`
    - keep the full GET payload as the mutation base; do not send sparse/name-only PUT payloads
    - derive the request payload shape from the selected operation's request schema/OpenAPI definition
    - source payload values under the Skill 058 ladder:
      - explicit user-provided values
      - values already confirmed earlier in the current session
-     - contract hints such as examples, defaults, enums, types, requiredness, and field structure
+     - contract hints such as examples, defaults, enums, requiredness, and field structure
      - values inferred from other tests or datasources in the same `.tst`
-   - when the current remediation mode does not allow autonomous filling, treat generated/best-guess values as proposals and require the existing remediation approval gate before writing them
-   - construct valid JSON literal text that conforms to the selected operation's request schema
-   - update `payload.input.literal.text` in the live GET object
-   - write the full updated tool back with `PUT /v6/tools/restClients?id=<tool-id>`
-   - treat the server-side REST Client PUT path as the authoritative normalizer for converting valid schema-conformant JSON literal text into the persisted constrained `Form JSON` model
-8. For YAML-based path/query/resource/config edits, write the edited file as UTF-8 without BOM and confirm locally that only the intended request-value surfaces changed before Skill 006 uploads it.
-9. Re-read the updated state after the Skill 006 upload/readback cycle and confirm that:
-   - for API-based payload edits, REST Client GET readback reflects the intended payload JSON
-   - for YAML-based path/query/resource/config edits, intended edits persisted
-   - for constrained JSON payload edits, the re-downloaded `.tst` shows the server-normalized constrained payload state, including persisted `formJson` and `MessagingClient_LiteralMessage`
-   - for YAML-based edits, all required mirrored surfaces changed together
-   - no unrelated drift appeared in the edited block or neighboring tool structure.
-10. For constrained payload edits, verify the actual request payload sent on the wire rather than relying only on UI-facing literal text.
-11. Run focused verification execution for the selected test and confirm the runtime effect matches the intended same-operation edit.
-12. If verification fails:
+   - when autonomous filling is not authorized, treat generated values as proposals and obtain the existing approval gate before writing them
+   - set:
+     - `payload.inputMode = formJSON`
+     - `payload.input.literal.text = <valid schema-conformant JSON>`
+   - write the full object back with `PUT /v6/tools/restClients?id=<tool-id>`
+   - treat the server-side REST Client PUT path as the authoritative normalizer for persisted constrained `formJson`
+11. Write the YAML-edited file as UTF-8 without BOM and confirm locally that only the intended target block changed before upload.
+12. Re-read the updated state and verify all required evidence:
+   - API readback still resolves the tool under the intended parent
+   - YAML readback shows the intended constrained operation binding and request-value state
+   - for JSON body-bearing branches, API readback shows `payload.inputMode = formJSON`
+   - for JSON body-bearing branches, re-downloaded YAML shows persisted `formJson` plus `MessagingClient_LiteralMessage`
+   - focused execution proves the test still runs
+   - runtime traffic proves the intended request path/query/body is sent on the wire
+   - enclosing suite and tool nodes remain resolvable after create/update
+13. If verification fails:
    - stop
-   - restore the original `.tst` through Skill 006 for the YAML-based branch, or restore the original tool JSON readback for the API-based branch
-   - report the failure so the next step can focus on payload construction or runtime behavior rather than speculative YAML structure edits
+   - restore the original `.tst` through Skill 006 for YAML-based failure
+   - restore the original full REST Client GET payload for API-body failure
+   - report the exact failing verification gate rather than speculating about unsupported structure edits
 
-## 6.1) Safe YAML Edit Examples
-### A) Path parameter edit inside the same operation
-Update both the default and active value in the same existing constrained path parameter node:
+## 6.1) Proven Branch Examples
+### A) Fresh query-only constrained create with no same-spec peer
+Use explicit literals or caller-supplied tokens and bind the operation by path plus method:
 
 ```yaml
+baseUrl:
+  fixedValue:
+    value: "${BASEURL}"
+schemaURL:
+  MessagingClient_SchemaLocation: "${OPENAPI}"
+serviceInfo:
+  serviceDescriptor:
+    location: "${OPENAPI}"
+router:
+  fixedValue:
+    HTTPClient_Endpoint: "${BASEURL}/deposit?accountId=12345&amount=1.0"
+literalPath: /deposit
+resourceMethod:
+  resourceId: /deposit
+  httpMethod: GET
+resourceMode: 3
+```
+
+If no same-spec peer exists, this branch remains valid; do not fail solely because there is nothing to compare against.
+
+### B) Fresh path-plus-query constrained create reusing same-spec style
+When same-spec peers consistently reuse the same tokens, preserve that pattern while keeping mirrored query surfaces synchronized:
+
+```yaml
+router:
+  fixedValue:
+    HTTPClient_Endpoint: "${BASEURL}/customers/12212?verbose=true"
 constrainedPath:
   pathParameters:
   - $type: ElementValue
@@ -146,120 +211,103 @@ constrainedPath:
       $type: ElementType
       defaultValue: 12212
       localName: customerId
-      bodyType:
-        $type: IntegerType
     values:
     - $type: IntegerValue
       value: 12212
-```
-
-Do not change the surrounding operation-selection fields for this Level 1 path.
-
-### B) Query parameter edit inside the same operation
-When a constrained request uses query parameters, keep all mirrored fields synchronized:
-
-```yaml
-router:
-  fixedValue:
-    HTTPClient_Endpoint: "${BASEURL}/deposit?accountId=12345&amount=1.0"
 urlParameters:
   properties:
-  - name: accountId
+  - name: verbose
     value:
       fixedValue:
-        value: 12345
-  - name: amount
-    value:
-      fixedValue:
-        value: 1.0
+        value: true
 constrainedQuery:
   parameters:
   - $type: ElementValue
-    qnameAsString: :accountId
+    qnameAsString: :verbose
     values:
-    - $type: IntegerValue
-      value: 12345
-  - $type: ElementValue
-    qnameAsString: :amount
-    values:
-    - $type: DecimalValue
-      value: 1.0
+    - $type: BooleanValue
+      value: true
 ```
 
-Editing only one of those surfaces is unsafe/incomplete for this card.
+Editing only one query mirror is unsafe for this card.
 
-### C) Safe literalization example
-If an environment-backed value already resolves to a known literal and the edit is explicitly intended to keep semantics unchanged, this card may replace:
-- `baseUrl.fixedValue.value: "${BASEURL}"` -> `baseUrl.fixedValue.value: "http://example/api"`
-- `schemaURL.MessagingClient_SchemaLocation: "${OPENAPI}"` -> the same resolved OpenAPI URL
-- `serviceDescriptor.location: <resolved openapi url>` -> `${OPENAPI}`
+### C) Fresh JSON body-bearing constrained create
+Phase 1: minimally promote the shell in YAML:
 
-Only do this when the resolved location stays the same.
+```yaml
+resourceMethod:
+  resourceId: /v1/demoAdmin/preferences
+  httpMethod: PUT
+resourceMode: 3
+router:
+  fixedValue:
+    HTTPClient_Endpoint: "${BASEURL}/v1/demoAdmin/preferences"
+```
 
-### D) Constrained JSON body edit through the REST Client API
-For constrained `Form JSON` clients, construct valid JSON for the selected operation's request schema, then update the REST Client through read-merge-write:
+Phase 2: normalize the constrained JSON body through REST Client API read-merge-write:
 
 ```json
 {
   "payload": {
+    "inputMode": "formJSON",
     "input": {
       "literal": {
-        "text": "{\"name\":\"Oz Payee\",\"address\":{\"street\":\"1 Main St\"},\"phoneNumber\":\"555-0100\",\"accountNumber\":12345}"
+        "text": "{\"industryType\":\"DEFENSE\",\"webServiceMode\":\"REST_API\",\"advertisingEnabled\":false}"
       }
-    },
-    "inputMode": "formJSON"
+    }
   }
 }
 ```
 
-After `PUT /v6/tools/restClients`, treat the server as authoritative for expanding and normalizing the persisted constrained `formJson` state, then prove the change through API readback, `.tst` re-download, and focused runtime traffic.
+After `PUT /v6/tools/restClients`, prove the result through API readback, `.tst` readback, focused execution, and runtime traffic. Do not try to hand-synthesize the persisted constrained `formJson` tree from scratch.
 
 ## 7) Validation
 - Required checks:
-  - target tool is still present under the same parent after update
-  - API readback shows the intended same-operation request values
-  - re-downloaded YAML shows the intended request-value changes and no unintended structural changes
-  - focused verification execution proves the target test still runs and the intended request-value change takes effect
+  - target tool is present under the intended parent after create/update/copy
+  - API readback shows service-definition backing and the intended operation binding
+  - YAML readback shows the intended constrained structures without unrelated drift
+  - focused verification execution runs the target test
+  - runtime traffic confirms the intended path/query/body on the wire
 - Level 1 safety rules:
-  - treat `resourceMethod.resourceId` as high-risk and non-editable for this card
-  - do not claim support for operation retargeting from evidence gathered only from same-operation value edits
-  - for constrained `Form JSON` payload changes, use REST Client API `GET/PUT/GET` rather than hand-building persisted constrained payload YAML
-  - construct JSON that is valid and schema-conformant for the selected operation's request payload
-  - trust the server-side REST Client PUT path to normalize valid schema-conformant JSON literal text into the authoritative persisted constrained payload model
-  - treat the request schema and the approved Skill 058 sourcing ladder as the authoritative inputs for payload construction
-  - verify payload changes through API readback, `.tst` readback, and runtime traffic
+  - treat path plus method as the authoritative operation binding rule
+  - do not claim support for arbitrary operation retargeting from evidence gathered only from the validated shell/promotion workflow
+  - for constrained `Form JSON` bodies, use REST Client API `GET/PUT/GET` rather than hand-building persisted constrained payload YAML
   - before upload, compare the local target block and fail closed if the edit touched unrelated tools or required broad regex drift
+  - fresh constrained creation must still succeed when no same-spec peer exists, provided the user or caller supplied the needed literal values or tokens
 
 ## 8) Failure Modes
 - Upload saved with BOM (`EF BB BF`) corrupts the `.tst`.
-- Editing only one mirrored query field leads to inconsistent persisted state.
-- Sparse/name-only REST Client PUT drops required existing configuration.
-- Constructed payload JSON is invalid or does not conform to the selected operation's request schema, so the server rejects or misinterprets it.
-- Editing `resourceMethod.resourceId` or related operation-binding fields breaks execution even when request values are otherwise valid.
-- Structural list edits or `$type` edits make the `.tst` unreadable in the UI.
-- Whole-file or broad regex replacement causes unrelated tool drift that is hard to verify safely.
-- Focused verification fails because the request payload values are wrong for the target scenario even though the constrained payload model normalized successfully.
+- YAML promotion binds the wrong operation because the selected OpenAPI path/method were not confirmed first.
+- Query edits drift because only one mirrored field was updated.
+- Sparse/name-only REST Client PUT drops required configuration.
+- Constructed payload JSON is invalid or does not conform to the selected operation's request schema.
+- Hand-built constrained payload trees or copied wizard blocks destabilize persisted structure.
+- Broad regex or whole-file replacement causes unrelated tool drift.
+- Focused execution or traffic verification fails even though API/YAML persistence looked correct.
 
 ## 9) Safety / Rollback
 - Always route YAML-based rollback-preserving file-edit handling through Skill 006.
-- Always keep the original full REST Client GET payload as the rollback source for API-based payload edits.
-- Keep a local before/after snapshot of the target tool block so non-target drift can be detected before upload.
-- If update verification or focused execution fails, restore the original file or tool payload immediately and re-read to confirm restoration.
-- Keep all playground or experiment files under `work/`.
+- Always keep the original full REST Client GET payload as the rollback source for API-body edits.
+- Keep local before/after snapshots of the target tool block so non-target drift can be detected before upload.
+- If verification fails, restore immediately and re-read to confirm restoration.
+- Keep research artifacts and disposable experiments under `work/`.
 
 ## 10) Reuse Notes
-- Use this card only for existing constrained REST Clients whose selected operation remains unchanged.
+- Use this card when the task is clearly about one constrained REST Client and the validated shell/promotion boundary is sufficient.
 - Route unconstrained REST Client lifecycle work to `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`.
 - Route broader request-readiness orchestration to `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`.
-- Treat operation retargeting, cross-spec migration, and new constrained-client creation as future higher-scope work, not as implied extensions of this card.
-- For constrained JSON request payloads, this card is the preferred path because the server-side REST Client API normalizes valid schema-conformant JSON into the persisted constrained `Form JSON` model.
+- Route broader multi-client planning and ambiguity resolution to `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md` or `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` when the user has not yet narrowed the task to one constrained client.
+- Non-JSON constrained body modes remain future work.
 
 ## 11) Reliability Boundary
-- This card treats same-operation constrained JSON request-body editing through the REST Client API as a reliable path for existing constrained `Form JSON` REST Clients.
-- The authoritative rule for payload construction is:
-  - derive the request payload shape from the selected operation's request schema/OpenAPI definition
-  - construct valid JSON that conforms to that schema
+- This card treats single constrained REST Client lifecycle work as validated for:
+  - read/copy/delete of one constrained client
+  - same-operation edits on one existing constrained client
+  - fresh constrained creation for non-body operations through shell-first YAML promotion
+  - fresh constrained creation for JSON body-bearing operations only through minimal YAML promotion plus REST Client API body normalization
+- The authoritative construction rule for constrained JSON bodies is:
+  - derive payload shape from the selected operation's request schema/OpenAPI definition
+  - construct valid schema-conformant JSON
   - write it through REST Client `GET/PUT/GET`
-  - trust the server to normalize it into the persisted constrained `Form JSON` model
-- This card also supports same-operation constrained path/query/resource/config edits through the YAML path documented above.
-- This card does not authorize constrained operation retargeting, new constrained-client creation, non-JSON constrained payload modes, or end-to-end OpenAPI migration work.
+  - trust the server to normalize the persisted constrained `Form JSON` model
+- This card does not authorize broader multi-client migration/refactor orchestration, speculative new env-var naming, or non-JSON constrained payload authoring.

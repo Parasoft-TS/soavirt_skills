@@ -100,7 +100,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 6. If user has service definition/schema, confirm format and location type (URL vs file path).
 7. If user only has endpoint and no service definition:
    - offer two paths:
-     - one-client authoring (Skill 056 -> Skill 020/034 path), or
+    - one-client authoring (Skill 056 -> Skill 020/059/034 path), or
      - pause and supply service definition for broader generation (Skills 022-025 path).
 
 ### 6.2.1 Source Normalization (Internal, Not User-Facing)

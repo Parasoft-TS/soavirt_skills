@@ -52,18 +52,20 @@ Preferred prompts:
 - `this DB Tool still needs its connection/query configured`
 - `these tests look default and need to be configured`
 - `fix these tests so they are ready before validation`
-#### Direct constrained existing-client edit routing
+#### Direct constrained REST Client lifecycle routing
 Route to `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` when the user wants to:
-- edit request values on an existing OpenAPI-constrained REST Client without changing the selected operation
-- edit JSON request payload values on an existing constrained `Form JSON` REST Client without changing the selected operation
-- repair persisted path/query defaults on one known constrained REST Client
-- use the REST Client API path for constrained request payloads and the YAML path for same-operation resource/config edits on an existing constrained REST Client
+- create one OpenAPI-constrained REST Client from scratch through the validated shell-promotion workflow
+- edit request values on one existing constrained REST Client without changing the selected operation
+- edit JSON request payload values on one constrained `Form JSON` REST Client through the REST Client API normalization path
+- copy or delete one known constrained REST Client
+- use the YAML path for constrained promotion/resource/config edits and the REST Client API path for constrained JSON request bodies on one target client
 
 Preferred prompts:
+- `create one constrained REST client for this OpenAPI operation`
 - `edit this constrained REST client's query parameters`
 - `update this constrained REST client's JSON body payload`
-- `update the path parameter on this existing swagger-backed REST client`
-- `fix this constrained REST client request value without changing the selected operation`
+- `copy this swagger-backed REST client`
+- `delete this constrained REST client`
 
 #### Direct single-client routing
 Route to `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md` when the user wants to:
@@ -90,7 +92,7 @@ Tie-break rule:
 - If the request is vague, use Skill 033.
 - If the request is already clearly validation-enrichment intent on existing/generated tests, use Skill 057.
 - If the request is already clearly request-readiness/configuration-remediation intent on existing/generated tests, use Skill 058.
-- If the request is already clearly a same-operation edit on one existing constrained REST Client, use Skill 059.
+- If the request is already clearly single constrained REST Client lifecycle work within the validated shell/promotion boundary, use Skill 059.
 - If the request is already clearly one-client intent, use Skill 056.
 - If the request is already clearly direct generation intent and the target capability exists as a dedicated card, bypass Skill 033 and route directly to that card.
 
