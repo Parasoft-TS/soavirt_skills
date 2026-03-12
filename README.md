@@ -52,6 +52,7 @@ Current capabilities are strongest for SOAtest `.tst` workflows and include:
 	- REST Client
 	  - unconstrained lifecycle in None mode
 	  - validated v1 single constrained lifecycle, including fresh constrained creation and JSON body-bearing create via YAML promotion plus API body normalization
+	  - bulk OpenAPI-to-OpenAPI constrained REST refactor orchestration for existing `.tst` files via Change Advisor, with read-only analysis, grouped review, mutate-on-copy writes, and completion reporting
 	- DB Tool
 	- JSON/XML Assertor
 	- JSON/XML Validator
