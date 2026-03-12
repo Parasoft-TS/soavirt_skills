@@ -1,6 +1,163 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-12 (Shared nested-target re-resolution rule follow-up)
+
+### Actions Completed
+- Refined `docs/skills/platform/skill-001-shared-introspection.md`:
+  - added a shared post-mutation nested-target re-resolution rule for copied/generated containers
+  - clarified that nested ids should be treated as unstable unless the runtime/API explicitly proves id preservation
+  - captured the narrowing order: container root -> structural path context -> expected type -> stable local identity -> source-tree order only as a final tie-breaker
+- Lightly aligned `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - pointed the copied-client re-resolution step back to Skill 001-style asset-graph targeting semantics
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass generalizes one observed Change Advisor targeting gap into a shared introspection rule so future copy/generation workflows can reuse the same fail-closed nested-targeting logic.
+## Session 2026-03-12 (Change Advisor execution-drift hardening follow-up)
+
+### Actions Completed
+- Refined `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`:
+  - made the write path explicitly route constrained `Form JSON` body edits through Skill 059's validated REST Client `GET/PUT/GET` normalization branch rather than direct persisted YAML body-tree mutation
+  - added a failure-mode note so future agents do not treat downloaded YAML visibility as authorization to mutate constrained body structure directly
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - added a minimal post-copy re-resolution procedure for nested copied `restClient` ids based on copied-root traversal plus stable analysis-time path context
+  - added a matching failure mode against guessing copied nested ids from broad descendants queries
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass intentionally kept the hardening narrow: it closes one observed write-path ambiguity for constrained JSON bodies and one observed copied-target id-resolution gap without introducing a broader architectural refactor yet.
+## Session 2026-03-12 (Change Advisor feedback-alignment pass after first runtime execution)
+
+### Actions Completed
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - removed the stale `planning-only` branch so the workflow is always read-only analysis followed by mutate-on-copy-after-approval
+  - added an explicit approval-stage base URL policy choice (`keep current/source`, `rewrite to target OpenAPI server/base URL`, or `rewrite to user-supplied value`)
+  - clarified that relevant non-target executable context such as a same-scenario `DB Tool` should remain visible as unmarked context in the structural tree
+  - aligned write-phase wording so base URL changes are approval-bound rather than silently preserved or silently rewritten
+- Refined `docs/templates/change-advisor-approval-artifact-template.md`:
+  - added header fields for source base URL evidence, target OpenAPI base URL candidate, and base URL policy status
+  - added workflow-global run-policy review items ahead of per-client review items
+  - strengthened the tree-rendering contract so nearby non-target executable context is preserved when it helps orient the user
+- Refined `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`:
+  - aligned the leaf's run-policy input and write-mode wording with the new orchestration-owned base URL policy choice
+- Updated contributor-facing rationale/status surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by observed runtime behavior rather than a new feature request in isolation: the first Change Advisor run still exposed a stale planning-only intake question, omitted useful DB Tool context from the approval tree, and left base URL policy too implicit for approval-time decision-making.
+## Session 2026-03-12 (Change Advisor remaining plan-gap closure)
+
+### Actions Completed
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - made unsupported-v1 stop/reroute behavior explicit in the intake procedure
+  - clarified that clarification mode must continue until source `.tst`, source OpenAPI anchor, and target OpenAPI anchor are all resolved
+  - expanded the intake summary so it carries v1 boundaries, source-verification status, copy naming/location preferences, desired success emphasis, and the next phase to run
+  - clarified default copied-target location behavior and explicit location-preference handling
+  - restored the plan’s multi-environment exact-match rewrite rule and aligned final reporting to the tiered success model
+- Refined `docs/templates/change-advisor-completion-artifact-template.md`:
+  - added explicit success-tier reporting for structural, mechanical, runtime-readiness, and semantic-confidence outcomes
+
+### Notes
+- This pass closes the remaining substantive plan-to-implementation gaps that were outside the presentation-only concerns.
+## Session 2026-03-12 (Change Advisor approval-template follow-up refinement)
+
+### Actions Completed
+- Refined `docs/templates/change-advisor-approval-artifact-template.md`:
+  - restored the representative initial approval-artifact example from the end-to-end plan
+  - tightened structural-tree rendering rules for omitted sections, collapsed context lines, and unmarked non-target branches
+  - clarified that blocked/ambiguous detail belongs in the grouped review section rather than in ad hoc extra tree markers
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - aligned the structural-tree prose with the tighter template rules
+  - clarified that reduced follow-up review packets may include short resolution/supersession notes
+  - clarified that exact source-spec rewrites must apply to every exact-match environment reference, not only the active environment
+
+### Notes
+- This pass closes the main remaining gap between the documented end-to-end plan and the extracted approval-artifact template by restoring a concrete example and the associated rendering constraints.
+## Session 2026-03-12 (Change Advisor proactive hardening pass)
+
+### Actions Completed
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - added a stricter evidence-boundary section for post-download analysis inputs
+  - clarified that explicit subset overrides must resolve to a stable target list before analysis
+  - clarified stable source-tree ordering for target processing and initial review-id ordering
+  - clarified that explicitly deferred chained-tool repair must remain visible in approval/completion artifacts rather than disappearing from the workflow story
+  - clarified the distinction between global analysis-gate failure and client-local blocked targets
+- Refined Change Advisor templates:
+  - `docs/templates/change-advisor-approval-artifact-template.md`
+  - `docs/templates/change-advisor-completion-artifact-template.md`
+
+### Notes
+- This pass was a reliability/underspecification hardening pass on Skill 061 rather than a new architectural-policy change.
+## Session 2026-03-12 (Change Advisor template extraction)
+
+### Actions Completed
+- Added Change Advisor output templates:
+  - `docs/templates/change-advisor-approval-artifact-template.md`
+  - `docs/templates/change-advisor-completion-artifact-template.md`
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - delegated initial post-analysis approval output shape to the approval-artifact template
+  - delegated final completion output shape to the completion-artifact template
+  - kept the initial grouped review packet inside the approval artifact
+  - kept reduced follow-up review packets as separate orchestration responses after the first artifact
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This split keeps output-contract iteration in `docs/templates/` while preserving review-loop semantics, gating, and write authorization behavior in Skill 061 itself.
+## Session 2026-03-12 (Change Advisor bulk OpenAPI refactor orchestration card)
+
+### Actions Completed
+- Added new top-level composite orchestration card:
+  - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
+  - made it the operator-facing owner for one-source-spec bulk constrained REST Client OpenAPI refactor work on an existing `.tst`
+  - encoded intake normalization, read-only migration inventory, grouped review ownership, copied-target sequencing, structural verification, and final completion artifact rules
+  - delegated one-client refactor semantics and per-client write execution to Skill 060 rather than reopening that logic at the composite layer
+- Updated routing/status/history surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass keeps the top-level bulk workflow intentionally bounded: constrained REST source-spec slice refactor only in v1, copied-target-only writes, grouped review after autonomous analysis, and structural verification as the mandatory completion gate.
+## Session 2026-03-12 (Skill-authoring workflow future-agent reliability principle)
+
+### Actions Completed
+- Updated `docs/workflow/skill-authoring-workflow.md`:
+  - added an explicit contributor rule to author skill cards for future agents without privileged conversational context
+  - added a practical self-check for major procedure steps so implicit author knowledge is turned into explicit card guidance when needed
+- Updated contributor-facing rationale/history:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This principle was captured after strengthening Skill 060 revealed that some procedure text can feel complete to the current contributor while still being underspecified for a later agent that did not participate in the planning discussion.
+## Session 2026-03-12 (Skill 060 one-client constrained REST Client OpenAPI refactor leaf)
+
+### Actions Completed
+- Added new client-tools leaf card:
+  - `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
+  - scoped it to exactly one constrained REST Client subtree
+  - defined `analysis` and `write` modes
+  - encoded structured per-client result contracts, supported downstream JSON-family repair scope, and client-slice structural rollback behavior
+- Updated routing/status/history surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass intentionally keeps Skills 010/028/029/031 as operator-facing lifecycle/reference cards rather than making a larger lifecycle-vs-action-contract refactor a prerequisite for Skill 060.
+## Session 2026-03-12 (Change Advisor planning follow-up backlog note)
+
+### Actions Completed
+- Updated `docs/skills/backlog.md`:
+  - logged a future architectural idea to evaluate whether operator-facing validation/data-exchange lifecycle cards such as Skills 010, 028, 029, and 031 should eventually split into user-facing lifecycle workflows plus narrower precomputed action-application boundaries
+  - captured the related follow-up idea to analyze whether Skill 033's current awkwardness/reliability issues may partly reflect the same missing lower-layer contract pattern
+
+### Notes
+- This was intentionally recorded as future backlog/design work rather than made a prerequisite for the new single-client refactor leaf or Change Advisor v1 implementation.
 ## Session 2026-03-10 (Platform file-lifecycle cleanup and YAML-fallback composite refactor)
 
 ### Actions Completed

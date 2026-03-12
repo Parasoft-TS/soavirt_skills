@@ -82,6 +82,18 @@ Shared File Introspection (roots, folders, and typed descendants)
 - These are API literals, not UI labels.
 - When filtering or matching objects, use the observed `type` values returned by the API instead of guessing from display names such as "suite" or "REST Client".
 
+### 6.3) Post-Mutation Nested Target Re-Resolution Rule (Shared)
+- After a container-level mutation such as file copy or suite generation, treat nested object ids inside the new container as unstable unless the runtime/API explicitly proves id preservation.
+- Do not assume that a nested source id continues to identify the copied/generated target object.
+- Do not rely on one broad descendants query alone to guess the intended nested target when multiple similar objects may exist.
+- Re-resolve nested targets from the new container root using this narrowing order:
+  1. re-establish the copied/generated container root id exactly
+  2. walk the stable structural path context captured before mutation (for example suite -> scenario -> test)
+  3. narrow by expected object `type`
+  4. narrow by stable local identity such as preserved name/label
+  5. use preserved source-tree order only as a final tie-breaker when multiple otherwise-equivalent candidates remain
+- If the local subtree cannot be re-established exactly or multiple candidates still remain after narrowing, fail closed and surface the ambiguity instead of guessing a nested target id.
+
 ## 7) Validation
 - Expected HTTP status codes:
   - `200` success

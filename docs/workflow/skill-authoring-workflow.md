@@ -43,6 +43,9 @@ Use the layering model for dependency reasoning and long-term decomposition. Use
 - Store canonical examples in the card that owns the operation; other cards should link instead of duplicating.
 - Prefer adding a new atomic card when a step introduces a new endpoint, object model, or failure mode.
 - Use composite cards only for repeated operator workflows, not for one-off experiments.
+- Author every skill card for a future agent that does not have privileged conversational context from the authoring session.
+- Do not rely on compressed or implied reasoning when a future agent would need explicit instruction to act consistently; encode ownership boundaries, authoritative evidence, approval gates, and fail-closed limits in the card when they matter to execution.
+- Practical self-check: for each major procedure step, ask whether a different agent could perform it reliably from the card alone, or whether the step still depends on context that only the author implicitly remembers.
 
 ## Ownership Split: Atomic Skills vs Workflow Orchestration
 - Atomic skill cards should define endpoint-accurate execution plus required-input gates for their own writes.

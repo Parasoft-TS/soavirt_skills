@@ -67,6 +67,30 @@ Preferred prompts:
 - `copy this swagger-backed REST client`
 - `delete this constrained REST client`
 
+#### Direct constrained REST Client refactor routing
+Route to `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md` when the user wants to:
+- refactor one known constrained REST Client from one confirmed OpenAPI contract/version/location to another
+- analyze or apply one-client source-to-target OpenAPI refactor work without broad multi-client orchestration
+- repair one constrained REST Client subtree plus its supported downstream JSON validation/data-exchange tools as one unit
+
+Preferred prompts:
+- `refactor this constrained REST client from v1 to v2`
+- `retarget this one constrained REST client to the new OpenAPI`
+- `analyze how this one constrained REST client would map to the new spec`
+- `apply the one-client openapi refactor for this constrained test`
+
+#### Direct bulk OpenAPI refactor routing
+Route to `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md` when the user wants to:
+- refactor an existing `.tst` from one confirmed OpenAPI contract/version/location to another across all matching constrained REST Clients in one source-spec slice
+- analyze or apply bulk source-to-target OpenAPI refactor work on a copied target asset
+- review grouped migration decisions across multiple constrained REST Client targets before writes begin
+
+Preferred prompts:
+- `refactor this tst from v1 to v2`
+- `run change advisor on this existing tst`
+- `analyze this tst for bulk openapi migration`
+- `migrate all constrained clients in this tst from the old spec to the new spec`
+
 #### Direct single-client routing
 Route to `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md` when the user wants to:
 - create one REST Client or one SOAP Client
@@ -93,6 +117,8 @@ Tie-break rule:
 - If the request is already clearly validation-enrichment intent on existing/generated tests, use Skill 057.
 - If the request is already clearly request-readiness/configuration-remediation intent on existing/generated tests, use Skill 058.
 - If the request is already clearly single constrained REST Client lifecycle work within the validated shell/promotion boundary, use Skill 059.
+- If the request is already clearly bulk one-source-spec constrained REST Client OpenAPI refactor work on an existing `.tst`, use Skill 061.
+- If the request is already clearly one-client constrained REST Client source-to-target OpenAPI refactor work, use Skill 060.
 - If the request is already clearly one-client intent, use Skill 056.
 - If the request is already clearly direct generation intent and the target capability exists as a dedicated card, bypass Skill 033 and route directly to that card.
 
@@ -189,6 +215,7 @@ Use for client-tool lifecycle and configuration.
 - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
 - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+- `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
 
 ### 6) Validation Tools
 Use for validators, assertors, and diff-based comparison.
@@ -238,6 +265,7 @@ Use for multi-step conversational intake and cross-skill planning/execution.
 - `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
 - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
 - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+- `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
 
 ## Selection Heuristic
 1. For each new user prompt, re-run this routing heuristic before reusing any previously selected target card.

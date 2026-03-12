@@ -25,6 +25,8 @@ Do not use this file as the primary operator-facing routing surface.
   - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 - Maintain and refine the validated v1 single constrained REST Client lifecycle path that uses shell-first YAML promotion for constrained binding and REST Client `GET/PUT/GET` for constrained JSON request payload normalization, while keeping broader orchestration work out of scope:
   - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+- Define and validate the new top-level `Change Advisor` orchestration path so one-source-spec bulk constrained REST Client OpenAPI refactor work has a stable owner for intake, grouped review, copied-target sequencing, and completion reporting:
+  - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
 - Broaden Virtualize coverage beyond shared platform/policy surfaces.
 - Convert remaining partially-defined validation/data-exchange cards into fully validated workflows:
   - `docs/skills/platform/skill-024-tst-create-from-raml.md`
@@ -120,6 +122,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - **State:** Validated
   - **Notes:** validated v1 owner for single constrained REST Client lifecycle work: read/copy/delete, same-operation edits on existing constrained clients, fresh non-body constrained creation through shell-first YAML promotion, and fresh JSON body-bearing constrained creation through minimal YAML promotion plus REST Client `GET/PUT/GET` body normalization; same-spec token reuse is preferred when consistent peers exist, while no-peer creation falls back to explicit literals or caller-supplied variable tokens.
+- `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
+  - **State:** Defined
+  - **Notes:** lower-layer one-client refactor leaf for source-to-target OpenAPI migration of exactly one constrained REST Client subtree, with `analysis` and `write` modes, supported downstream repair limited to JSON Validator / JSON Data Bank / JSON Assertor / Diff Tool, and client-slice structural verification plus rollback beneath future `Change Advisor` orchestration.
 
 ### 6) Validation Tools
 - `docs/skills/validation/skill-010-json-assertor-workflow.md`
@@ -196,6 +201,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
   - **State:** Defined
   - **Notes:** branch-specific orchestration card for detecting and repairing underconfigured existing/generated REST/SOAP client tests and DB Tools before validation or later orchestration proceeds; now enforces a strict candidate-value sourcing ladder (user/session/contract/same-`.tst` only by default), best-guess proposal gating, and no autonomous live-service probing unless the user explicitly approves it, while supporting REST-only, SOAP-only, DB-only, and mixed remediation slices and keeping SQL strategy and DB-side setup out of scope.
+- `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
+  - **State:** Defined
+  - **Notes:** top-level operator-facing owner for one-source-spec bulk constrained REST Client OpenAPI refactor work on an existing `.tst`; owns mandatory read-only analysis plus mutate-on-copy-after-approval flow, grouped review including approval-stage base URL policy selection, context-preserving structural-tree rendering, copied-target sequencing, exact source-spec rewrite policy, and final completion reporting while delegating one-client refactor semantics to Skill 060.
 
 ## Coverage Gaps / Planned New Cards
 - Structural manipulation coverage beyond current validated cards remains incomplete if the project still wants fine-grained standalone cards for:
@@ -208,6 +216,8 @@ Do not use this file as the primary operator-facing routing surface.
 - Additional datasource-family validation evidence is still desirable for Skill 051 and downstream datasource-aware workflows.
 - Repeated-execution response-volatility profiling for validation-bundle selection remains future work rather than part of the v1 validation-enrichment orchestration.
 - Higher-scope constrained REST Client work remains future research, including broader operation-retargeting/multi-client orchestration beyond the validated shell-promotion workflow and non-JSON constrained body modes.
+- Future architectural refactor candidate: evaluate whether operator-facing validation/data-exchange lifecycle cards (for example Skills 010, 028, 029, and 031) should eventually separate user-facing lifecycle orchestration from a narrower precomputed action-application contract so higher-order workflows can reuse them without reopening tool-family selection, approval, or baseline-planning logic.
+- Related orchestration follow-up: analyze why Skill 033 still feels awkward/unreliable in execution and whether some of that friction comes from missing lower-layer action-contract boundaries rather than only from top-level intake/orchestration complexity.
 
 ## Deferred / Retired
 - REST Client constrained creation cards (`Skills 026/027`)
