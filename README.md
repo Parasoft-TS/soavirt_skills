@@ -76,6 +76,38 @@ Current capabilities are strongest for SOAtest `.tst` workflows and include:
 	- `Run this .tst and diagnose failures from traffic`
 6. The agent should route to the right cards under `docs/skills/` and apply orchestration rules from `AGENTS.md`.
 
+## Recommended Reasoning Settings
+
+If your LLM client exposes configurable reasoning depth (for example `medium` vs `high`), use it deliberately:
+
+- **Use high reasoning for composite/orchestration tasks** that must coordinate multiple skill cards, preserve approval gates, or produce template-owned artifacts.
+  - Examples:
+    - broad service-test authoring and staged planning
+    - validation-enrichment orchestration
+    - request-readiness remediation across multiple tests
+    - bulk OpenAPI-to-OpenAPI constrained REST refactor workflows
+    - contributor-mode policy, workflow, or template maintenance
+
+- **Use medium reasoning for narrower atomic or near-atomic tasks** where the intent is already clear and the task stays within one main skill family.
+  - Examples:
+    - summarize a `.tst`
+    - inspect datasource columns
+    - run a known test and fetch diagnostics
+    - create or edit one tool with already-specified inputs
+    - perform one focused read-only analysis pass
+
+### Practical rule of thumb
+Prefer **high reasoning** when the task does any of the following:
+- spans multiple phases or multiple skill families
+- requires grouped review or explicit approval before writes
+- depends on fail-closed completeness checks
+- must follow a template-owned output contract exactly
+- involves ambiguous mapping, migration, or cross-artifact refactoring
+
+Prefer **medium reasoning** when the task is already specific, mostly local, and does not require broad orchestration.
+
+When unsure, start with **high reasoning** for the initial routing/analysis phase, then drop to **medium** for follow-up atomic work if the client supports changing it per prompt.
+
 ## Key Files
 
 - `AGENTS.md`: required bootstrap and intent routing rules.
