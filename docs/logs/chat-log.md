@@ -1,6 +1,21 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-13 (SOAVirt base-URL cache-first bootstrap refinement)
+
+### Actions Completed
+- Refined `AGENTS.md`:
+  - made repo-local SOAVirt cache/reference discovery mandatory before asking the user for `SOAVIRT_BASE_URL` or a server base URL
+  - clarified that one unambiguous local cache/reference should be used to derive a candidate base URL before prompting
+  - preserved the existing read-probe confirmation gate so cached evidence is still verified rather than trusted blindly
+- Refined `docs/workflow/agent-workflow.md`:
+  - added the canonical runtime-global SOAVirt base-URL bootstrap rule
+  - clarified that this local cache/reference step is only for base-URL bootstrap and does not relax API-first runtime asset targeting
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was aimed at preventing unnecessary user solicitation during session bootstrap when the repo already contains one usable local SOAVirt OpenAPI/cache reference that can be tried first.
 ## Session 2026-03-13 (Change Advisor wording cleanup)
 
 ### Actions Completed

@@ -78,8 +78,14 @@ For SOAtest/Virtualize runtime asset tasks (for example create/edit/run/diagnose
 Resolve in this order:
 1. Explicit value from the user (e.g., "my server is at ...").
 2. Environment variable `SOAVIRT_BASE_URL` if set.
-3. Cached API spec location: check `docs/reference/api-spec-cache/` for available server keys.
-4. If unresolved, ask the user before making any API calls.
+3. Repo-local SOAVirt reference discovery (mandatory before prompting):
+   - inspect `docs/reference/api-spec-cache/README.md`
+   - inspect `docs/reference/api-spec-cache/` for available server keys and cached `openapi_v6.yaml` files
+   - if exactly one usable cached server key or other repo-local SOAVirt reference yields a single plausible candidate, derive the base URL from that local evidence and use it as the candidate value
+   - if multiple plausible local candidates exist, keep the state as ambiguous rather than guessing
+4. If still unresolved, ambiguous, or all locally derived candidates fail read-probe confirmation, ask the user before making any API calls.
+
+Do not ask the user for `SOAVIRT_BASE_URL` or a server base URL merely because the environment variable is unset when the repo already contains one unambiguous local cache/reference that can be tried first.
 
 The base URL follows the pattern: `http://<host>:<port>/soavirt/api/v6`
 

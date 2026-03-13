@@ -89,6 +89,14 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - Before first write in a branch/session, this gate is mandatory/fail-closed.
 - Prefer verified-supported endpoint-method pairs and documented fallback routes over optimistic assumptions.
 
+### SOAVirt Base URL Bootstrap Rule (Global)
+- Before asking the user for `SOAVIRT_BASE_URL` or a server base URL, inspect repo-local SOAVirt reference material first:
+  - `docs/reference/api-spec-cache/README.md`
+  - `docs/reference/api-spec-cache/<server-key>/openapi_v6.yaml`
+- If exactly one usable cached server key or other repo-local SOAVirt reference yields a single plausible base URL candidate, derive `http://<host>:<port>/soavirt/api/v6` from that local evidence and use it for the required read probe.
+- Ask the user for base-URL help only when no usable local reference exists, multiple plausible candidates remain, or all locally derived candidates fail confirmation.
+- This bootstrap rule is only for resolving the SOAVirt server API base URL; it does not authorize local-file discovery of runtime assets that still require API-first target resolution.
+
 ### Payload Encoding Guardrails (Global)
 - For any JSON write request (`POST`/`PUT` with `application/json`), require UTF-8 **without BOM** payload bytes.
   - Avoid PowerShell 5.1 patterns that emit BOM for request files.
