@@ -1,6 +1,55 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-13 (Change Advisor wording cleanup)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`:
+  - tightened repeated request-body and target-only-field wording while keeping the one-client body-analysis rules canonical in Skill 060
+  - shortened repeated source-spec/base-URL rewrite caveats without weakening the fail-closed write and verification gates
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - trimmed orchestration-level restatement so it points back to Skill 060's request-body result/state semantics more directly
+  - tightened grouped-review wording around compact body-review fields and candidate/omission visibility
+
+### Notes
+- This was a wording-only cleanup pass: the guardrails remain the same, but the cards now lean more clearly on canonical ownership and use less repetitive phrasing.
+## Session 2026-03-13 (Change Advisor request-body deterministic-state follow-up)
+
+### Actions Completed
+- Refined `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`:
+  - made `requestBodyState=NOT_APPLICABLE` legal only when both source and target operations have no request body
+  - added deterministic target-only-field `REVIEW` vs `BLOCKED` rules
+  - required structured body-review items with target path, source basis, change type, candidate/omission proposal, rationale, confidence, and required-vs-optional status
+  - added an explicit anti-pattern note that exact path+method continuity does not prove request-body compatibility
+  - added semantic post-write verification wording so structural readability and source-spec/base-url rewrites cannot stand in for successful body migration
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - required the grouped review packet to carry compact structured body-review fields for request-body items
+  - tightened completion semantics so incomplete body migration keeps the run at `partial` rather than full mechanical success
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This follow-up pass tightens the execution contract after the first fail-closed hardening so future agents cannot hide behind vague `NOT_APPLICABLE`, silent optional-field omission, or over-optimistic completion reporting when request-body migration work remains incomplete.
+## Session 2026-03-13 (Change Advisor request-body analysis fail-closed hardening)
+
+### Actions Completed
+- Refined `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`:
+  - added a fail-closed domain-completeness gate so body-bearing clients cannot become `AUTO` without explicit request-body analysis
+  - required explicit per-domain decision states in structured analysis results
+  - clarified that target-only request fields must surface review items, including generated candidate values or explicit omission proposals when defensible
+  - added illustrative request-body review triggers for nested-field moves and target-only fields
+  - added a write-mode precondition so reference/base-URL rewrites cannot stand in for completed body mapping
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - required Change Advisor to fail closed when Skill 060 omits applicable request-body analysis
+  - preserved target-only-field proposals in grouped review rather than allowing exact path+method matches to hide them
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by an observed `/billpay - POST` miss where the copied `.tst` remained structurally readable after exact source-spec/base-URL rewrites, but the constrained request body still reflected the source schema shape because the mandatory body-analysis branch was skipped.
 ## Session 2026-03-12 (Shared nested-target re-resolution rule follow-up)
 
 ### Actions Completed

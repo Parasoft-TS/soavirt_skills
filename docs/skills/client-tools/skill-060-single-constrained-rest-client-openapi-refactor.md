@@ -108,6 +108,17 @@ For `analysis` mode, return:
   - autonomous carry-forward decisions
   - proposal items
   - blocked items
+  - generated candidate values and rationale for target-only fields when one schema-conformant proposal exists
+  - explicit omission proposals when omission is the candidate strategy
+  - structured unresolved body-review items, each containing:
+    - target field path
+    - source field/path basis when one exists
+    - change type (`carry-forward`, `rename`, `nesting-move`, `target-only-field`, `omission`, or `type-conversion`)
+    - candidate value when one is proposed
+    - omission proposal when applicable
+    - rationale
+    - confidence
+    - required-vs-optional classification
 - supported chained-tool repair intents, one record per supported downstream tool, including:
   - tool identity
   - tool family
@@ -115,7 +126,15 @@ For `analysis` mode, return:
   - confidence classification
   - old selector/binding/baseline anchor when relevant
   - new selector/binding/baseline proposal when known
+- per-domain decision-state record:
+  - `operationState`
+  - `parameterState`
+  - `requestBodyState`
+  - `chainedToolState`
+  - use `NOT_APPLICABLE` only when the domain truly does not apply
 - overall client decision-state (`AUTO`, `REVIEW`, or `BLOCKED`)
+  - compute this as the worst applicable per-domain state
+  - for body-bearing operations, `requestBodyState` is mandatory; missing, unresolved, or `NOT_APPLICABLE` prevents overall `AUTO`
 - client-local unresolved decision items including mapping layer, decision prompt, proposal text when one exists, rationale, and dependency references
 - predicted write plan in dependency order
 
@@ -127,6 +146,17 @@ For `write` mode, return:
 - client-slice structural verification result
 - final client write state (`applied`, `partial`, `blocked`, or `rolled back`)
 - rollback notes and focused follow-up notes when needed
+
+## 4.2) Domain-Completeness Gate
+- Analysis must produce an explicit decision-state for every applicable domain:
+  - operation
+  - parameters
+  - request body
+  - chained tools
+- Exact path+method continuity never short-circuits later applicable domains.
+- `requestBodyState=NOT_APPLICABLE` is valid only when both the source and target operations have no request body.
+- For any client where the source or target operation has a request body, an explicit request-body mapping result and `requestBodyState` are mandatory.
+- If an applicable domain result is missing, treat the client as incomplete and fail closed (`BLOCKED`) rather than inferring `AUTO`.
 
 ## 5) Preconditions
 - The target client is already resolved and is confirmed to be an existing constrained REST Client within Skill 059's validated boundary.
@@ -173,6 +203,9 @@ For `write` mode, return:
      - `safe-autonomous` when exact same path+method exists, or one unique normalized-path-skeleton successor exists with no competing candidate
      - `proposal-plus-approval` when one plausible renamed/moved successor exists but semantic judgment is still involved
      - `blocked` when there is no plausible target, multiple plausible targets, split/merge evidence, or the target branch falls outside the validated constrained-client lifecycle boundary
+4.1. Apply the domain-completeness guard before moving on:
+   - do not let a `safe-autonomous` operation result short-circuit later applicable domains
+   - if the source or target operation has a request body, the overall client state remains unresolved until Step 6 produces an explicit request-body result
 5. Analyze path/query parameter mapping only after operation context is known:
    - compare source vs target parameter surfaces separately from request-body fields
    - use source constrained path/query YAML, mapped target operation parameter definitions, and same-`.tst` value provenance only when needed
@@ -188,15 +221,30 @@ For `write` mode, return:
      - `blocked` when multiple plausible targets compete, a new required target parameter has no defensible value source, or type/shape drift has no clear carry-forward rule
 6. Analyze request-body mapping only after operation context is known:
    - compare source vs target request-body field structure, requiredness, and nesting only after the target operation context is sufficiently resolved
+   - exact path+method continuity proves only operation continuity; it does not imply request-body compatibility
    - distinguish mechanical carry-forward from semantic inference:
      - same-name, same-role, type-compatible fields with still-valid values are candidates for carry-forward
      - source-only fields absent from target may be omitted by default unless removal changes request meaning in a way this leaf cannot justify
-     - new optional target fields may be omitted by default
+     - target-only fields with no source equivalent always require explicit analysis; they are never `safe-autonomous` merely because they are optional
+   - when a target-only field has no direct source mapping:
+     - if exactly one schema-conformant candidate can be synthesized from contract defaults, examples, enums, format hints, or adjacent same-object values, return `proposal-plus-approval` with that candidate and rationale
+     - if omission is a defensible strategy, include it as an explicit proposal rather than silently taking it
+     - if the field is required and no defensible candidate exists, return `blocked`
+   - classify target-only fields deterministically:
+     - optional target-only field with one defensible candidate -> `proposal-plus-approval`
+     - optional target-only field with omission as a defensible strategy and no stronger requirement -> `proposal-plus-approval`
+     - optional target-only field with multiple plausible candidates -> `proposal-plus-approval`
+     - required target-only field with one defensible candidate -> `proposal-plus-approval`
+     - required target-only field with multiple plausible candidates, or with no defensible candidate -> `blocked`
+   - silent omission is never a valid outcome for a target-only field; omission must appear as an explicit analyzed proposal when allowed
    - do not treat examples/defaults/enums as autonomous authorization to invent new values
    - classify body changes as:
      - `safe-autonomous` when field carry-forward is direct and requires no semantic invention
-     - `proposal-plus-approval` when one plausible rename/move/type-conversion/value source exists but the leaf is making a meaningful semantic guess
-     - `blocked` when multiple plausible target fields compete, structural reshaping is ambiguous, one target field appears to derive from multiple source fields, or a new required target field has no trustworthy value source
+     - `proposal-plus-approval` when one plausible rename, move, nesting change, type-conversion, value source, or target-only-field proposal exists but semantic confirmation is still required
+     - `blocked` when multiple plausible target fields compete, structural reshaping is ambiguous, one target field appears to derive from multiple source fields, a required target field has no trustworthy value source, or body analysis could not be completed
+   - illustrative review triggers:
+     - a flat source field moves under a new nested target object (for example `phoneNumber` -> `contactInformation.phoneNumber`)
+     - the target adds a new field with no source equivalent (for example a new `email` field)
 7. Analyze supported downstream chained tools:
    - use Skills 017 and 018 as the canonical output-parent and chaining authority
    - keep family-selection and repair-confidence decisions here rather than rediscovering them inside downstream tool cards
@@ -225,11 +273,15 @@ For `write` mode, return:
    - body ambiguity
    - chained-tool selector/validator/baseline ambiguity
    - each item should carry enough detail for orchestration-level grouping without recomputing the original client-local reasoning
+   - for request-body items specifically, emit the structured body-review fields from the result contract rather than reducing them to free-form prose
 9. Return the structured `analysis`-mode result contract for orchestration-level grouping.
 
 ### 6.2) Write Mode
 10. Require resolved client-local decisions before any mutation:
    - if unresolved items remain, stop and return `blocked`
+10.1. Enforce the body-analysis precondition:
+   - if the source or target operation has a request body, require an explicit request-body mapping result and a non-`NOT_APPLICABLE` `requestBodyState`
+   - do not treat source-spec/base URL rewrites or operation-match evidence as substitutes for completed request-body analysis
 11. Build a concrete client-local write plan from:
    - the approved/autonomous operation mapping
    - the approved/autonomous parameter decisions
@@ -249,6 +301,7 @@ For `write` mode, return:
      - autonomous defaults explicitly allowed by this card, or
      - proposal/blocked items that have already been resolved upstream
    - do not silently invent new required parameter/body values during write mode
+   - do not silently drop unresolved target-only fields; apply only approved candidate-value or omission decisions
 14. Apply supported downstream chained-tool repairs using precomputed repair contracts:
    - JSON Validator
    - JSON Data Bank
@@ -261,6 +314,9 @@ For `write` mode, return:
    - confirm the client subtree remains structurally coherent in the copied `.tst`
    - confirm updated downstream tool nodes remain resolvable under the intended parent structure
    - confirm the leaf can still read back the expected client-local structures after mutation
+15.1. Perform semantic body verification for body-bearing clients whose approved plan changed the request body:
+   - confirm the copied constrained client now exposes the approved target field paths/shapes rather than only rewritten source-spec/base-url references
+   - do not treat source-spec/base URL rewrites or generic file readability as evidence that request-body migration succeeded
 16. If client-slice structural verification fails:
    - roll back that client slice
    - return `rolled back`
@@ -270,6 +326,10 @@ For `write` mode, return:
 
 ## 7) Validation
 - `analysis` mode produces a structured per-client result without mutating the source or copied `.tst`.
+- `analysis` mode emits explicit per-domain decision states for every applicable domain.
+- `requestBodyState=NOT_APPLICABLE` is used only when both source and target operations have no request body.
+- For body-bearing operations, the required request-body result/state must be present; path+method continuity alone is never sufficient for overall `AUTO`.
+- When target-only body fields lack direct source mapping, analysis surfaces explicit candidate-or-omit review material when defensible, otherwise `blocked`.
 - `write` mode does not begin until client-local unresolved decisions have been resolved upstream.
 - Path + HTTP method remains the authoritative operation identity for one-client refactor reasoning.
 - Supported downstream tool repair remains limited to:
@@ -279,13 +339,18 @@ For `write` mode, return:
   - Diff Tool
 - `write` mode applies only approved/autonomous decisions; it does not reopen unresolved mapping logic or invent new required values.
 - Client-slice structural verification is required before the slice is considered applied.
+- When approved request-body migration work exists, semantic body verification must confirm the copied client reflects the approved target field paths/shapes; structural readability alone is insufficient.
 - Failed client-slice structural verification results in rollback rather than leaving behind a known-broken partial subtree.
 
 ## 8) Failure Modes
 - Source client is not actually within the validated constrained REST Client boundary.
 - Source-spec binding does not exactly match the current migration slice.
 - Operation mapping remains ambiguous or unsupported.
+- Exact path+method match is allowed to collapse a body-bearing client to `AUTO` before explicit request-body analysis is completed.
+- `requestBodyState` is marked `NOT_APPLICABLE` even though the source or target operation has a request body.
 - Required target parameter/body values have no defensible source.
+- Target-only body fields are silently dropped instead of surfacing as explicit review items with candidate or omission proposals.
+- Write completion is inferred from source-spec/base-url rewrites or file readability without confirming the approved target request-body shape.
 - Downstream tool repair would require unsupported family conversion.
 - Downstream lifecycle cards attempt to reopen family selection or user-facing approval that should already have been decided upstream.
 - Write mode tries to apply decisions that were not resolved during analysis/grouped review.

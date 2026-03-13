@@ -225,11 +225,21 @@ After writes, each migration target should yield one write result record contain
   - derive candidate target OpenAPI server/base URL values from the target OpenAPI when the contract exposes them
   - if the user already supplied a base URL policy, record it; otherwise keep the policy state as `pending user choice`
 21. For each in-scope client, invoke Skill 060 in `analysis` mode and capture its structured per-client result.
-22. Convert each Skill 060 analysis result into a migration target record.
-23. Convert each client-local unresolved decision into a centralized review item record with whole-run review ids.
+22. Require each Skill 060 analysis result to include explicit per-domain decision states/results for:
+  - operation
+  - parameters
+  - request body
+  - chained tools
+  - for body-bearing operations, require the non-`NOT_APPLICABLE` request-body result/state defined by Skill 060
+  - keep any target-only-field candidate value or omission proposal in the review material
+23. Convert each Skill 060 analysis result into a migration target record.
+24. Convert each client-local unresolved decision into a centralized review item record with whole-run review ids.
    - keep review ids stable in source-tree order for the first packet
    - if chained-tool repair was explicitly deferred, do not generate write-intent review items for those repairs; instead record them as explicit deferred hotspots tied to the owning migration target
-24. If analysis reveals gate-invalid conditions such as ambiguous source binding, unretrievable contracts, or unsupported client state before trustworthy comparison is possible, stop before write preparation and report the planning result as blocked.
+24.1. Apply a fail-closed completeness guard before tree/render-state derivation:
+  - do not collapse a body-bearing client to `[AUTO]` from operation continuity alone
+  - if an applicable Skill 060 domain result is missing, treat that client as incomplete analysis and surface it as `[BLOCKED]` or `[REVIEW]` plus a grouped review item instead of allowing silent success
+25. If analysis reveals gate-invalid conditions such as ambiguous source binding, unretrievable contracts, or unsupported client state before trustworthy comparison is possible, stop before write preparation and report the planning result as blocked.
    - distinguish global gate failure from client-local blocked targets:
      - global gate failure stops the whole workflow before the approval artifact
      - client-local blocked targets still appear in the approval artifact as blocked migration targets when the overall slice analysis remains valid
@@ -276,6 +286,12 @@ After writes, each migration target should yield one write result record contain
   - `Agent proposal:` when one exists, otherwise `none`
   - `Why review is needed:`
   - `Depends on:` when applicable
+32.1. For request-body review items, include the compact Skill 060 body-review fields:
+  - target field path
+  - source basis when one exists
+  - change type
+  - candidate value and/or omission proposal when present
+  - required-vs-optional classification
 33. If no review items remain after analysis, state that explicitly inside the template-owned review section and move to the final write-confirmation gate.
 34. Do not duplicate or override template-owned section ordering, legend wording, or render-shape rules in this card.
    - if chained-tool repair was explicitly deferred, surface that as an explicit deferred hotspot in the template-owned planning note or review-area prose rather than hiding it
@@ -344,6 +360,9 @@ After writes, each migration target should yield one write result record contain
 55. If the copied target `.tst` remains structurally valid but some refactor steps were blocked, partial, or rolled back at the client-slice level:
   - keep the copied target `.tst`
   - report the unresolved hotspots clearly
+55.1. If any body-bearing client still has deferred, unresolved, omitted-by-approval, or unapplied request-body migration work, do not report full mechanical migration success:
+  - classify the run as at least `partial`
+  - keep the remaining body-migration hotspots explicit in the completion artifact
 56. Use `docs/templates/change-advisor-completion-artifact-template.md` as the canonical output contract for the final completion artifact.
 57. The final completion artifact must include:
   - original source `.tst`
@@ -375,10 +394,13 @@ After writes, each migration target should yield one write result record contain
 - Whole-run review ids and grouped review ownership remain centralized in this card.
 - Skill 060 owns one-client refactor semantics; this card does not reopen that lower-layer reasoning.
 - The initial approval artifact is built from the downloaded source `.tst`, normalized source/target OpenAPI structures, and Skill 060 analysis results rather than mixed competing evidence sources.
+- Body-bearing clients cannot appear `[AUTO]` unless Skill 060 returned the required request-body result/state.
+- Target-only body fields remain visible as grouped review items, including candidate or omission proposals when present.
 - Writes occur only against a copied target `.tst`.
 - Base URL behavior is explicit and approval-bound: preserved only when the approved policy says to keep it, otherwise rewritten only according to the approved exact-match policy.
 - Explicit subset overrides and explicitly deferred chained-tool repair remain visible and deterministic in the approval/completion artifacts.
 - Structural verification is the mandatory completion gate for the copied artifact.
+- Full mechanical migration success is not reported when request-body migration work for body-bearing clients remains deferred, omitted-by-approval, unresolved, or unapplied.
 - The final artifact reports the plan's success tiers rather than reducing the outcome to one binary success/failure statement.
 - Parseable-but-partial copied results are kept and reported; corrupt copied artifacts are rolled back.
 
@@ -388,8 +410,12 @@ After writes, each migration target should yield one write result record contain
 - Unsupported-v1 requests are allowed to drift into this workflow instead of being classified and stopped.
 - Mixed or contradictory source-spec bindings are treated as one migration slice.
 - Planning proceeds from API-only constrained-client evidence instead of the downloaded `.tst` source of truth.
+- Operation continuity is allowed to short-circuit body analysis, causing a body-bearing client to appear `[AUTO]` without explicit request-body mapping.
 - Review items are asked one-by-one during analysis instead of being grouped after analysis.
 - Blocked review items are treated as resolved from bare approval.
+- Target-only body fields are silently omitted from grouped review instead of appearing as review items with candidate or omission proposals.
+- `requestBodyState=NOT_APPLICABLE` is accepted for a body-bearing migration slice.
+- The completion artifact reports full mechanical migration success even though body-bearing clients still have unresolved, deferred, or unapplied request-body changes.
 - Explicit subset overrides are guessed rather than resolved to a stable target list.
 - Explicitly deferred chained-tool repair disappears from the artifact and final report instead of being carried as a visible deferred hotspot.
 - Relevant non-target executable context (for example a same-scenario `DB Tool`) is omitted from the approval tree even though it would help orient the user to the local subtree.
