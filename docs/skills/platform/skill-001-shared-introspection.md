@@ -51,10 +51,14 @@ Shared File Introspection (roots, folders, and typed descendants)
 1. If root context is unresolved, call `GET /v6/children` with no `id` to confirm workspace roots and base-path reachability.
 2. If the caller already has an exact rooted file/folder id under `/TestAssets`, `/VirtualAssets`, or `/ProvisioningAssets`, use that id directly.
 3. If only a filename, file type, or partial path is known, choose the likely root first using Section 5.1.
-4. Call `GET /v6/children?id=<id>` for immediate children when the target is likely a direct child of the chosen root.
-5. Call `GET /v6/descendants/files?id=<id>` to retrieve recursive descendants only when immediate-child lookup is insufficient.
-6. Add `type=<value>` (for example `tst`, `pva`, or `pvn`) to narrow recursive results.
-7. For `.tst` structure reads, prefer:
+4. When the caller provides an exact filename and the likely root is known (for example `.tst` under `/TestAssets`), call `GET /v6/children?id=<likely-root>` first and attempt an exact-name match before broadening to recursive discovery.
+5. Call `GET /v6/children?id=<id>` for immediate children when the target is likely a direct child of the chosen root.
+6. Call `GET /v6/descendants/files?id=<id>` to retrieve recursive descendants only when immediate-child lookup is insufficient.
+7. Add `type=<value>` (for example `tst`, `pva`, or `pvn`) to narrow recursive results.
+8. After any discovery call, inspect the actual top-level response properties and normalize to the collection field the server returned (for example `children`, `files`, or another endpoint-specific collection).
+   - do not infer the collection field solely from the endpoint name
+   - if no collection field is present, stop and surface the mismatch rather than treating a missing property as an empty result set
+9. For `.tst` structure reads, prefer:
   - `GET /v6/children?id=<tst-id>` for direct root-suite discovery,
   - `GET /v6/descendants/assets?id=<tst-id>` for broader asset context.
   - Do not assume class-specific file GET endpoints are available for structure reads.
@@ -68,6 +72,10 @@ Shared File Introspection (roots, folders, and typed descendants)
   - suites, tests, tools, datasources, environments, and other in-file objects.
 - Do not use `GET /v6/descendants/assets` with directory ids (for example `/TestAssets`); resolve file ids first.
 - Parse the collection field returned by the specific endpoint; do not assume every discovery response uses the `children` array.
+### 6.1.1) Response-Collection Normalization Rule (Required)
+- For every discovery response, determine the returned collection field from the actual top-level JSON properties before filtering or matching.
+- Accept whichever collection field the runtime returned for that endpoint/profile (for example `children` for some `descendants/files` responses on this runtime) instead of assuming a fixed field name from the path.
+- If the expected discovery response has no usable collection field, fail closed and surface the response-shape mismatch rather than filtering a missing property to an empty result set.
 ### 6.2) Common Response Type Literals (Practical Reference)
 - File/root discovery commonly returns API `type` values such as:
   - `directory`
@@ -111,6 +119,7 @@ Shared File Introspection (roots, folders, and typed descendants)
 
 ## 8) Failure Modes
 - Empty result set: wrong `id`, wrong `type`, or no matching files.
+- A missing or misread collection field is treated as an empty result set, causing false \"not found\" conclusions even though matching files were present in the response.
 - `400`: malformed query parameters.
 - `401` / `403`: credentials or permission issue.
 - `404`: resource id does not exist.

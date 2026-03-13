@@ -47,7 +47,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** canonical selection/anti-duplication surface for file-level lifecycle operations and shared rollback expectations.
 - `docs/skills/platform/skill-001-shared-introspection.md`
   - **State:** Defined
-  - **Notes:** canonical shared read/discovery surface; used broadly across runtime routing.
+  - **Notes:** canonical shared read/discovery surface; used broadly across runtime routing, with likely-root-first exact-name lookup and fail-closed response-collection normalization for discovery responses whose top-level collection field varies by runtime.
 - `docs/skills/platform/skill-002-shared-file-transfer.md`
   - **State:** Validated
   - **Notes:** shared download/upload flow with no-BOM upload safety.
@@ -121,10 +121,10 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - **State:** Validated
-  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work: read/copy/delete, same-operation edits on existing constrained clients, fresh non-body constrained creation through shell-first YAML promotion, and fresh JSON body-bearing constrained creation through minimal YAML promotion plus REST Client `GET/PUT/GET` body normalization; same-spec token reuse is preferred when consistent peers exist, while no-peer creation falls back to explicit literals or caller-supplied variable tokens.
+  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work: read/copy/delete, same-operation edits on existing constrained clients, fresh non-body constrained creation through shell-first YAML promotion, and fresh JSON body-bearing constrained creation through minimal YAML promotion plus REST Client `GET/PUT/GET` body normalization; same-spec token reuse is preferred when consistent peers exist, while no-peer creation falls back to explicit literals or caller-supplied variable tokens. Default completion is persisted-state/API/YAML verification; focused execution and traffic are follow-up branches only when explicitly in scope.
 - `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
   - **State:** Defined
-  - **Notes:** lower-layer one-client refactor leaf for source-to-target OpenAPI migration of exactly one constrained REST Client subtree, with `analysis` and `write` modes, supported downstream repair limited to JSON Validator / JSON Data Bank / JSON Assertor / Diff Tool, and client-slice structural verification plus rollback beneath future `Change Advisor` orchestration.
+  - **Notes:** lower-layer one-client refactor leaf for source-to-target OpenAPI migration of exactly one constrained REST Client subtree, with `analysis` and `write` modes, supported downstream repair limited to JSON Validator / JSON Data Bank / JSON Assertor / Diff Tool, and client-slice structural plus persisted body-shape verification plus rollback beneath future `Change Advisor` orchestration.
 
 ### 6) Validation Tools
 - `docs/skills/validation/skill-010-json-assertor-workflow.md`
@@ -203,7 +203,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** branch-specific orchestration card for detecting and repairing underconfigured existing/generated REST/SOAP client tests and DB Tools before validation or later orchestration proceeds; now enforces a strict candidate-value sourcing ladder (user/session/contract/same-`.tst` only by default), best-guess proposal gating, and no autonomous live-service probing unless the user explicitly approves it, while supporting REST-only, SOAP-only, DB-only, and mixed remediation slices and keeping SQL strategy and DB-side setup out of scope.
 - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
   - **State:** Defined
-  - **Notes:** top-level operator-facing owner for one-source-spec bulk constrained REST Client OpenAPI refactor work on an existing `.tst`; owns mandatory read-only analysis plus mutate-on-copy-after-approval flow, grouped review including approval-stage base URL policy selection, context-preserving structural-tree rendering, copied-target sequencing, exact source-spec rewrite policy, and final completion reporting while delegating one-client refactor semantics to Skill 060.
+  - **Notes:** top-level operator-facing owner for one-source-spec bulk constrained REST Client OpenAPI refactor work on an existing `.tst`; owns mandatory read-only analysis plus mutate-on-copy-after-approval flow, analyzes the full exact-match constrained-client slice for the confirmed source OpenAPI without subset-selection or redundant intake-summary confirmation, performs grouped review including approval-stage base URL policy selection, preserves context-rich structural-tree rendering, sequences copied-target writes, and stops at structural/persisted-state completion with execution left as a suggested follow-up.
 
 ## Coverage Gaps / Planned New Cards
 - Structural manipulation coverage beyond current validated cards remains incomplete if the project still wants fine-grained standalone cards for:

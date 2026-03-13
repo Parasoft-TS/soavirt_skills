@@ -48,8 +48,8 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
   - `docs/skills/platform/skill-003-server-copy.md`
   - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
-  - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
 - Additive:
+  - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md` when the task or owning workflow explicitly includes runtime execution/traffic verification
   - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
   - `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
   - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
@@ -82,7 +82,7 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
 0. Apply capability preflight before first write:
    - use Skill 050 Profile A/E for file/tool resolution and mutation steps
    - use Skill 050 Profile C for download/upload verification
-   - use Skill 050 Profile D for focused execution and traffic observation
+   - use Skill 050 Profile D only when the task or owning workflow explicitly includes focused execution and traffic observation
 1. Resolve the branch before mutation:
    - read existing constrained client
    - create a fresh constrained client
@@ -158,15 +158,17 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
    - write the full object back with `PUT /v6/tools/restClients?id=<tool-id>`
    - treat the server-side REST Client PUT path as the authoritative normalizer for persisted constrained `formJson`
 11. Write the YAML-edited file as UTF-8 without BOM and confirm locally that only the intended target block changed before upload.
-12. Re-read the updated state and verify all required evidence:
+12. Re-read the updated state and verify all required persisted-state evidence:
    - API readback still resolves the tool under the intended parent
    - YAML readback shows the intended constrained operation binding and request-value state
    - for JSON body-bearing branches, API readback shows `payload.inputMode = formJSON`
    - for JSON body-bearing branches, re-downloaded YAML shows persisted `formJson` plus `MessagingClient_LiteralMessage`
+   - enclosing suite and tool nodes remain resolvable after create/update
+12.1. Optional runtime verification branch:
+   - run this branch only when the user explicitly asks for runtime verification or the owning workflow explicitly includes it
    - focused execution proves the test still runs
    - runtime traffic proves the intended request path/query/body is sent on the wire
-   - enclosing suite and tool nodes remain resolvable after create/update
-13. If verification fails:
+13. If required persisted-state verification fails:
    - stop
    - restore the original `.tst` through Skill 006 for YAML-based failure
    - restore the original full REST Client GET payload for API-body failure
@@ -259,13 +261,15 @@ Phase 2: normalize the constrained JSON body through REST Client API read-merge-
 }
 ```
 
-After `PUT /v6/tools/restClients`, prove the result through API readback, `.tst` readback, focused execution, and runtime traffic. Do not try to hand-synthesize the persisted constrained `formJson` tree from scratch.
+After `PUT /v6/tools/restClients`, prove the persisted result through API readback and `.tst` readback. Focused execution and runtime traffic are optional follow-up verification only when explicitly in scope. Do not try to hand-synthesize the persisted constrained `formJson` tree from scratch.
 
 ## 7) Validation
 - Required checks:
   - target tool is present under the intended parent after create/update/copy
   - API readback shows service-definition backing and the intended operation binding
   - YAML readback shows the intended constrained structures without unrelated drift
+  - for constrained `Form JSON` bodies, API/YAML readback confirms the intended persisted request payload shape
+- Optional follow-up checks when runtime verification is explicitly in scope:
   - focused verification execution runs the target test
   - runtime traffic confirms the intended path/query/body on the wire
 - Level 1 safety rules:
@@ -274,6 +278,7 @@ After `PUT /v6/tools/restClients`, prove the result through API readback, `.tst`
   - for constrained `Form JSON` bodies, use REST Client API `GET/PUT/GET` rather than hand-building persisted constrained payload YAML
   - before upload, compare the local target block and fail closed if the edit touched unrelated tools or required broad regex drift
   - fresh constrained creation must still succeed when no same-spec peer exists, provided the user or caller supplied the needed literal values or tokens
+  - this card does not autonomously authorize runtime execution when the owning workflow stops at persisted-structure verification
 
 ## 8) Failure Modes
 - Upload saved with BOM (`EF BB BF`) corrupts the `.tst`.
@@ -283,7 +288,7 @@ After `PUT /v6/tools/restClients`, prove the result through API readback, `.tst`
 - Constructed payload JSON is invalid or does not conform to the selected operation's request schema.
 - Hand-built constrained payload trees or copied wizard blocks destabilize persisted structure.
 - Broad regex or whole-file replacement causes unrelated tool drift.
-- Focused execution or traffic verification fails even though API/YAML persistence looked correct.
+- Focused execution or traffic verification is treated as mandatory even though the task or owning workflow only required persisted-structure verification.
 
 ## 9) Safety / Rollback
 - Always route YAML-based rollback-preserving file-edit handling through Skill 006.
@@ -310,4 +315,5 @@ After `PUT /v6/tools/restClients`, prove the result through API readback, `.tst`
   - construct valid schema-conformant JSON
   - write it through REST Client `GET/PUT/GET`
   - trust the server to normalize the persisted constrained `Form JSON` model
+- The default completion gate for this card is persisted-state verification through API/YAML/file readback; execution and traffic observation are optional follow-up verification only when explicitly in scope.
 - This card does not authorize broader multi-client migration/refactor orchestration, speculative new env-var naming, or non-JSON constrained payload authoring.

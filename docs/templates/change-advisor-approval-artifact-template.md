@@ -17,7 +17,7 @@ Use this template when producing the initial post-analysis approval artifact for
 - `[AUTO]` refactor target can proceed without more user input
 - `[REVIEW]` refactor target needs user confirmation
 - `[BLOCKED]` refactor target needs user direction before refactor can proceed
-- Unmarked nodes are context only and are not refactor targets.
+- Unmarked nodes are not identified as refactor targets.
 
 ## D) Structural Tree
 - **Tree body:**

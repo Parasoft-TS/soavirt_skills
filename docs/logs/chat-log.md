@@ -1,6 +1,52 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-13 (Change Advisor stop-before-execution alignment)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - removed the redundant intake-summary confirmation gate after required inputs are already resolved
+  - clarified that the approval artifact, not a separate intake checkpoint, is the next user-facing step before writes
+  - made delegated `061 -> 060 -> 059` verification stop at structural/persisted-state completion and leave execution as an explicit follow-up collaboration
+- Refined `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`:
+  - downgraded post-write body verification from runtime-leaning wording to persisted API/YAML body-shape verification
+  - clarified that a higher-order orchestration card may explicitly stop before execution
+- Refined `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`:
+  - moved Skill 012/runtime execution from required/default behavior into a conditional follow-up branch
+  - split required persisted-state verification from optional execution/traffic verification
+- Refined `docs/templates/change-advisor-completion-artifact-template.md`:
+  - removed `runtime-readiness` and `semantic-confidence` fields from the completion artifact
+  - clarified that runtime follow-up uncertainty belongs in hotspots rather than in extra completion-status fields
+- Updated contributor-facing rationale/status surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by observed execution drift during a live `ConstrainedREST.tst` bulk-refactor run: the top-level orchestration intent was to stop at structural completion, but the delegated lifecycle wording still pulled the agent toward runtime execution and traffic verification. The updated cards now encode the orchestration boundary as the canonical default for future agents.
+## Session 2026-03-13 (Change Advisor subset-scope removal and shared discovery normalization)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`:
+  - removed the lingering subset-override intake path for exact-match source-spec slices
+  - clarified that the bulk workflow must analyze all constrained REST Clients whose source-spec binding exactly matches the confirmed source OpenAPI anchor
+  - tightened write-phase wording so approved constrained-body edits stay on the canonical `061 -> 060 -> 059` path rather than drifting into ad hoc URI-construction branches
+- Refined `docs/skills/platform/skill-001-shared-introspection.md`:
+  - strengthened likely-root-first `.tst` resolution to require immediate-child exact-name lookup before recursive fallback when the filename is exact
+  - added a fail-closed response-collection normalization rule so discovery logic must inspect the actual top-level collection field returned by the runtime instead of assuming one from the endpoint name
+- Refined `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`:
+  - added a write-mode rule to lock the canonical resolved `restClients` target for the read-merge-write cycle and avoid mid-branch URI reconstruction drift
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by the observed `ConstrainedREST.tst` bulk-refactor run: the orchestration card still preserved a stale subset-choice artifact from early planning, and shared discovery guidance was directionally correct but not explicit enough about response-shape normalization when `descendants/files` returned `children` on this runtime.
 ## Session 2026-03-13 (SOAVirt base-URL cache-first bootstrap refinement)
 
 ### Actions Completed

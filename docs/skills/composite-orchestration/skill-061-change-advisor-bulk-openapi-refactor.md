@@ -56,7 +56,6 @@ Conversation-first default: favor short natural-language clarification over rigi
   - exact current/source OpenAPI anchor
   - exact target OpenAPI anchor
 - Optional:
-  - explicit subset override within the source-spec slice
   - target copied-asset naming preference
   - target copied-asset location preference
   - explicit base URL policy preference:
@@ -150,37 +149,22 @@ After writes, each migration target should yield one write result record contain
 3. Resolve the source `.tst`.
 4. Resolve the exact current/source OpenAPI anchor and exact target OpenAPI anchor.
 5. If the source `.tst`, source OpenAPI anchor, and target OpenAPI anchor are not all resolved, remain in clarification mode and do not begin migration analysis.
-6. Present the v1 workflow boundaries clearly before deeper analysis:
+6. Normalize the run against these v1 workflow boundaries before deeper analysis:
    - constrained REST only
    - one source-spec slice at a time
+   - within that confirmed source-spec slice, analyze all constrained REST Clients whose binding matches the confirmed source OpenAPI anchor
+   - do not ask the user to select a subset of those matching constrained REST Clients; one-client refactor intent belongs to Skill 060 instead
    - non-target families preserved unless they appear in scoped chained-tool repair context
    - base URL will not change silently; any rewrite requires explicit approval
    - copied-target-only writes
 7. Resolve optional intake values only when needed:
-   - default full eligible source-spec slice vs explicit subset override
    - target copied-asset naming and location preferences
    - whether the user already has an explicit base URL policy preference; otherwise defer that choice to the post-analysis approval artifact once current/source and target-candidate values are known
    - whether chained-tool repair should be explicitly deferred
    - desired success emphasis
-   - if an explicit subset override is requested, resolve it to a stable client list by exact test path/client identity before analysis; if the override is ambiguous, stop and clarify rather than guessing the subset
-8. Build and present a concise intake summary containing:
-   - source `.tst`
-   - confirmed v1 assumptions/boundaries
-   - confirmed source OpenAPI anchor
-   - confirmed target OpenAPI anchor
-   - source OpenAPI verification status:
-     - `pending exact-match check in read-only analysis gate`, or
-     - `already verified`
-   - base URL policy status:
-     - `pending approval-step choice unless already specified`, or
-     - the user-specified policy
-   - default full eligible source-spec slice vs explicit subset override
-   - target copied-asset naming and location preferences
-   - chained-tool repair in scope vs explicitly deferred
-   - desired success emphasis
-   - warning that explicitly deferred chained-tool repair may leave the copied output structurally usable but semantically incomplete
-   - next phase to run
-9. Require confirmation of the intake summary before starting the read-only migration analysis phase.
+8. Once the required inputs and any truly needed optional intake values are resolved, proceed directly to the read-only migration analysis phase.
+   - do not request a separate intake-summary confirmation after the user has already resolved the required inputs
+   - the structural approval artifact and grouped review packet in Section 6.3 are the next user-facing checkpoint
 
 ### 6.1.1) API Capability and Resolution Gate (Required)
 8. Before any write operation, run branch-aware capability preflight (Skill 050):
@@ -211,7 +195,7 @@ After writes, each migration target should yield one write result record contain
   - other YAML-visible indirection resolvable from the downloaded `.tst`
 16. Require an exact match between the user-provided source OpenAPI anchor and the discovered source-spec binding evidence.
 17. If exact-match verification fails, stop and ask for correction rather than inferring the intended migration slice.
-18. Select as in-scope only those constrained REST Clients whose source-spec binding exactly matches the confirmed source OpenAPI anchor and any approved subset override.
+18. Select as in-scope all constrained REST Clients whose source-spec binding exactly matches the confirmed source OpenAPI anchor.
    - preserve stable source-tree order for the in-scope client list and reuse that same ordering for analysis presentation, review-item ordering, and write sequencing unless a later dependency rule explicitly overrides it
 19. For each in-scope constrained REST Client, record:
   - test path context
@@ -344,6 +328,15 @@ After writes, each migration target should yield one write result record contain
   - within the resolved copied local subtree, select the intended `restClient` by expected type plus stable local identity (for example preserved name/label), using preserved source-tree order only as a tie-breaker when needed
   - if the copied local subtree cannot be re-established exactly or multiple candidate tools remain, stop and report that client slice as blocked rather than guessing a copied tool id
 49. For each approved/unblocked migration target, invoke Skill 060 in `write` mode against the copied target `.tst`.
+  - once the copied client id or server-returned class-specific URL is resolved, keep the write branch on the canonical `restClients` API path owned by Skills 060 and 059
+  - do not switch into ad hoc shell-level URI reconstruction or alternate mutation paths when the approved write remains within the validated `061 -> 060 -> 059` constrained-body workflow
+49.1. Delegated write-verification boundary (required):
+  - when this card invokes Skills 060 and 059 in `write` mode, delegation is limited to:
+    - approved mutation
+    - copied-target re-resolution
+    - persisted-structure verification through API, YAML, and file readback
+  - do not invoke focused execution, traffic observation, or runtime-debugging branches as part of this card's completion path
+  - treat post-refactor execution as an explicit follow-up collaboration after the completion artifact unless the user explicitly changes the workflow scope
 50. Capture each Skill 060 write result as a write result record.
    - if chained-tool repair was explicitly deferred, still apply the approved constrained REST refactor work for those clients, but record the downstream repair state as deferred rather than silently treating the client as fully complete
 51. If one client slice rolls back but the copied target `.tst` remains structurally valid, keep the copied target and continue only when doing so will not leave the whole file structurally incoherent.
@@ -353,6 +346,12 @@ After writes, each migration target should yield one write result record contain
 53. After all intended writes complete, verify the copied target `.tst` at the file level:
   - readback succeeds
   - the copied artifact remains parseable/openable as a `.tst`
+53.1. For copied constrained REST Client slices and supported chained tools, the required post-write completion gate is persisted-structure verification only:
+  - API and YAML readback confirm the approved exact source-spec rewrites persisted
+  - API and YAML readback confirm the approved base URL rewrites persisted when a rewrite policy was approved
+  - API and YAML readback confirm approved request-body field paths/shapes for body-bearing clients
+  - API and asset-graph readback confirm the intended constrained REST Clients and supported chained tools remain structurally resolvable under the copied target
+  - do not treat delegated leaf runtime-execution branches as part of this workflow's mandatory completion gate
 54. If the copied target `.tst` is corrupt, unreadable, or structurally invalid:
   - fail closed
   - restore or replace the copied target with the last structurally valid copied state
@@ -373,15 +372,13 @@ After writes, each migration target should yield one write result record contain
   - success tier status:
      - structural success
      - mechanical migration success
-     - runtime-readiness status
-     - semantic-confidence status
   - final structural verification result
   - whether the copied `.tst` was kept or rolled back
   - partial/blocked follow-up hotspots
-  - recommended next step: focused execution and traffic confirmation of changed tests
+  - recommended next step: run the copied `.tst` and observe the runtime behavior of the changed tests
 58. Carry the desired success emphasis into the final artifact and closing summary:
-   - `structural migration only` emphasizes structural success plus mechanical migration outcome while still recommending focused execution as a later follow-up
-   - `runtime-ready follow-up planning` emphasizes the changed-test hotspot list and immediate focused execution/traffic confirmation as the next collaboration step
+   - `structural migration only` emphasizes structural success plus mechanical migration outcome while still recommending runtime execution as a later follow-up
+   - `runtime-ready follow-up planning` emphasizes the changed-test hotspot list and the suggested next collaboration step to run the copied `.tst` and observe runtime behavior
 59. Do not duplicate or override template-owned section ordering or field-shape rules in this card.
 60. Keep focused execution and runtime-debugging work as an explicit follow-up collaboration rather than silently extending this card into long-running post-refactor diagnostics.
 
@@ -398,8 +395,11 @@ After writes, each migration target should yield one write result record contain
 - Target-only body fields remain visible as grouped review items, including candidate or omission proposals when present.
 - Writes occur only against a copied target `.tst`.
 - Base URL behavior is explicit and approval-bound: preserved only when the approved policy says to keep it, otherwise rewritten only according to the approved exact-match policy.
-- Explicit subset overrides and explicitly deferred chained-tool repair remain visible and deterministic in the approval/completion artifacts.
+- The workflow analyzes the full exact-match source-spec slice and does not reopen subset-selection intake for those matching constrained REST Clients.
+- Once the required inputs are resolved, the workflow proceeds directly to read-only migration analysis without a separate intake-summary confirmation gate.
+- Explicitly deferred chained-tool repair remains visible and deterministic in the approval/completion artifacts.
 - Structural verification is the mandatory completion gate for the copied artifact.
+- Delegated Skills 060 and 059 do not override this card's stop-before-execution boundary; completion remains structural/persisted-state only unless the user explicitly expands the workflow scope.
 - Full mechanical migration success is not reported when request-body migration work for body-bearing clients remains deferred, omitted-by-approval, unresolved, or unapplied.
 - The final artifact reports the plan's success tiers rather than reducing the outcome to one binary success/failure statement.
 - Parseable-but-partial copied results are kept and reported; corrupt copied artifacts are rolled back.
@@ -416,7 +416,8 @@ After writes, each migration target should yield one write result record contain
 - Target-only body fields are silently omitted from grouped review instead of appearing as review items with candidate or omission proposals.
 - `requestBodyState=NOT_APPLICABLE` is accepted for a body-bearing migration slice.
 - The completion artifact reports full mechanical migration success even though body-bearing clients still have unresolved, deferred, or unapplied request-body changes.
-- Explicit subset overrides are guessed rather than resolved to a stable target list.
+- The workflow asks the user to choose a subset of matching constrained REST Clients even though the confirmed bulk-refactor slice should include all exact-match clients by default.
+- The workflow requests a separate intake-summary confirmation after the user already resolved the required source `.tst` and OpenAPI anchors.
 - Explicitly deferred chained-tool repair disappears from the artifact and final report instead of being carried as a visible deferred hotspot.
 - Relevant non-target executable context (for example a same-scenario `DB Tool`) is omitted from the approval tree even though it would help orient the user to the local subtree.
 - The copied-target destination is assumed implicitly when the user requested a different copy location.
@@ -426,6 +427,8 @@ After writes, each migration target should yield one write result record contain
 - Writes begin before copied-target creation or before final explicit write confirmation.
 - The workflow fails to request an explicit base URL policy choice and either preserves or rewrites base URLs without approval.
 - Base URLs are rewritten implicitly or from a guessed target value rather than from the explicitly approved policy.
+- The approved constrained-body write remains within the validated `061 -> 060 -> 059` path, but execution drifts into ad hoc URI reconstruction or alternate shell-level mutation attempts instead of reusing the canonical resolved `restClients` target.
+- Delegated leaf verification wording causes the workflow to drift into focused execution or runtime debugging even though this card is supposed to stop at structural completion and exit with a follow-up recommendation.
 - A client-slice rollback is misreported as full workflow success.
 
 ## 9) Safety / Rollback

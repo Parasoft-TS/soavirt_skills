@@ -288,6 +288,10 @@ For `write` mode, return:
    - the approved/autonomous body decisions
    - the approved/autonomous downstream repair contracts
    - preserve dependency order so downstream tool edits do not race ahead of unresolved client request/response shape changes
+11.1. Lock the canonical mutation target for the client slice before the first write call:
+   - reuse the resolved copied-client id and the canonical `restClients` class-specific API path for the entire read-merge-write cycle
+   - when the runtime already returned a class-specific URL for that copied client, prefer reusing that exact URL rather than reconstructing alternate equivalents mid-branch
+   - do not drift into ad hoc shell-level URI reconstruction or alternate mutation paths while the approved change remains within the validated constrained REST write boundary
 12. Apply exact in-scope client refactor changes using Skill 059 mechanics where applicable:
    - keep path + method as the authoritative operation identity
    - preserve `baseUrl` unless upstream orchestration already approved an exact-match base URL rewrite policy for this branch
@@ -295,6 +299,9 @@ For `write` mode, return:
    - when the approved change includes constrained `Form JSON` request-body edits, route that branch through Skill 059's validated REST Client `GET/PUT/GET` body-normalization path rather than direct persisted YAML body-tree mutation
    - use validated constrained JSON request-body normalization paths rather than hand-inventing unsafe persisted shapes
    - fail closed if the required client mutation falls outside the validated constrained lifecycle mechanics available beneath this leaf
+12.1. When this leaf is invoked beneath an orchestration card that stops at structural completion:
+   - limit post-write verification to persisted API/YAML/file readback plus structural resolvability checks
+   - do not expand into focused execution, traffic observation, or runtime-debugging branches unless the owning orchestration card explicitly includes a runtime-verification phase
 13. Apply approved/autonomous parameter and request-body changes in client-local dependency order:
    - keep query-parameter mirrored surfaces synchronized when query changes are applied
    - apply only:
@@ -314,8 +321,8 @@ For `write` mode, return:
    - confirm the client subtree remains structurally coherent in the copied `.tst`
    - confirm updated downstream tool nodes remain resolvable under the intended parent structure
    - confirm the leaf can still read back the expected client-local structures after mutation
-15.1. Perform semantic body verification for body-bearing clients whose approved plan changed the request body:
-   - confirm the copied constrained client now exposes the approved target field paths/shapes rather than only rewritten source-spec/base-url references
+15.1. Perform persisted body-shape verification for body-bearing clients whose approved plan changed the request body:
+   - confirm the copied constrained client now exposes the approved target field paths/shapes in persisted API/YAML state rather than only rewritten source-spec/base-url references
    - do not treat source-spec/base URL rewrites or generic file readability as evidence that request-body migration succeeded
 16. If client-slice structural verification fails:
    - roll back that client slice
@@ -339,7 +346,8 @@ For `write` mode, return:
   - Diff Tool
 - `write` mode applies only approved/autonomous decisions; it does not reopen unresolved mapping logic or invent new required values.
 - Client-slice structural verification is required before the slice is considered applied.
-- When approved request-body migration work exists, semantic body verification must confirm the copied client reflects the approved target field paths/shapes; structural readability alone is insufficient.
+- When approved request-body migration work exists, persisted body-shape verification must confirm the copied client reflects the approved target field paths/shapes; structural readability alone is insufficient.
+- This leaf does not autonomously require focused execution or traffic observation when the owning orchestration card limits completion to structural/persisted-state verification.
 - Failed client-slice structural verification results in rollback rather than leaving behind a known-broken partial subtree.
 
 ## 8) Failure Modes
@@ -351,6 +359,7 @@ For `write` mode, return:
 - Required target parameter/body values have no defensible source.
 - Target-only body fields are silently dropped instead of surfacing as explicit review items with candidate or omission proposals.
 - Write completion is inferred from source-spec/base-url rewrites or file readability without confirming the approved target request-body shape.
+- Delegated lifecycle verification drifts into focused execution or traffic observation even though the owning orchestration card requested structural/persisted-state completion only.
 - Downstream tool repair would require unsupported family conversion.
 - Downstream lifecycle cards attempt to reopen family selection or user-facing approval that should already have been decided upstream.
 - Write mode tries to apply decisions that were not resolved during analysis/grouped review.

@@ -15,8 +15,6 @@ Use this template when producing the final completion artifact for Skill 061.
 ## C) Success Tier Status
 - **Structural success:**
 - **Mechanical migration success:**
-- **Runtime-readiness status:**
-- **Semantic-confidence status:**
 
 ## D) Follow-Up Hotspots
 - **Partial, blocked, deferred, or rolled-back areas:** `<list or none>`
@@ -32,6 +30,5 @@ Use this template when producing the final completion artifact for Skill 061.
 - Section `C` should preserve the distinction between:
   - structural artifact validity
   - mechanical migration outcome across targeted clients
-  - runtime-readiness follow-up state
-  - semantic-confidence / known-hotspot state
+- Keep runtime follow-up uncertainty, datasource/runtime dependencies, and other post-refactor execution concerns in Section `D` rather than adding extra completion-status fields that can pressure execution drift.
 - Keep the artifact concise and completion-oriented rather than reopening the full planning narrative.
