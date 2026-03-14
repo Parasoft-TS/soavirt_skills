@@ -182,14 +182,10 @@ Do not call create/update endpoints until required fields for the selected mode 
 7. Reorder tool to required position (if needed):
    - build full ordered child list
    - `PUT /v6/suites/children?id=<suite-id>` with complete `children[].id` sequence
-8. Execute focused validation against selected tests:
-   - `POST /v6/testExecutions?now=true`
-   - follow `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md` payload contract for execution body shape and run lifecycle
-   - `general.config` must be workspace-valid (for example `soatest.user://Example Configuration`)
-   - scope to target `.tst` + `soatestOptions.testNames`
-9. Retrieve run evidence:
-   - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-   - when needed, retrieve suite traffic viewers and then the specific SOAP Client Traffic Viewer for request/response evidence
+8. Execute focused validation against selected tests by following the Skill 012 execution-triad contract.
+   - use a workspace-valid `general.config` (for example `soatest.user://Example Configuration`)
+   - scope execution to the target `.tst` plus `soatestOptions.testNames`
+9. Use the Skill 012 results/traffic readback steps to verify target statuses and, when needed, capture the specific SOAP Client Traffic Viewer evidence.
 10. For negative/security-style tests, calibrate expected response-code behavior from runtime evidence before final verification:
    - inspect observed HTTP status codes from test-execution traffic
    - update `misc.validHttpResponseCodes` when intent requires non-default acceptance
@@ -325,8 +321,7 @@ Update shape (read-merge-write envelope):
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Applicable in Virtualize.
 - Related endpoints:
   - `POST/PUT/GET /v6/tools/soapClients`
   - `DELETE /v6/tools`

@@ -46,6 +46,7 @@ This is a **general post-execution diagnostics skill** and should be applied whe
 1. Queue focused run:
    - `POST /v6/testExecutions?now=true`
    - include:
+     - `general.showdetails=true`
      - `scopeOptions.workspace.resources=["<tst-path>"]`
      - `soatestOptions.testNames=[{"value":"<exact-test-name>","match":true}]`
 2. Poll completion:
@@ -60,7 +61,8 @@ This is a **general post-execution diagnostics skill** and should be applied whe
    - `GET /v6/testExecutions/{id}/traffic?entityId=<traffic-viewer-id>`
   - use the specific tool's traffic viewer id for precise diagnostics (for example DB Tool viewer vs REST Client viewer)
   - if selected viewer has empty `toolSettings.testRuns`, retry with other suite-returned viewer ids before escalating.
-  - if all viewer payloads are empty, extract request/response evidence from decoded XML report (`TrafficData`) and continue diagnosis with explicit evidence-source labeling.
+  - if all viewer payloads are empty after a detail-enabled run, extract request/response evidence from decoded XML report (`TrafficData`) and continue diagnosis with explicit evidence-source labeling.
+  - do not add an automatic rerun step solely because viewer payloads remain sparse once the focused run already included `general.showdetails=true`.
 6. Inspect REST Client configuration context:
   - `GET /v6/tools/restClients?id=<rest-client-id>`
   - capture at minimum:
@@ -87,7 +89,7 @@ This is a **general post-execution diagnostics skill** and should be applied whe
 9. Correlate and diagnose:
   - from XML: failing test names, violation messages, categories
   - from traffic: request path/headers + response code/body
-  - when traffic endpoint is empty, use XML-report traffic fallback evidence and mark confidence accordingly
+  - when a detail-enabled traffic read is still empty, use XML-report traffic fallback evidence and mark confidence accordingly
   - from REST Client config: whether observed status code is considered valid by `validHttpResponseCodes` (empty/default means expected `200`)
   - from spec (when configured): whether observed status and payload type match API contract
   - from chained tools: whether failure is transport/status, payload shape/content, or chained assertion/validation mismatch
@@ -110,6 +112,7 @@ Do not finalize root-cause conclusions until all three are collected, unless one
   - traffic includes `trafficViewers[]` and `toolSettings.testRuns[]`
 - Post-condition checks:
   - decoded XML contains functional violations for failed tests
+  - focused diagnostics execution includes `general.showdetails=true`
   - traffic response captures target request/response pair
   - REST Client config is captured (including `misc.validHttpResponseCodes`)
   - status-code expectation set is explicitly computed from `validHttpResponseCodes`
@@ -122,7 +125,8 @@ Do not finalize root-cause conclusions until all three are collected, unless one
 - `400` traffic `entityId` wrong type (`.tst` id or REST Client test id).
 - `400` traffic query uses wrong key; parameter must be named `entityId`.
 - Empty `testRuns` in non-executed viewers (not necessarily an error).
-- Empty `testRuns` across all viewers can hide primary evidence if XML-report fallback is skipped.
+- Focused diagnostics run launched without `general.showdetails=true` can make viewer payloads look misleadingly empty even when execution traffic exists.
+- Empty `testRuns` across all viewers after a detail-enabled run can hide primary evidence if XML-report fallback is skipped.
 - Misclassification risk: treating HTTP status alone as root cause without checking `validHttpResponseCodes` and chained-tool expectations.
 - Misclassification risk: treating non-200 as failure when configuration allows that code/range (for example `302, 500-599`).
 - Spec drift risk: service definition expects one status/schema, runtime service returns another.
@@ -135,8 +139,7 @@ Do not finalize root-cause conclusions until all three are collected, unless one
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Not applicable in Virtualize.
 - Depends on:
   - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
   - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`

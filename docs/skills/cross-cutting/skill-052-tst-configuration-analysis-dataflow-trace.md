@@ -162,6 +162,5 @@ This skill is intended for questions like:
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Not applicable in Virtualize.
 - Preferred when REST payloads are sparse/minimal and YAML fidelity is higher.

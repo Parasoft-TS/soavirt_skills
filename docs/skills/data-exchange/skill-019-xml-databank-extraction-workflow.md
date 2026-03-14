@@ -13,10 +13,7 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
   - readback and verify configuration via `GET /v6/tools/xmlDataBanks?id=...`
   - delete XML Data Bank via `DELETE /v6/tools?id=...`
   - copy XML Data Bank via `POST /v6/tools/copy`
-  - run focused execution and validate runtime stability via:
-    - `POST /v6/testExecutions`
-    - `GET /v6/testExecutions/{id}/status`
-    - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
+  - run focused execution and validate runtime stability by following the Skill 012 execution-triad contract
 - Out of scope:
   - downstream variable-consumer tool authoring
   - business-logic assertions (covered by assertor skills)
@@ -72,7 +69,7 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
   - verify copied XML Data Bank via `GET /v6/tools/xmlDataBanks?id=<new-id>`.
 7. Optional delete flow:
   - `DELETE /v6/tools?id=<databank-id>` and verify absence in descendants/children.
-8. Execute focused run and confirm no parser/input-binding mismatch.
+8. Execute focused run by following the Skill 012 execution-triad contract and confirm no parser/input-binding mismatch.
 
 ## 6.0) Authoring Rule (API-First)
 - Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
@@ -138,11 +135,8 @@ Rules:
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Applicable in Virtualize.
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
-  - Use GET -> mutate -> PUT for updates to existing XML Data Bank tools.
-  - when new producer/output types are introduced, update Skill 018 first, then apply here.

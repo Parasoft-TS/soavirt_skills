@@ -60,7 +60,6 @@ Prevent accidental configuration loss when editing suites and other non-tool obj
 ## 10) Reuse Notes
 - Primary target: SOAtest.
 - Also intended as a shared policy surface for other product object-update flows that expose replace-semantics `PUT` behavior.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Composition rule:
   - load before any suite/non-tool update skill that performs PUT edits.
   - pair with Skill 050 preflight for endpoint-method compatibility.

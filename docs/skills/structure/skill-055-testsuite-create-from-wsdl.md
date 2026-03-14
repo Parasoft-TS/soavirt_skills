@@ -20,6 +20,7 @@ Safely generate WSDL-derived SOAP tests under an existing suite using `POST /v6/
   - suite-level generation from OpenAPI/RAML/XSD
   - runtime execution of generated tests as a required validation step
   - treating `referenceExistingEnvironment.file` as a safe/default substitute for managed environment normalization
+  - assuming the API exposes the UI "Organize as Positive and Negative Unit Tests" toggle for WSDL generation
 
 ## 3.1) Dependencies
 - Required:
@@ -258,6 +259,6 @@ Managed generation with prefix:
 ## 11) Reuse Notes
 - Primary target: SOAtest.
 - Use this skill when the user wants generated WSDL-based tests added to an existing `.tst`, not a brand-new `.tst`.
+- The server API does not expose the UI "Organize as Positive and Negative Unit Tests" toggle for WSDL generation; downstream restructure is the way to achieve that layout when callers need it.
 - Use `docs/skills/platform/skill-023-tst-create-from-wsdl.md` for file-level WSDL generation instead.
 - Prefer managed generation plus post-create normalization by default; use the reference-file branch only on explicit user intent.
-- Use `docs/skills/backlog.md` for current validation and coverage status.

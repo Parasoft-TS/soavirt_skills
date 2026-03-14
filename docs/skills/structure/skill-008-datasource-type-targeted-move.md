@@ -73,7 +73,6 @@ Move exactly one selected data source implementation type (for example `TableDat
 ## 10) Reuse Notes
 - Primary target: SOAtest.
 - Virtualize object models may differ and are outside this card's default scope.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved: `GET/POST /v6/suites/testSuites`, `POST /v6/datasources/move`, `GET /v6/files/download`, `POST /v6/files/upload`.
 - The YAML fallback branch should route through `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md` rather than re-documenting copy/upload/restore choreography locally.
 - Foundational dependency:

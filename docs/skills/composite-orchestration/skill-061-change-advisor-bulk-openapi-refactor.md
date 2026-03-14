@@ -167,15 +167,9 @@ After writes, each migration target should yield one write result record contain
    - the structural approval artifact and grouped review packet in Section 6.3 are the next user-facing checkpoint
 
 ### 6.1.1) API Capability and Resolution Gate (Required)
-8. Before any write operation, run branch-aware capability preflight (Skill 050):
-  - apply the operation-class profile from Skill 050 Section 6.1
-  - classify outcomes and `404` disambiguation per Skill 050 Section 6.2
-  - record/reuse capability outcomes per Skill 050 Section 6.3
-9. During the read-only planning phase, perform only the capability checks required to confirm:
-  - source `.tst` resolution
-  - download compatibility
-  - copy/write route availability for the later mutate-on-copy phase
-10. Do not continue past the intake gate when the source `.tst` or either OpenAPI anchor cannot be resolved or retrieved reliably.
+8. Before any write operation, run branch-aware capability preflight via `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`.
+9. During the read-only planning phase, keep preflight limited to the checks needed for source `.tst` resolution, download compatibility, and later copy/write route availability.
+10. Reuse/classify outcomes through Skill 050 and do not continue past the intake gate when the source `.tst` or either OpenAPI anchor cannot be resolved or retrieved reliably.
 
 ### 6.2) Read-Only Migration Analysis
 11. Resolve the exact rooted source `.tst` id and download the file locally through Skill 002.

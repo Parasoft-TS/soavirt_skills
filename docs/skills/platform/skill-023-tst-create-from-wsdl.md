@@ -15,6 +15,12 @@ Create a brand-new `.tst` with generated tests from a WSDL definition using `POS
 - Out of scope:
   - traffic-based generation
   - post-generation customization
+  - relying on a generation-time API toggle for positive/negative suite organization
+
+## 3.2) Routing Boundary (Required)
+- Use this card as a direct route only when the user explicitly requests creating a **new `.tst`** from a WSDL source.
+- Do not use this card as the first route for help-style or outcome-level prompts when output mode is not explicit.
+- For those ambiguous prompts, route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` first.
 
 ## 3.1) Dependencies
 - Required:
@@ -95,6 +101,6 @@ Run this preflight before `POST /v6/files/tsts/wsdl`:
 
 ## 11) Reuse Notes
 - Primary target: SOAtest.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - API-first authoring required; do not depend on pre-existing generated examples.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
+- The server API does not expose the UI "Organize as Positive and Negative Unit Tests" toggle for WSDL generation; if callers want positive/negative structural organization, perform that as downstream restructure rather than assuming a generation-time switch.

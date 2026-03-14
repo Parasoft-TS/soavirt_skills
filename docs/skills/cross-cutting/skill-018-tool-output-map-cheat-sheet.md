@@ -19,7 +19,7 @@ Maintain a compact, high-signal lookup for choosing the correct output-provider 
 | REST Client | Response Traffic (runtime media type: JSON/XML) | Semantic payload | Preferred default | `<rest-client-id>/Response Traffic` | JSON/XML assertors, validators, data banks, Diff Tool | Primary business-validation channel for API responses. |
 | REST Client | Response Traffic (runtime media type: plain text) | Semantic payload | Conditional (Diff text mode) | `<rest-client-id>/Response Traffic` | Diff Tool (text mode) | Do not attach JSON/XML tools unless runtime media type confirms JSON/XML. |
 | REST Client | Response Transport Header | Header metadata payload | Conditional (header-focused chaining) | `<rest-client-id>/Response Transport Header` | Header Data Bank | Use when extraction/validation intent targets response headers rather than body content. |
-| REST Client | Traffic Object | Diagnostic payload | Avoid by default | Producer-specific; map before use | Traffic Viewer, diagnostics/export tooling | Not default for business-validation chaining. |
+| REST Client | Traffic Object | Diagnostic payload | Conditional (security testing / diagnostics only) | `<rest-client-id>/Traffic Object` | Penetration Testing Tool, Traffic Viewer, diagnostics/export tooling | Canonical parent for Penetration Testing Tool; still not a default business-validation chain parent. |
 | SOAP Client | Response SOAP Envelope | Semantic payload | Preferred default | `<soap-client-id>/Response SOAP Envelope` | XML Assertor, XML Data Bank, XML Validator, Diff Tool (XML mode) | Validated on HTTP-based and WSDL-originated-compatible SOAP Client examples; use XML tools against the response envelope rather than traffic diagnostics. |
 | SOAP Client | Traffic Object | Diagnostic payload | Avoid by default | `<soap-client-id>/Traffic Object` | Traffic Viewer, diagnostics/export tooling | Not default for business-validation chaining. |
 | DB Tool | Results as XML | Semantic payload | Preferred default | `<db-tool-id>/Results as XML` | XML Assertor, XML Data Bank, Diff Tool (XML mode) | Default business payload channel for DB resultsets. |
@@ -39,6 +39,7 @@ Construction flow:
 Current validated examples:
 - REST Client semantic response output: `<rest-client-id>/Response Traffic`
 - REST Client response header output: `<rest-client-id>/Response Transport Header`
+- REST Client security-testing output: `<rest-client-id>/Traffic Object`
 - SOAP Client semantic response output: `<soap-client-id>/Response SOAP Envelope`
 - DB Tool semantic results output: `<db-tool-id>/Results as XML`
 

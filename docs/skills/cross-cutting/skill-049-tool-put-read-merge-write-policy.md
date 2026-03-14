@@ -70,7 +70,6 @@ Prevent accidental configuration loss when editing pre-configured tools by requi
 ## 10) Reuse Notes
 - Primary target: SOAtest.
 - Also intended as a shared policy surface for other product tool-update flows that expose replace-semantics `PUT` behavior.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Composition rule:
   - load this card before any skill that edits existing tool configurations.
   - `POST` create flows are exempt unless they transition into editing an existing tool instance.

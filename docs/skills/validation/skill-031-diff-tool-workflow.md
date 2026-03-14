@@ -11,10 +11,7 @@ Create a reusable workflow for chaining a Diff Tool to live semantic runtime out
   - create Diff Tool via `POST /v6/tools/diffTools`
   - configure Diff Tool via `PUT /v6/tools/diffTools?id=...`
   - readback via `GET /v6/tools/diffTools?id=...`
-  - run focused execution and validate runtime behavior via:
-    - `POST /v6/testExecutions`
-    - `GET /v6/testExecutions/{id}/status`
-    - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
+  - run focused execution and validate runtime behavior by following the Skill 012 execution-triad contract
   - validate and document mode-specific ignore settings for:
     - XML mode
     - JSON mode
@@ -88,7 +85,7 @@ Create a reusable workflow for chaining a Diff Tool to live semantic runtime out
   - immediately read back the tool and verify persisted `diffMode.type` matches the intended mode for that target output.
   - for plain-text outputs, default expected value source to the baseline live output captured in step 2, then refine only with explicit user intent.
 7. Read back tool and capture exact persisted config shape.
-8. Execute focused verification run and inspect mismatch/pass behavior.
+8. Execute focused verification run by following the Skill 012 execution-triad contract and inspect mismatch/pass behavior.
 9. If diff fails, extract and summarize human-readable differences (field/XPath/property, expected vs actual, source tool context).
 10. Offer optional ignored-difference setup for reported volatile fields:
   - apply only after user confirmation.
@@ -211,14 +208,12 @@ Text mode baseline:
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Technically applicable in Virtualize, but not often used.
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` (JSON mode selector semantics when selector-like ignore paths are used)
-  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md` (use GET -> mutate -> PUT for updates to existing Diff Tool configurations)
-  - when new producer/output types are introduced, update Skill 018 first, then apply here.
+  - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
 
 ### User Interaction Rule (Diff Failures)
 - On diff failure, provide a concise human-readable summary before any config mutation:

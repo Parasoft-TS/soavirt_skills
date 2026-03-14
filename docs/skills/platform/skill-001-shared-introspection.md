@@ -132,7 +132,6 @@ Shared File Introspection (roots, folders, and typed descendants)
 - SOAtest usage: list `.tst` under `/TestAssets` via `type=tst`.
 - Virtualize usage: list `.pva` under `/VirtualAssets` via `type=pva`.
 - Provisioning usage: list `.pvn` under `/ProvisioningAssets` via `type=pvn`.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank): not required for this skill.
 
 ## 11) Examples

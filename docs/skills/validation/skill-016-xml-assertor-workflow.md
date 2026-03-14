@@ -13,10 +13,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - readback and verify configuration via `GET /v6/tools/xmlAssertors?id=...`
   - delete XML Assertor via `DELETE /v6/tools?id=...`
   - copy XML Assertor via `POST /v6/tools/copy`
-  - run focused execution and validate runtime behavior via:
-    - `POST /v6/testExecutions`
-    - `GET /v6/testExecutions/{id}/status`
-    - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
+  - run focused execution and validate runtime behavior by following the Skill 012 execution-triad contract
 - Out of scope:
   - service/database data remediation
   - UI-only assertion editing workflows
@@ -96,8 +93,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - verify copied assertor via `GET /v6/tools/xmlAssertors?id=<new-id>`.
 7. Optional delete flow:
   - `DELETE /v6/tools?id=<assertor-id>` and verify absence in descendants/children.
-8. Execute focused verification run and inspect runtime results:
-   - if needed, request XML report using `includeXmlReport=true`.
+8. Execute focused verification run by following the Skill 012 execution-triad contract and inspect runtime results.
 9. If XML parser errors occur (for example `Content is not allowed in prolog`), treat it as input-binding mismatch and re-check the chosen output-provider/input source.
 
 ## 6.0) Authoring Rule (API-First)
@@ -215,14 +211,11 @@ Rules:
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Technically applicable in Virtualize, but not often used.
 - Intended producer class: XML-producing semantic output providers (REST Client response output and DB Tool `Results as XML` validated; additional producers when they emit confirmed XML payloads).
 - Works best when input-binding path is explicitly verified from runtime artifacts.
 - Cross-cutting dependency:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - Select semantic output-provider parents (for example response/results) before assertion tuning.
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
-  - Treat Skill 018 as canonical mapping source; update it first when new producer/output types are introduced.
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
-  - Use GET -> mutate -> PUT when editing existing assertors to preserve non-target settings.

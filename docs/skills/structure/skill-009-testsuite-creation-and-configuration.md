@@ -194,8 +194,7 @@ Less-common options (explicit intent required):
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Not applicable in Virtualize.
 - Related endpoints:
   - `POST/GET/PUT /v6/suites/testSuites`
   - `DELETE /v6/suites`

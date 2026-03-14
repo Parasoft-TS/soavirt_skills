@@ -97,7 +97,6 @@ Shared File Transfer (download for local edit, upload for server update)
 - SOAtest usage: transfer `.tst` files under `/TestAssets`.
 - Virtualize usage: transfer `.pva` files under `/VirtualAssets`.
 - Provisioning usage: transfer `.pvn` files under `/ProvisioningAssets`.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank): transfer layer is shared regardless of tool type.
 
 ## 11) Examples

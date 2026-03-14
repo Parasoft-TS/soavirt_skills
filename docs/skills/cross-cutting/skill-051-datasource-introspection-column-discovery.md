@@ -93,8 +93,7 @@ This skill is a shared foundation for:
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Applicable in Virtualize.
 - Shared endpoint set:
   - `GET /v6/descendants/assets`
   - `GET /v6/datasources/*`

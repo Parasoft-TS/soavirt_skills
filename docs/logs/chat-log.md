@@ -1,6 +1,153 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-14 (Workspace-wide repeated-rule cleanup review and implementation)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Reviewed repeated-rule clusters across bootstrap, workflow, routing, orchestration, template, and leaf-card surfaces and encoded per-cluster retain-vs-cleanup decisions in the active cleanup plan.
+- Applied the approved cleanup pass across the canonical docs and skill cards:
+  - compressed `AGENTS.md` back to a bootstrap/routing/guardrails surface
+  - replaced repeated Skill 050 preflight and Skill 001 target-resolution prose in `Skills 033/057/058/061` with canonical-owner stubs plus preserved local deltas
+  - removed template-driven backlog boilerplate, generic Virtualize boilerplate, dedicated JSON selector reminder sections, and first-pass contributor-only dependency-maintenance reminders
+  - removed generic encoding duplication from `docs/skills/skill-card-template.md` and `docs/workflow/skill-authoring-workflow.md` while preserving local operational encoding guidance where it still adds execution value
+  - shortened generic Skill 012 execution/results endpoint boilerplate across the remaining client/data-exchange/validation leaves to the execution-triad shorthand
+- Validated the cleanup with grep checks for the removed boilerplate patterns and a clean `git --no-pager diff --check` result.
+
+### Notes
+- This pass intentionally retained router/owner boundary echoes in `skill-index.md` and the related caller/handoff notes in `Skills 033/022/056/057/058`, because those local reminders still encode route-back, caller-context, and phase-ownership semantics rather than low-value duplication.
+- The governing cleanup principle was: keep one canonical owner per rule, allow short local boundary notes only where they reduce real execution ambiguity, and avoid broad prose purges that would delete meaningful local deltas.
+## Session 2026-03-14 (Skill 033/056 mandatory-question wording alignment)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`:
+  - replaced the preferred posture, negative-test, security-test, and payload-strategy wording with contributor-approved phrasing
+  - clarified that the operation list must always be shown before asking all-versus-subset
+  - added preferred wording for the direct-generation routing clarification and the service-definition-location blocker question
+- Refined `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`:
+  - avoided re-asking one-client confirmation when the branch was already normalized by Skill 033
+  - added preferred wording for one-client posture, protocol, operation-selection, host-placement, and interactive confirmation questions
+  - clarified that multi-operation one-client selection must show the operation list before asking the user to choose
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor review of the mandatory question set so future agents will ask the main intake questions more consistently while still keeping selected blocker-only follow-ups flexible when exact wording depends on the unresolved gap.
+## Session 2026-03-14 (Skill 033/056 autonomous-posture and intake UX update)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`:
+  - made autonomous mode a true no-interrupt execution branch with blocker-only clarifications
+  - defaulted autonomous payload fill on and limited the approval artifact to interactive mode only
+  - moved default DB-comparison handling out of intake and into optional post-completion follow-up
+  - rewrote the prompt-sequence section into posture-aware interactive and autonomous templates
+- Refined `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`:
+  - aligned one-client routing with the same interactive versus autonomous posture semantics
+  - defaulted unresolved autonomous host placement to creation of a minimal new `.tst`
+  - preserved validation-enrichment handoff without reintroducing interactive interruptions into autonomous runs
+- Refined `docs/templates/skill-033-approval-artifact-template.md`:
+  - made the template explicitly interactive-only
+  - removed no-longer-useful posture wording from the preamble/example
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor feedback that autonomous mode should feel genuinely autonomous: a user provides the minimally viable inputs and the agent continues execution end-to-end without interim summaries or approval artifacts unless a true blocker requires clarification.
+## Session 2026-03-13 (Skill 033 negative candidate-family expansion)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`:
+  - expanded the encoded standard-negative candidate-family set so future agents have more protocol/schema/state negatives to consider dynamically
+  - added examples including invalid HTTP method, unsupported media type, unacceptable `Accept` negotiation, null/empty-value violations, length/cardinality issues, malformed or unsupported body representation, extra-field violations, and conflict-style negatives
+  - clarified that the encoded family list remains heuristic input to dynamic reasoning rather than a mandatory fixed checklist
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor feedback that Skill 033 should give future agents a broader encoded family set to consider while still reasoning dynamically from the spec, request shape, and observed service behavior.
+## Session 2026-03-13 (Skill 033 security-suite interim execution exclusion)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Verified `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` already treats the finalized ready happy-path baseline as the prerequisite before negative/security branching.
+- Refined `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`:
+  - clarified that copied security branches inherit the verified-ready happy-path baseline and do not require separate interim re-validation
+  - required focused/interim execution for calibration, traffic inspection, diagnostics, and validation-design evidence to exclude security suites/tests
+  - reserved security-suite execution for explicit follow-up, such as a user-approved end-of-workflow full `.tst` run
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor feedback that security branches are intentionally long-running, are copied from an already verified-ready happy-path baseline, and are already excluded from normal validation enrichment, so they should not slow down the internal execution passes Skill 033 uses for runtime evidence.
+## Session 2026-03-13 (Empty-response-payload validation no-tool exception)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`:
+  - added a special-case rule that empty REST Client response payloads should not receive chained validator/assertor/diff tools
+  - clarified that in this case the REST Client expected response code alone remains the validation outcome for both happy-path and standard-negative targets
+  - made the no-tool exception explicit in validation-plan summaries and failure-mode wording
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor feedback that empty response payloads should not trigger chained-tool attachment, because the meaningful validation in that case is already captured by the REST Client expected response code.
+## Session 2026-03-13 (Combined happy-path and negative validation-enrichment default)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`:
+  - clarified that once happy-path and standard-negative slices are both approved and ready, Skill 033 should prefer one combined Skill 057 validation handoff rather than two user-visible enrichment phases
+  - kept separate follow-up phases as an exception only for readiness splits, blockers, or explicit user direction
+- Refined `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`:
+  - clarified that happy-path and standard-negative targets should be planned, approved, and executed together by default when both slices are ready
+  - preserved separate handling only when readiness divergence, blockers, or user instruction requires it
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor feedback that separate happy-path and negative validation follow-up phases created unnecessary wait-and-approve churn when both slices were already in scope and ready.
+## Session 2026-03-13 (Traffic diagnostics showdetails-first policy)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`:
+  - made `general.showdetails=true` the default expectation for traffic-observation, payload-inspection, and validation-design execution branches
+  - updated canonical payload/procedure wording so detail-enabled capture is part of the normal traffic contract
+  - clarified that XML-report `TrafficData` fallback is preferred over automatic rerun once a detail-enabled run still yields sparse viewer payloads
+- Refined `docs/skills/execution-diagnostics/skill-014-test-failure-diagnostics-from-traffic.md`:
+  - required focused diagnostics runs to include `general.showdetails=true`
+  - aligned empty-viewer handling with the same no-automatic-rerun fallback rule
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor review of repeated "empty traffic viewer" behavior. The main issue was not the `/traffic` endpoint path itself, but that the execution cards still treated detail capture as optional even when traffic evidence was the goal.
 ## Session 2026-03-13 (Change Advisor stop-before-execution alignment)
 
 ### Actions Completed
@@ -1483,6 +1630,59 @@ Purpose: chronological working log of our skill-building sessions.
 ### Notes
 - Skill 059 now owns read/copy/delete plus same-client create/update for one constrained REST Client at the validated v1 boundary.
 - Broader multi-client orchestration and non-JSON constrained body modes remain future work.
+## Session 2026-03-13
+
+### Context
+- Goal: implement the approved Skill 033 hardening pass after plan iteration finalized the template contracts, autonomous defaults, dynamic negative-family coverage rules, separate interactive security intake, and the new security-tool branch.
+
+### Actions Completed
+- Re-read the canonical bootstrap, contributor workflow, routing/status/log surfaces, and the approved plan before implementation:
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - plan `710e68ef-2b5e-434b-a41d-b5c5d0eb9ee3`
+- Re-read fresh edits in `AGENTS.md`, `docs/logs/decision-log.md`, and `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`, and confirmed they did not require a plan change before implementation.
+- Reworked `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` to:
+  - delegate approval/completion output shape to template files
+  - treat interactive standard negatives and security as separate intake decisions
+  - document autonomous defaults as a compact default-decision ledger
+  - make standard-negative planning family-based with a cap-of-five ceiling rather than a fixed target count
+  - route security branches through a dedicated Penetration Testing Tool workflow
+  - keep validation sequencing explicit as `033 -> 058 -> negatives/security -> 057`
+- Added the new template-owned output contracts:
+  - `docs/templates/skill-033-approval-artifact-template.md`
+  - `docs/templates/skill-033-completion-artifact-template.md`
+- Added the new atomic security-testing workflow:
+  - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
+- Updated related orchestration/cross-cutting/platform docs for consistency:
+  - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
+  - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
+  - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+  - `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
+  - `docs/skills/platform/skill-024-tst-create-from-raml.md`
+  - `docs/skills/platform/skill-025-tst-create-from-xsd.md`
+  - `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+- Performed post-implementation readback and consistency review:
+  - verified the major contract points still matched the approved plan after context compaction
+  - confirmed the additional diffs in `AGENTS.md`, `skill-022`, `skill-024`, and `skill-025` were intentional routing-boundary follow-through rather than accidental drift
+  - identified the missing `chat-log` note as the remaining contributor-workflow close-out step
+
+### Notes
+- The approved plan was applied consistently after context compaction; no material drift was found in the implemented contract.
+- The new Skill 033 approval artifact now uses the compact preamble plus Sections `A-E`, with `R<n>` review ids only in Section `D`.
+- The new completion artifact stays concise with Sections `A-C`.
+- Interactive intake now treats standard negatives and security separately, while autonomous mode defaults both on unless constrained by the user.
+- Standard-negative planning is dynamic and evidence-backed; five families is a ceiling, not a target.
+- Security branches are explicitly modeled as a Penetration Testing Tool exception under REST Client `Traffic Object`, not as ordinary business-validation chaining.
 
 ---
 

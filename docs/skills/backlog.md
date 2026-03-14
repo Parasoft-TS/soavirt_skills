@@ -19,8 +19,12 @@ Do not use this file as the primary operator-facing routing surface.
 - **Deferred/Retired**: intentionally not being expanded right now.
 
 ## Active Priorities
-- Harden and validate the new validation-enrichment orchestration path so happy-path bundle proposal, DB Tool resultset enrichment, multi-signal readiness heuristics, schema-source confirmation, and response-vs-database routing behave consistently:
+- Harden and validate Skill 033 so template-backed approval/completion artifacts, autonomous defaults, dynamic standard-negative planning, separate interactive security intake, and always-on validation sequencing behave consistently:
+  - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+- Harden and validate the new validation-enrichment orchestration path so happy-path bundle proposal, DB Tool resultset enrichment, multi-signal readiness heuristics, schema-source confirmation, negative/security exception handling, and response-vs-database routing behave consistently:
   - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+- Define and validate the Penetration Testing Tool lifecycle path used by Skill 033 security branches:
+  - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
 - Define and validate the new request-readiness remediation orchestration path so underconfigured existing/generated REST/SOAP client tests and DB Tools can be repaired before validation or later orchestration continues:
   - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 - Maintain and refine the validated v1 single constrained REST Client lifecycle path that uses shell-first YAML promotion for constrained binding and REST Client `GET/PUT/GET` for constrained JSON request payload normalization, while keeping broader orchestration work out of scope:
@@ -191,19 +195,24 @@ Do not use this file as the primary operator-facing routing surface.
 ### 10) Composite Orchestration
 - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
   - **State:** In progress
-  - **Notes:** canonical underspecified-intent entry point for service-test authoring; now focuses on ambiguity resolution, generation-critical pre-write gates, and high-level phase sequencing, while routing repeated clarified sub-workflows to Skills 056, 057, and 058 instead of continuing to absorb detailed branch policy.
+  - **Notes:** canonical underspecified-intent entry point for service-test authoring; now uses staged intake, an interactive-only approval artifact, a true no-interrupt autonomous execution posture with default payload fill plus blocker-only clarifications, preferred wording for mandatory intake questions, dynamic standard-negative family planning with a cap-of-five ceiling and a richer protocol/schema/state candidate-family set, separate interactive security intake, an always-on `033 -> 058 -> negatives/security -> combined 057 validation pass` sequencing model, post-completion DB/full-run follow-up options, and an execution-efficiency rule that excludes copied security suites from interim calibration/traffic/validation runs unless the user explicitly wants an end-of-workflow full `.tst` execution.
 - `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
   - **State:** Defined
-  - **Notes:** branch-specific orchestration card for one-client authoring intent across endpoint-only and contract-informed REST/SOAP flows; routes to Skills 020 and 034 rather than broad generation cards.
+  - **Notes:** branch-specific orchestration card for one-client authoring intent across endpoint-only and contract-informed REST/SOAP flows; now preserves interactive versus autonomous posture through the one-client branch, defaults unresolved autonomous host placement to a minimal new `.tst`, provides preferred wording for mandatory one-client questions, and routes REST/SOAP execution to the smallest matching lifecycle leaf rather than broad generation cards.
 - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
   - **State:** Defined
-  - **Notes:** branch-specific orchestration card for adding validation to existing or newly generated tests and DB Tool resultsets, with live-runtime-evidence gating, multi-signal readiness fail-closed behavior, an explicit remediation-approval-vs-validation-approval boundary, happy-path schema-plus-content bundle defaults for API responses, DB Tool assertion/diff enrichment defaults, conservative negative-test policy, and response-vs-database orchestration.
+  - **Notes:** branch-specific orchestration card for adding validation to existing or newly generated tests and DB Tool resultsets, with live-runtime-evidence gating, multi-signal readiness fail-closed behavior, an explicit remediation-approval-vs-validation-approval boundary, combined happy-path-plus-standard-negative plan/approval by default when both slices are ready, an empty-response-payload no-tool exception for REST Client validation, happy-path schema-plus-content bundle defaults for API responses, default conservative validation for standard negatives, explicit security-branch no-tool exception handling, and response-vs-database orchestration.
 - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
   - **State:** Defined
   - **Notes:** branch-specific orchestration card for detecting and repairing underconfigured existing/generated REST/SOAP client tests and DB Tools before validation or later orchestration proceeds; now enforces a strict candidate-value sourcing ladder (user/session/contract/same-`.tst` only by default), best-guess proposal gating, and no autonomous live-service probing unless the user explicitly approves it, while supporting REST-only, SOAP-only, DB-only, and mixed remediation slices and keeping SQL strategy and DB-side setup out of scope.
 - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
   - **State:** Defined
   - **Notes:** top-level operator-facing owner for one-source-spec bulk constrained REST Client OpenAPI refactor work on an existing `.tst`; owns mandatory read-only analysis plus mutate-on-copy-after-approval flow, analyzes the full exact-match constrained-client slice for the confirmed source OpenAPI without subset-selection or redundant intake-summary confirmation, performs grouped review including approval-stage base URL policy selection, preserves context-rich structural-tree rendering, sequences copied-target writes, and stops at structural/persisted-state completion with execution left as a suggested follow-up.
+
+### 11) Security Testing
+- `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
+  - **State:** Defined
+  - **Notes:** atomic lifecycle owner for Penetration Testing Tool create/read/update work under REST Client `Traffic Object`, including the explicit security-testing exception to normal business-validation chaining rules.
 
 ## Coverage Gaps / Planned New Cards
 - Structural manipulation coverage beyond current validated cards remains incomplete if the project still wants fine-grained standalone cards for:
@@ -218,6 +227,7 @@ Do not use this file as the primary operator-facing routing surface.
 - Higher-scope constrained REST Client work remains future research, including broader operation-retargeting/multi-client orchestration beyond the validated shell-promotion workflow and non-JSON constrained body modes.
 - Future architectural refactor candidate: evaluate whether operator-facing validation/data-exchange lifecycle cards (for example Skills 010, 028, 029, and 031) should eventually separate user-facing lifecycle orchestration from a narrower precomputed action-application contract so higher-order workflows can reuse them without reopening tool-family selection, approval, or baseline-planning logic.
 - Related orchestration follow-up: analyze why Skill 033 still feels awkward/unreliable in execution and whether some of that friction comes from missing lower-layer action-contract boundaries rather than only from top-level intake/orchestration complexity.
+- Future orchestration/leaf candidate: add a narrower negative-test workflow that can take a specified existing happy-path test and generate standard/security negative coverage for that one target without reopening full Skill 033 intake.
 
 ## Deferred / Retired
 - REST Client constrained creation cards (`Skills 026/027`)

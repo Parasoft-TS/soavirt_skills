@@ -158,14 +158,10 @@ Do not call create/update endpoints until required fields for the selected mode 
 7. Reorder tool to required position (if needed):
    - build full ordered child list
    - `PUT /v6/suites/children?id=<suite-id>` with complete `children[].id` sequence
-8. Execute focused validation against selected tests:
-   - `POST /v6/testExecutions?now=true`
-   - follow `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md` payload contract for execution body shape and run lifecycle (including `soatestOptions.testNames` object-array format when filtering tests).
-   - `general.config` must be workspace-valid (for example `soatest.user://Example Configuration`)
-   - scope to target `.tst` + `soatestOptions.testNames`
-9. Retrieve run evidence:
-   - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
-   - verify target test statuses in `xmlReport`
+8. Execute focused validation against selected tests by following the Skill 012 execution-triad contract.
+   - use a workspace-valid `general.config` (for example `soatest.user://Example Configuration`)
+   - scope execution to the target `.tst` plus `soatestOptions.testNames`
+9. Use the Skill 012 results/readback step to verify target test statuses in `xmlReport`.
 10. Expected-code calibration for negative/security tests (required when non-happy tests are present):
    - retrieve runtime traffic for executed tests and use only test-execution traffic evidence for calibration (do not calibrate from direct endpoint calls outside the test run),
    - extract observed HTTP status codes,
@@ -219,8 +215,7 @@ Do not call create/update endpoints until required fields for the selected mode 
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Applicable in Virtualize.
 - Related endpoints:
   - `POST/PUT/GET /v6/tools/restClients`
   - `DELETE /v6/tools`
@@ -231,9 +226,4 @@ Do not call create/update endpoints until required fields for the selected mode 
 - Composition note:
   - After REST client creation, if the user's intent is broader validation enrichment on existing/new tests, route to `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md` rather than composing validator/assertor/diff leaves ad hoc.
   - Use direct validator/assertor/diff leaves only when the routing is already explicit and the downstream tool choice is intentionally narrowed.
-  - For updates to existing REST Clients, load `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md` and use GET -> mutate -> PUT.
   - For same-operation edits on existing constrained REST Clients (`resource.type=swagger` / constrained YAML model), route to `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` rather than treating Skill 020 as the mutation owner.
-
-### JSON Tooling Reminder
-- When this REST Client is chained to JSON tools (for example JSON Assertor, JSON Data Bank), selector-expression fields use XPath-over-JSON semantics.
-- Always load `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` for JSON selector authoring; do not use JSONPath in XPath-expected fields.

@@ -169,6 +169,5 @@ Invalidate and re-probe a cached entry when any of the following is true:
 
 ## 10) Reuse Notes
 - Shared across SOAtest and Virtualize when server-API capability differences can affect runtime routing.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Use as a dependency for composite orchestration, runtime capability-sensitive read/transfer branches, and write-capable atomic cards.
 - Keep this skill as the canonical preflight policy surface; keep endpoint/payload specifics in their atomic owner cards.

@@ -58,7 +58,6 @@ Use the layering model for dependency reasoning and long-term decomposition. Use
 2. Validate endpoint behavior with read-only calls.
 3. Capture examples and response shapes.
 4. Add write capability only when the read path is stable.
-5. For write calls, verify request payload encoding/content type before first execution (JSON and YAML must be UTF-8 without BOM unless endpoint contract specifies otherwise).
 6. Validate post-conditions and document failure modes.
 7. When a skill runs tests, validate with the run-results-traffic triad before concluding diagnostics.
 8. Update the canonical docs/logs required by `docs/workflow/documentation-sync-workflow.md`.

@@ -80,7 +80,6 @@ Create a brand-new test asset with default root `Test Suite` using `POST /v6/fil
 
 ## 11) Reuse Notes
 - Primary target: SOAtest.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - API-first rule:
   - Author payload directly from endpoint schema (`tstsRequest`), not from existing workspace templates.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.

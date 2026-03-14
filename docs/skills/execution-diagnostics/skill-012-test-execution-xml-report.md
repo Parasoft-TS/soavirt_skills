@@ -40,7 +40,8 @@ Endpoint: `POST /v6/testExecutions?now=true`
 ```json
 {
   "general": {
-    "config": "soatest.user://Example Configuration"
+    "config": "soatest.user://Example Configuration",
+    "showdetails": true
   },
   "scopeOptions": {
     "workspace": {
@@ -60,6 +61,7 @@ Key details:
 - `soatestOptions.testNames` must be an array of **objects** (`{ "value": "...", "match": true }`), not an array of plain strings.
 - Append `?now=true` to the URL to start execution immediately.
 - `soatestOptions.testNames` is optional; omit to run all tests in the resource.
+- For any traffic-observation, payload-inspection, validation-design, or diagnostics branch, set `general.showdetails=true` on the execution request so viewer payloads include detail-rich runtime evidence by default.
 
 ## 6) Procedure
 1. Preflight resource existence:
@@ -68,6 +70,7 @@ Key details:
 2. Build payload:
    - `general.config=<valid-config-key>`
   - workspace default (this repo): `soatest.user://Example Configuration`
+   - for any branch that expects traffic evidence, set `general.showdetails=true`
    - `scopeOptions.workspace.resources=["<resource-path>"]`
   - optional coarse filter:
     - `soatestOptions.testNames=[{"value":"<test-name>","match":true}]`
@@ -93,7 +96,8 @@ Key details:
     - prefer the specific producer's Traffic Viewer id for the target test/tool, not just the first returned viewer.
   - fallback when traffic payload is empty:
     - if selected viewer has empty `toolSettings.testRuns`, retry with other suite-returned viewer ids for the same run,
-    - if all viewer payloads remain empty, extract request/response evidence from decoded `xmlReport` traffic sections (`TrafficData`) before classifying traffic as unavailable.
+    - if all viewer payloads remain empty on a detail-enabled run, extract request/response evidence from decoded `xmlReport` traffic sections (`TrafficData`) before classifying traffic as unavailable,
+    - do not add an automatic rerun step solely to compensate for missing detail capture; once a traffic-observation branch has executed with `general.showdetails=true`, XML-report fallback is the preferred next step.
   - use `toolSettings.testRuns[].trafficData.request/response` for failure analysis.
 7. Persist artifacts:
    - raw POST response
@@ -102,6 +106,7 @@ Key details:
   - extracted `xmlReport` (base64 payload) and decoded `.xml` file.
   - optional traffic diagnostics responses.
 ## 6.0) Traffic Response Shape Notes (Required)
+- For traffic-observation branches, treat a detail-enabled execution payload (`general.showdetails=true`) as part of the normal capture contract, not as an optional tuning knob.
 - Treat traffic responses as shape-sensitive; do not assume `toolSettings` exists at the response root.
 - Suite-level traffic discovery commonly returns a wrapper such as:
 ```json
@@ -149,7 +154,8 @@ When in doubt, complete all three steps before drawing conclusions about failure
   - `xmlReport` length > 0
   - decoded XML starts with `<?xml` and contains `<ResultsSession ...>`
   - results summary contains `execution.testRunCount` and failure/pass counts
-  - when traffic endpoint returns empty runs, fallback extraction from decoded XML report is attempted before concluding evidence is unavailable.
+  - for traffic-observation branches, execution payload includes `general.showdetails=true`
+  - when traffic endpoint returns empty runs after a detail-enabled execution, fallback extraction from decoded XML report is attempted before concluding evidence is unavailable.
   - if `summary.scope.totalFilesExecuted > 0` but `summary.execution.testRunCount = 0`, treat run as no-op and investigate target test executability (for example empty REST Client URL fields, disabled tools, overly restrictive config filters).
 
 ## 8) Failure Modes
@@ -162,7 +168,10 @@ When in doubt, complete all three steps before drawing conclusions about failure
   - rejected (validated): `.tst` file id (`Test (.tst) File`), REST client test id (`REST Client`).
 - Empty `testRuns` from viewer traffic despite execution:
   - can occur for non-target viewers or sparse run capture,
-  - requires viewer reselection and XML-report fallback before concluding missing traffic evidence.
+  - requires viewer reselection and, after a detail-enabled execution, XML-report fallback before concluding missing traffic evidence.
+- Traffic-observation run launched without `general.showdetails=true`:
+  - can produce sparse or misleadingly empty viewer payloads even when execution traffic exists,
+  - for future traffic-observation branches, correct the execution payload default rather than normalizing the sparse viewer as the preferred evidence source.
 - Wrong traffic-path assumption:
   - some viewer-id lookups still return `trafficViewers[]` wrappers,
   - assuming root-level `toolSettings` without checking for the wrapper can produce false null/empty reads.
@@ -194,8 +203,7 @@ When in doubt, complete all three steps before drawing conclusions about failure
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Not applicable in Virtualize.
 - Shared dependencies:
   - `docs/skills/platform/skill-001-shared-introspection.md`
   - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
@@ -205,4 +213,6 @@ When in doubt, complete all three steps before drawing conclusions about failure
   - active value example: `soatest.user://Example Configuration`
 - Default execution guidance for this workspace:
   - use `general.config=soatest.user://Example Configuration` unless user explicitly requests another known-valid config.
+- For any branch whose goal includes traffic evidence, request/response payload inspection, or validation-media-type classification:
+  - include `general.showdetails=true` in the execution payload by default.
 - The API spec does not expose a dedicated endpoint for listing execution configuration keys.

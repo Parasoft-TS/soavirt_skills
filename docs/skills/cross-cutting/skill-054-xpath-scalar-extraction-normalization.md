@@ -60,6 +60,5 @@ Standardize XPath generation for scalar-value extraction/assertion so XML tools 
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Applicable in Virtualize.
 - Intended as a dependency for XPath-producing databank/assertor skills.

@@ -81,7 +81,6 @@ After creating a `.tst` from a full service definition, remove non-selected oper
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Not applicable in Virtualize.
 - Typical dependency chain:
   - generation skill (022/023/024/025) -> this prune skill -> variant/tooling skills.

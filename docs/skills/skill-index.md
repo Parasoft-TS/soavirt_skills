@@ -24,6 +24,13 @@ Route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orch
 - resolve whether a contract is the generation source or only planning input
 
 Use Skill 033 as the canonical route for underspecified service-test authoring prompts, not as the mandatory route for already-specific direct requests.
+#### Direct generation eligibility gate (required)
+Route directly to generation cards (Skills 022-025) only when all of the following are true:
+- the user explicitly requests generation/create action from a service definition (OpenAPI/WSDL/RAML/XSD),
+- the user explicitly commits to a **new `.tst`** output (for example, `create a new .tst from this OpenAPI`),
+- the prompt is not primarily help-style or planning-style intake (for example, `help me create tests for this service definition`),
+- no routing-critical dimensions remain unresolved (for example new vs existing `.tst` vs one-client intent).
+If any condition is not met, start with Skill 033 and clarify.
 #### Direct validation-enrichment routing
 Route to `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md` when the user wants to:
 - add validations to existing tests in a `.tst`
@@ -105,7 +112,7 @@ Preferred prompts:
 - `use this WSDL to help create a single SOAP Client`
 
 #### Direct generation routing
-Route directly to the smallest matching generation workflow when the user is already specific:
+Route directly to the smallest matching generation workflow only when the prompt passes the direct generation eligibility gate above:
 - new `.tst` from OpenAPI -> `docs/skills/platform/skill-022-tst-create-from-openapi.md`
 - new `.tst` from WSDL -> `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
 - new `.tst` from RAML -> `docs/skills/platform/skill-024-tst-create-from-raml.md`
@@ -114,13 +121,14 @@ Route directly to the smallest matching generation workflow when the user is alr
 
 Tie-break rule:
 - If the request is vague, use Skill 033.
+- If the request is help-style or outcome-level (for example `help me create tests for this OpenAPI`) and does not explicitly request a **new `.tst`**, use Skill 033.
 - If the request is already clearly validation-enrichment intent on existing/generated tests, use Skill 057.
 - If the request is already clearly request-readiness/configuration-remediation intent on existing/generated tests, use Skill 058.
 - If the request is already clearly single constrained REST Client lifecycle work within the validated shell/promotion boundary, use Skill 059.
 - If the request is already clearly bulk one-source-spec constrained REST Client OpenAPI refactor work on an existing `.tst`, use Skill 061.
 - If the request is already clearly one-client constrained REST Client source-to-target OpenAPI refactor work, use Skill 060.
 - If the request is already clearly one-client intent, use Skill 056.
-- If the request is already clearly direct generation intent and the target capability exists as a dedicated card, bypass Skill 033 and route directly to that card.
+- If the request is already clearly direct generation intent, explicitly targets creation of a new `.tst` from a service definition, and the capability exists as a dedicated card, bypass Skill 033 and route directly to that card.
 
 ### B) Read-Only TST Analysis
 Use this registry before selecting overlapping read-only analysis cards for `.tst` requests.
@@ -266,6 +274,11 @@ Use for multi-step conversational intake and cross-skill planning/execution.
 - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
 - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
+
+### 11) Security Testing
+Use for security-testing tool lifecycle and security-branch attachment rules.
+
+- `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
 
 ## Selection Heuristic
 1. For each new user prompt, re-run this routing heuristic before reusing any previously selected target card.

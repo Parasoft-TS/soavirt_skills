@@ -61,4 +61,3 @@ Example:
 ## 11) Reuse Notes
 - Primary target: SOAtest.
 - Virtualize naming hygiene may still be useful even when the specific execution-selection constraint differs.
-- Use `docs/skills/backlog.md` for current validation and coverage status.

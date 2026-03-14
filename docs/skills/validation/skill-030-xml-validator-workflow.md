@@ -13,10 +13,7 @@ Important: schema-validation mode is only considered correctly configured when t
   - create XML Validator via `POST /v6/tools/xmlValidators`
   - configure XML Validator via `PUT /v6/tools/xmlValidators?id=...`
   - readback via `GET /v6/tools/xmlValidators?id=...`
-  - run focused execution and validate runtime behavior via:
-    - `POST /v6/testExecutions`
-    - `GET /v6/testExecutions/{id}/status`
-    - `GET /v6/testExecutions/{id}/results?includeXmlReport=true`
+  - run focused execution and validate runtime behavior by following the Skill 012 execution-triad contract
 - Out of scope:
   - auto-remediation of payload/schema issues
   - domain-specific XML schema design guidance
@@ -104,7 +101,7 @@ Important: schema-validation mode is only considered correctly configured when t
   - when schema/service-definition binding references operation signatures, keep template paths/placeholders from the definition model (for example `{customerId}`) rather than concretized runtime values.
   - use `checkWellFormednessOnly` only when user explicitly requests it.
 7. Read back tool and verify configuration persisted.
-8. Execute focused run and inspect runtime results.
+8. Execute focused run by following the Skill 012 execution-triad contract and inspect runtime results.
 
 ## 6.0) Authoring Rule (API-First)
 - Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
@@ -181,11 +178,9 @@ Rules:
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Technically applicable in Virtualize, but not often used.
 - Intended producer class: API client tool response outputs (REST Client now; SOAP/Messaging when corresponding skills are available).
 - Cross-cutting dependencies:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
-  - when new producer/output types are introduced, update Skill 018 first, then apply here.

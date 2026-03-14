@@ -79,18 +79,12 @@ Conversation-first default: favor natural-language solicitation and interpretati
    - which tests or DB Tools should be remediated?
 
 ### 6.1.1 API Capability Preflight (Required)
-5. Before any write operation, run branch-aware capability preflight (Skill 050):
-  - apply the operation-class profile from Skill 050 Section 6.1,
-  - classify outcomes and `404` disambiguation per Skill 050 Section 6.2,
-  - record/reuse capability outcomes per Skill 050 Section 6.3.
-6. Do not continue with optimistic endpoint assumptions when preflight has identified a fallback path.
+5. Before any write operation, run branch-aware capability preflight via `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`.
+6. Use the matched Skill 050 profile for the active branch, reuse/classify outcomes through Skill 050, and do not continue with optimistic endpoint assumptions when Skill 050 selects a fallback route.
 
 ### 6.1.2 Target Resolution Endpoint Selection (Required)
-7. Resolve runtime targets with deterministic endpoint usage:
-  - use `GET /v6/descendants/files` for `.tst` lookup,
-  - use `GET /v6/children?id=<tst-id>` for root suite/object seed under a file,
-  - use `GET /v6/descendants/assets?id=<asset-id>` for in-file object graph discovery.
-8. Parse descendants responses from `children` arrays and validate expected type before branching.
+7. Resolve runtime targets using the API-first target-resolution policy from `docs/workflow/agent-workflow.md` plus the endpoint-selection mechanics in `docs/skills/platform/skill-001-shared-introspection.md`.
+8. Keep this card focused on remediation-specific scope, evidence, and handoff rather than duplicating the full endpoint-selection matrix.
 
 ### 6.2 Runtime Evidence and Readiness Detection
 9. Gather or confirm runtime evidence for the selected targets:
@@ -199,7 +193,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - do not present pre-remediation outputs as sufficient evidence for later validation planning.
 38. Return control based on caller context:
   - when called from Skill 057, return to validation enrichment only for slices that are now verified ready from post-remediation evidence,
-  - when called from Skill 033, return to the broader authoring orchestration only after readiness verification succeeds so negative derivation, calibration, or later follow-on enrichment can continue from the finalized ready baseline,
+  - when called from Skill 033, return to the broader authoring orchestration only after readiness verification succeeds so standard negatives, optional security branching, calibration, and always-on validation enrichment can continue from the finalized ready baseline,
   - when invoked directly, stop after reporting `ready`, `deferred`, or `still unresolved` status unless the user asks for the next phase.
 
 ## 7) Validation
@@ -240,7 +234,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - This is a composite remediation card; it does not replace atomic REST/SOAP client lifecycle skills or the DB Tool lifecycle skill.
 - Use this card when the user's primary problem is that existing/generated tests or DB Tools are not request-ready yet.
 - Skill 057 may hand off here before validation enrichment proceeds.
-- Skill 033 may hand off here during broad authoring after generation/subset stabilization when the happy-path baseline is not yet ready for negative derivation or later enrichment.
+- Skill 033 may hand off here during broad authoring after generation/subset stabilization when the happy-path baseline is not yet ready for standard negatives, optional security branching, or later enrichment.
 - This card owns remediation for the underconfigured slice only; any already-ready slice remains with the caller/user for later validation or sequencing choices.
 - Preferred location for this class of cards: `docs/skills/composite-orchestration/`.
 

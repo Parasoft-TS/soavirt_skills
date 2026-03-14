@@ -226,8 +226,7 @@ Update shape (read-merge-write envelope):
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Applicable in Virtualize.
 - Related endpoints:
   - `GET/PUT/DELETE /v6/tools`
   - `POST /v6/tools/copy`

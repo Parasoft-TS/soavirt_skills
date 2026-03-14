@@ -205,8 +205,7 @@ Rules:
 
 ## 10) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Technically applicable in Virtualize, but not often used.
 - Intended producer class: JSON-producing semantic output providers (REST Client response output now; other producer outputs only when they emit confirmed JSON payloads).
 - Shared components:
   - `POST/PUT/GET /v6/tools/jsonAssertors`
@@ -219,10 +218,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - Prefer semantic response/results output-provider anchors over diagnostics-first traffic outputs.
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
-  - Treat Skill 018 as canonical mapping source; update it first when new producer/output types are introduced.
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
-  - Use GET -> mutate -> PUT for updates to existing JSON Assertor tools.
-
-### JSON Tooling Reminder
-- For JSON tools in this workspace, selector fields follow XPath-over-JSON semantics.
-- Do not use JSONPath in XPath-expected fields.

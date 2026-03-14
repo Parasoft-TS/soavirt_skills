@@ -81,7 +81,6 @@ Server-Side File Copy (with optional destination naming) (`POST /v6/files/copy`)
 - Provisioning usage: copy `.pvn` files.
 - Preferred over download/upload for copy-only or rollback-copy use cases because it avoids client-side encoding and payload round-trip risk.
 - Use Skill 004 for in-place rename when no new artifact should be created.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 
 ## 11) Examples
 - Example request body:

@@ -17,6 +17,11 @@ Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger
   - post-generation test customization
   - WSDL/RAML generation (separate endpoints)
 
+## 3.2) Routing Boundary (Required)
+- Use this card as a direct route only when the user explicitly requests creating a **new `.tst`** from an OpenAPI/Swagger source.
+- Do not use this card as the first route for help-style or outcome-level prompts (for example, `help me create tests for this OpenAPI`) when output mode is not explicit.
+- For those ambiguous prompts, route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` first.
+
 ## 3.1) Dependencies
 - Required:
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
@@ -128,7 +133,6 @@ Run this guard only when target name uncertainty exists (for example after ambig
 
 ## 11) Reuse Notes
 - Primary target: SOAtest.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Related endpoints:
   - `POST /v6/files/tsts/swagger`
   - `POST /v6/files/tsts/wsdl`
@@ -136,3 +140,6 @@ Run this guard only when target name uncertainty exists (for example after ambig
 - API-first rule:
   - Build payload from `tstsSwaggerRequest` schema directly; do not require pre-existing generated files as templates.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
+- When invoked directly from routing, this card may be the full workflow for generation-only intent.
+- When invoked from `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` during broad authoring, this card owns only initial `.tst` generation plus create/readback verification.
+- In that caller context, readiness remediation, negative/security authoring, calibration, and validation enrichment remain owned by Skill 033 and its downstream orchestration/leaf skills.

@@ -24,7 +24,8 @@ Provide deterministic rules for selecting the correct output-provider parent whe
   - plain-text responses should route to text-oriented comparison (for example Diff Tool text mode) unless user explicitly requests another strategy.
 - Treat `Traffic Object` as a diagnostics output by default:
   - primary consumer: `Traffic Viewer`
-  - rare exception: specialized tooling (for example write file tool)
+  - validated exception: `Penetration Testing Tool` under a REST Client security-testing branch
+  - rare additional exceptions: specialized tooling explicitly registered in Skill 018
   - do not use for assertor, diff, validator, or data bank chaining unless explicitly required.
 
 ## 5) Parent Selection Procedure
@@ -78,8 +79,7 @@ Provide deterministic rules for selecting the correct output-provider parent whe
 
 ## 9) Reuse Notes
 - Primary target: SOAtest.
-- Virtualize applicability may differ by product object model and should be checked before reuse.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
+- Applicable in Virtualize, but this card does not yet document Virtualize-specific details.
 - Load this card as a dependency before building any chained tool skill.
 - Companion reference:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`

@@ -17,7 +17,6 @@
 - API base URL reachable.
 - Auth requirements satisfied.
 - Required file/asset IDs available.
-- For JSON write requests, request body encoding is UTF-8 **without BOM**.
 
 ## 6) Procedure
 1. 
@@ -31,7 +30,6 @@
 
 ## 8) Failure Modes
 - Common errors and likely causes.
-- Include payload-encoding failures (for example parse errors caused by BOM-prefixed JSON/YAML).
 
 ## 9) Safety / Rollback
 - Read-only by default? (Yes/No)
@@ -40,7 +38,6 @@
 ## 10) Reuse Notes
 - Primary target:
 - Other product applicability / scope notes:
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - Shared components involved (e.g., JSON Data Bank):
 
 ## 11) Examples

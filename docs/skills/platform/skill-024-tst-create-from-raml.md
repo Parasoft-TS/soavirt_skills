@@ -16,6 +16,11 @@ Create a brand-new `.tst` with generated tests from a RAML definition using `POS
   - traffic-based generation
   - post-generation customization
 
+## 3.2) Routing Boundary (Required)
+- Use this card as a direct route only when the user explicitly requests creating a **new `.tst`** from a RAML source.
+- Do not use this card as the first route for help-style or outcome-level prompts when output mode is not explicit.
+- For those ambiguous prompts, route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` first.
+
 ## 3.1) Dependencies
 - Required:
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
@@ -96,6 +101,5 @@ Run this preflight before `POST /v6/files/tsts/raml`:
 ## 11) Reuse Notes
 - Primary target: SOAtest.
 - Covers the `POST /v6/files/tsts/raml` generation path for RAML source inputs.
-- Use `docs/skills/backlog.md` for current validation and coverage status.
 - API-first authoring required; no dependency on pre-existing generated examples.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
