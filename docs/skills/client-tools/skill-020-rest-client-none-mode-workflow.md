@@ -4,7 +4,8 @@
 REST Client lifecycle in None mode (create/read/update/delete/copy + optional reorder/validation)
 
 ## 2) Objective
-Manage SOAtest REST Client tests when no OpenAPI/Swagger service definition is used (or when a user only provides endpoint/method/payload details), including CRUD operations and copy.
+Manage SOAtest REST Client tests when no OpenAPI/Swagger service definition is used (or when a user only provides endpoint/method/payload details), including create/read/update work plus subordinate copy/delete steps when they are part of broader REST Client lifecycle activity.
+Pure rename/copy/delete/enable-disable requests on an existing REST Client should route to the centralized operation-centric owners in `docs/skills/structure/skill-068-rename-object.md`, `docs/skills/structure/skill-070-copy-tool.md`, `docs/skills/structure/skill-072-delete-tool.md`, and `docs/skills/structure/skill-074-set-disabled-state.md`.
 
 Default JSON behavior: when a JSON payload is required, configure payload mode as `formJSON` and populate a beautified JSON literal body.
 
@@ -38,7 +39,8 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
 - Optional:
   - REST test name (optional - derive using `{endpoint} - {method}` when not provided, for example `/billpay - POST`; follow `docs/skills/cross-cutting/skill-013-test-naming-policy.md`)
   - expected response code(s) (optional - default to `200` unless user specifies otherwise)
-  - headers (for example `Accept`, `Authorization`)
+  - headers (for example `Accept` or endpoint-specific custom headers)
+  - auth configuration when required by the target service (validated runtime-supported path: Basic auth through the native REST Client auth subtree)
   - payload body (for `POST`/`PUT`/`PATCH`; explicit empty body is valid)
   - inferred payload content type when body is provided (if body is intentionally empty, content type may be omitted unless user explicitly provides one)
   - data source parameterization tokens (for example `${DB_ID}`)
@@ -92,6 +94,16 @@ Do not call create/update endpoints until required fields for the selected mode 
   - list remaining required fields for operational readiness.
 - Do not enter scaffold mode implicitly.
 
+### 4.5) REST Client Auth Ownership
+- When auth is required and the REST Client auth model supports the requested scheme, configure auth through `httpOptions.transport.<http10|http11>.security.httpAuthentication.performAuthentication` instead of injecting a literal `Authorization` header.
+- Validated runtime-supported auth path in this workspace: `basic`.
+- Schema-visible but unvalidated in this workspace: `ntlm`, `kerberos`, `digest`.
+- Basic auth wrapper types:
+  - username uses the `complexValueFP` shape (for example `{"type":"fixed","fixed":"<username>"}`)
+  - password uses the `complexValueMP` shape (for example `{"type":"masked","masked":"<password>"}`)
+- Literal `Authorization` headers are reserved for unsupported or intentionally custom schemes (for example future OAuth2 work) and should not replace the validated Basic-auth path.
+- Stop rather than guess when the active transport branch cannot be resolved to `http10` or `http11`.
+
 ## 5) Preconditions
 - API reachable and authenticated.
 - Target suite exists.
@@ -131,11 +143,25 @@ Do not call create/update endpoints until required fields for the selected mode 
       - submit merged PUT preserving existing `resource`, `header`, `httpOptions`, `payload`, and `misc` unless intentionally changed
       - avoid sparse/name-only PUT payloads for REST Clients
      - key edited fields typically include `header.method.methodType` and `resource.literalText.fixed`
-   - `httpOptions.transport.http11.httpHeaders` (for example `Accept: application/json`, `Authorization: ...`)
+   - `httpOptions.transport.http11.httpHeaders` (for example `Accept: application/json` or endpoint-specific custom headers)
      - header ownership rule for client tools:
        - do **not** explicitly set `Content-Type` header for REST Client requests.
        - set `payload.contentType` and allow SOAtest client tooling to emit the correct `Content-Type` automatically.
        - for broader client-header ownership policy and cross-client consistency, follow `docs/skills/cross-cutting/skill-032-client-header-ownership.md`.
+     - auth ownership rule for REST Clients:
+       - when the requested auth scheme is supported by the native REST Client auth model, prefer `httpOptions.transport.<http10|http11>.security.httpAuthentication.performAuthentication` over literal `Authorization` header injection.
+       - resolve the existing transport branch from GET readback first; do not invent or silently swap between `http10` and `http11`.
+       - validated runtime-supported auth path in this workspace: `basic`.
+       - schema-visible but unvalidated: `ntlm`, `kerberos`, `digest`.
+       - Basic auth update contract:
+         - set `enabled = true`
+         - set `value.useGlobal = false` unless the user explicitly wants global auth
+         - set `value.authenticationType.type = basic`
+         - set `value.authenticationType.basic.username` with a `complexValueFP` wrapper (for example `{"type":"fixed","fixed":"<username>"}`)
+         - set `value.authenticationType.basic.password` with a `complexValueMP` wrapper (for example `{"type":"masked","masked":"<password>"}`)
+       - preserve unrelated `httpOptions` fields through read-merge-write and verify the auth subtree with a final GET readback.
+       - reserve literal `Authorization` headers for unsupported or intentionally custom schemes (for example future OAuth2 work).
+       - stop rather than guess when the transport branch cannot be resolved, the requested scheme is outside the validated Basic path, or readback does not preserve the expected auth subtree.
      - JSON body default (when body is needed and content type is JSON):
        - `payload.contentType = application/json`
        - `payload.inputMode = formJSON`
@@ -149,11 +175,16 @@ Do not call create/update endpoints until required fields for the selected mode 
    - `GET /v6/tools/restClients?id=<tool-id>`
    - verify `resource.literalText.fixed` is non-empty (critical execution precondition)
    - for JSON payloads, verify `payload.inputMode = formJSON`
+   - if Basic auth was configured through the native auth model, verify the selected transport branch preserves `security.httpAuthentication.performAuthentication.enabled = true`, `authenticationType.type = basic`, and the expected username/password wrapper shapes
    - if beautified JSON is required in persisted `.tst` YAML (UI-friendly formatting), verify `MessagingClient_LiteralMessage: |-` in downloaded YAML and apply a no-BOM YAML upload correction if needed.
-5. Optional copy flow:
+5. Optional copy flow (substep only):
+   - for pure copy-only intent, prefer `docs/skills/structure/skill-070-copy-tool.md`
+   - keep this branch only when copy is subordinate to broader REST Client lifecycle/configuration work
    - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
    - verify copied tool via `GET /v6/tools/restClients?id=<new-id>` and parent readback.
-6. Optional delete flow:
+6. Optional delete flow (substep only):
+   - for pure delete-only intent, prefer `docs/skills/structure/skill-072-delete-tool.md`
+   - keep this branch only when delete is subordinate to broader REST Client lifecycle/configuration work
    - `DELETE /v6/tools?id=<tool-id>`
    - verify deletion via descendants/children readback.
 7. Reorder tool to required position (if needed):
@@ -180,6 +211,7 @@ Do not call create/update endpoints until required fields for the selected mode 
 - Post-condition checks:
   - tool appears under intended suite parent.
   - endpoint/method/body settings match requested configuration.
+  - when Basic auth is configured through the native auth model, readback preserves the selected transport branch, `performAuthentication.enabled = true`, and the expected `complexValueFP`/`complexValueMP` wrapper shapes for username/password.
   - if create mode was scaffold-only, result is explicitly reported as incomplete with remaining fields listed.
   - effective accepted status set is explicitly derived from `misc.validHttpResponseCodes`:
     - empty (`""`) => default expected `200`
@@ -188,6 +220,7 @@ Do not call create/update endpoints until required fields for the selected mode 
     - comma-separated set/ranges => union of all listed expectations
   - runtime result interpretation includes chained-tool context (for example JSON Assertor/JSON Validator/Diff Tool) so secondary failures are not misclassified as primary transport failures.
   - when negative/security variants exist, expected-code values are calibrated from observed runtime statuses before final verification.
+  - when Basic auth was updated, readback confirmation of the selected transport branch and auth subtree is sufficient configuration proof unless the caller separately asked for runtime verification.
 
 ## 8) Failure Modes
 - `400` invalid payload shape or field incompatibility.
@@ -197,6 +230,10 @@ Do not call create/update endpoints until required fields for the selected mode 
 - Copy-parent/name conflicts can cause placement ambiguity without immediate parent readback.
 - runtime failures caused by missing variable bindings (for example `${DB_ID}` not produced upstream).
 - request-header drift risk: explicitly setting `Content-Type` header can conflict with client-tool managed payload settings.
+- auth-ownership drift risk: injecting a literal `Authorization` header for a supported Basic-auth REST Client can diverge from the native auth model and obscure the real persisted auth state.
+- transport-branch ambiguity risk: applying auth to a guessed `http10` or `http11` branch instead of the branch proven by GET readback can create no-op or misleading updates.
+- unsupported-auth drift risk: `ntlm`, `kerberos`, or `digest` may be schema-visible but are not validated runtime-supported authoring paths in this workspace.
+- over-validation risk: treating auth wiring as incomplete without a separate execution run can add unnecessary work when the user's goal is configuration authoring rather than runtime proof.
 - Misclassification risk: treating HTTP status alone (or assuming non-`200` is failure) without evaluating `misc.validHttpResponseCodes` (for example configured `302, 500-599` acceptance).
 - Cascade risk: upstream response shape/content mismatch can trigger downstream chained-tool failures (JSON Assertor/Validator/Diff) that are secondary, not primary transport issues.
 - JSON payload normalization caveat:
@@ -228,3 +265,4 @@ Do not call create/update endpoints until required fields for the selected mode 
   - After REST client creation, if the user's intent is broader validation enrichment on existing/new tests, route to `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md` rather than composing validator/assertor/diff leaves ad hoc.
   - Use direct validator/assertor/diff leaves only when the routing is already explicit and the downstream tool choice is intentionally narrowed.
   - For same-operation edits on existing constrained REST Clients (`resource.type=swagger` / constrained YAML model), route to `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` rather than treating Skill 020 as the mutation owner.
+  - For pure rename/copy/delete/enable-disable prompts on an existing REST Client, prefer the centralized operation-centric owners; keep Skill 020 for broader REST Client lifecycle/configuration work.

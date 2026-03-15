@@ -5,6 +5,7 @@ Add, modify, read, delete, copy, and validate XML Data Bank on XML-producing too
 
 ## 2) Objective
 Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, extracting XPath-selected values, and storing them in named data bank columns for downstream use.
+Pure rename/copy/delete/enable-disable requests on an existing XML Data Bank should route to the centralized operation-centric owners in `docs/skills/structure/skill-068-rename-object.md`, `docs/skills/structure/skill-070-copy-tool.md`, `docs/skills/structure/skill-072-delete-tool.md`, and `docs/skills/structure/skill-074-set-disabled-state.md`.
 
 ## 3) Scope
 - In scope:
@@ -64,10 +65,14 @@ Create a reusable lifecycle pattern for chaining XML Data Banks to XML output, e
   - when extraction intent is scalar text (`contentOnly`) for downstream value consumers, normalize terminal selectors to text nodes (append `/text()` when needed).
   - do not apply text-node normalization for subtree/entire-element intent.
 5. Read back tool and verify mappings persisted.
-6. Optional copy flow:
+6. Optional copy flow (substep only):
+  - for pure copy-only intent, prefer `docs/skills/structure/skill-070-copy-tool.md`
+  - keep this branch only when copy is subordinate to broader XML Data Bank lifecycle/configuration work
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
   - verify copied XML Data Bank via `GET /v6/tools/xmlDataBanks?id=<new-id>`.
-7. Optional delete flow:
+7. Optional delete flow (substep only):
+  - for pure delete-only intent, prefer `docs/skills/structure/skill-072-delete-tool.md`
+  - keep this branch only when delete is subordinate to broader XML Data Bank lifecycle/configuration work
   - `DELETE /v6/tools?id=<databank-id>` and verify absence in descendants/children.
 8. Execute focused run by following the Skill 012 execution-triad contract and confirm no parser/input-binding mismatch.
 
@@ -140,3 +145,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- For pure rename/copy/delete/enable-disable prompts on an existing XML Data Bank, prefer the centralized operation-centric owners; keep Skill 019 for broader databank lifecycle/configuration work.

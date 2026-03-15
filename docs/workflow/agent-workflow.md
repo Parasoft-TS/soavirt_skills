@@ -108,8 +108,9 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
   - resolve runtime object identity via API discovery when the task depends on those ids.
   - do not infer runtime object ids from local files alone.
 - API-first mutation policy:
-  - if a supported API write path exists, use API mutation.
-  - use local YAML fallback only when file content must actually change, the selected skill explicitly allows local YAML editing, and no suitable API mutation path is available for the intended operation.
+  - if a supported API write path exists, use the smallest validated API-backed owner for that mutation class.
+  - ordinary rename, copy/move/delete, enable/disable, and routine configuration updates must not fall back to local YAML merely because a narrow owner has not been loaded yet.
+  - use local YAML fallback only when file content must actually change, the selected skill explicitly allows local YAML editing, and no suitable validated API mutation path exists for the intended operation.
 - For assertion authoring, compose logic from the user prompt at runtime (field/rule/source), and avoid codifying domain-specific fixed assertion recipes as mandatory patterns.
 - For Diff/Assertor stabilization branches, summarize runtime differences in human-readable form (field/XPath/property and expected vs actual) and require explicit user confirmation before adding ignore rules.
 - Build new tool configurations from endpoint contracts and skill rules first; existing workspace tool instances may be used only as optional verification, never as a required source template.
@@ -176,9 +177,9 @@ For Parasoft-domain requests, load in this order:
 4. If the task remains local file-backed work, stay in the local-first branch and load only the local asset/path surfaces needed for that work.
 5. If the task escalates into an API branch, enter Skill 050 with the matching branch profile before continuing.
 6. If the task escalates into writes or execution, add the branch bundle that matches the mutation class:
-  - local file writes: platform file ops / local path handling, plus Skill 006 only when local YAML editing is explicitly authorized
-  - suite/object writes: structure skill + object/suite PUT safety policy + capability preflight
-  - tool writes: target tool skill + tool PUT safety policy + capability preflight
+  - local file writes: platform file ops / local path handling, plus Skill 006 only when local YAML editing is explicitly authorized by the owning leaf
+  - suite/object writes: choose the smallest validated owner (for example suite lifecycle, rename-object, or disabled-state mutation) + object/suite PUT safety policy where applicable + capability preflight
+  - tool writes: choose the smallest validated owner (for example target tool lifecycle/config card, rename-object, generic tool copy/move/delete leaves, or disabled-state mutation) + tool PUT safety policy where applicable + capability preflight
   - output chaining writes: target skill + Skill 017 + Skill 018 + capability preflight
   - execution-observation branches (baseline run, verification run, or traffic observation): apply `Execution Diagnostics Default (Global)`.
 This algorithm is mandatory; do not rely on target-card dependency declarations alone.

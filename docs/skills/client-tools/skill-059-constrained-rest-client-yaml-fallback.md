@@ -1,14 +1,14 @@
-# Skill 059: Single Constrained REST Client Lifecycle (YAML Promotion + API Body Normalization)
+# Skill 059: Single Constrained REST Client Lifecycle (YAML Promotion + API Body/Auth Normalization)
 ## 1) Skill Name
-Create/read/update/copy/delete one service-definition-backed constrained REST Client, using local-file YAML promotion for constrained binding and REST Client API `GET/PUT/GET` normalization for constrained JSON request bodies.
+Create/read/update/copy/delete one service-definition-backed constrained REST Client, using local-file YAML promotion for constrained binding and REST Client API `GET/PUT/GET` normalization for constrained JSON request bodies and native auth updates.
 ## 2) Objective
 Provide one reliable v1 owner for single constrained REST Client lifecycle work in the merged workspace. This card supports:
 - creating a fresh constrained REST Client from scratch
 - reading, copying, deleting, and same-client updating one existing constrained REST Client
 - same-operation request-value edits on an existing constrained client
-- JSON body-bearing create/update flows only through the validated two-phase path:
+- JSON body-bearing create/update flows and native auth updates only through the validated two-phase path:
   - minimal local YAML promotion into constrained mode
-  - REST Client API body normalization through read-merge-write `PUT`
+  - REST Client API body/auth normalization through read-merge-write `PUT`
 Operation identity is defined by OpenAPI path plus HTTP method, not by `operationId`.
 ## 3) Scope
 - In scope:
@@ -22,12 +22,14 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
   - copy via `POST /v6/tools/copy`
   - delete via `DELETE /v6/tools?id=...`
   - same-operation edits to constrained request/config surfaces for one target tool
+  - same-operation auth updates on an existing constrained client through the native REST Client auth API branch
 - Out of scope:
   - broader multi-client refactor or migration orchestration
   - operation retargeting outside the validated shell/promotion workflow in this card
   - structural YAML edits outside one isolated target tool block
   - autonomous invention of new environment-variable names
   - non-JSON constrained payload modes
+  - OAuth2 or other auth schemes that currently require unvalidated YAML editing or custom-header invention
 ## 3.1) Dependencies
 - Required:
   - `docs/skills/platform/skill-001-shared-introspection.md`
@@ -67,6 +69,7 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
    - runtime tool resolution
    - create/copy/delete routes
    - REST Client `GET/PUT/GET` body normalization
+   - REST Client `GET/PUT/GET` auth updates
 4. Read branch:
    - use REST Client API readback plus local YAML evidence to confirm constrained/service-definition-backed state
 5. Copy branch:
@@ -87,19 +90,30 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
    - path parameter edits stay within existing constrained path nodes
    - query parameter edits must keep all mirrored surfaces synchronized
    - semantically equivalent literalization is allowed only when the resolved value stays the same
-10. For JSON body-bearing create/update branches, use the required second phase after local YAML promotion:
+10. For JSON body-bearing create/update branches and all constrained-client auth updates, use the required second phase after local YAML promotion/target resolution:
    - read the live tool with `GET /v6/tools/restClients?id=<tool-id>`
    - keep the full GET payload as the mutation base
-   - derive the request payload shape from the selected operation's request schema/OpenAPI definition
-   - source payload values under the Skill 058 ladder
+   - preserve the selected operation binding and unrelated config fields while editing only the intended subtree
+   - derive the request payload shape from the selected operation's request schema/OpenAPI definition when a JSON body is being edited
+   - source JSON payload values under the Skill 058 ladder when a JSON body is being edited
+   - for auth updates, modify only `httpOptions.transport.<http10|http11>.security.httpAuthentication.performAuthentication`
+   - validated runtime-supported constrained-client auth path in this workspace: `basic`
+   - set `enabled = true`
+   - set `value.useGlobal = false` unless the user explicitly wants global auth
+   - set `value.authenticationType.type = basic`
+   - set `value.authenticationType.basic.username` with a `complexValueFP` wrapper
+   - set `value.authenticationType.basic.password` with a `complexValueMP` wrapper
+   - do not attempt constrained-client auth changes through ad hoc YAML edits
+   - do not assume `ntlm`, `kerberos`, or `digest` are runtime-valid until a future validation effort proves them
    - write the full object back with `PUT /v6/tools/restClients?id=<tool-id>`
-   - treat the REST Client PUT path as the authoritative normalizer for persisted constrained `formJson`
+   - treat the REST Client PUT path as the authoritative normalizer for persisted constrained `formJson` and native auth config
 11. Save local YAML edits and confirm locally that only the intended target block changed.
 12. Re-read the updated state and verify all required persisted-state evidence:
    - API readback still resolves the tool under the intended parent when an API branch was used
    - local YAML readback shows the intended constrained operation binding and request-value state
    - for JSON body-bearing branches, API readback shows `payload.inputMode = formJSON`
    - for JSON body-bearing branches, local YAML shows persisted `formJson` plus `MessagingClient_LiteralMessage`
+   - for auth-update branches, API readback preserves the selected transport branch and the expected Basic-auth subtree under `security.httpAuthentication.performAuthentication`
 13. Optional runtime verification branch:
    - run this only when the user explicitly asks for runtime verification or the owning workflow explicitly includes it
 14. If required persisted-state verification fails:
@@ -110,11 +124,15 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
 - API readback shows service-definition backing and the intended operation binding when an API branch was used.
 - Local YAML readback shows the intended constrained structures without unrelated drift.
 - For constrained `Form JSON` bodies, API/YAML readback confirms the intended persisted request payload shape.
+- For constrained-client auth updates, API readback confirms the selected transport branch and the expected Basic-auth subtree; auth does not rely on ad hoc YAML edits.
 ## 8) Failure Modes
 - The branch treats local file-backed `.tst` identity as API-first instead of resolving the local path first.
 - YAML promotion binds the wrong operation because the selected OpenAPI path/method were not confirmed first.
 - Query edits drift because only one mirrored field was updated.
 - Sparse/name-only REST Client PUT drops required configuration.
+- Constrained-client auth drift occurs because YAML edits or literal `Authorization` headers are used instead of the native REST Client auth subtree.
+- Transport-branch ambiguity causes auth to be written under the wrong `http10`/`http11` subtree.
+- Unsupported-auth drift occurs when `ntlm`, `kerberos`, or `digest` are assumed runtime-valid without validation evidence.
 - Broad regex or whole-file replacement causes unrelated tool drift.
 ## 9) Safety / Rollback
 - Always route local YAML rollback-preserving handling through Skill 006.
@@ -122,5 +140,7 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
 - Keep local before/after snapshots of the target tool block so non-target drift can be detected before finalizing the edit.
 ## 10) Reuse Notes
 - This is a hybrid card: the `.tst` asset and YAML block are local-first, while runtime tool ids and constrained JSON body normalization remain API-mediated.
+- Pure rename, enable/disable, copy, move, or delete requests on an already-resolved constrained client should prefer the dedicated operation-centric owners; keep this card for broader constrained-client lifecycle or configuration work.
+- Constrained-client auth remains API-mediated through the native REST Client auth subtree until a separate future OAuth2/YAML-safe-editing effort validates a different path.
 - Route broader multi-client refactor work to Skills 060 and 061.
 - If the branch requires external environment-file attachment, referenced-environment node changes, or active-environment verification, delegate those mechanics to Skill 064 rather than folding them into local constrained-client edits.

@@ -5,6 +5,7 @@ Test suite create/read/update/delete/copy/move/reorder with option-safe configur
 
 ## 2) Objective
 Manage SOAtest test suites as first-class lifecycle entities (not create-only), while safely configuring common and less-common suite options with explicit readback verification.
+Pure rename-only requests on existing suites should route to `docs/skills/structure/skill-068-rename-object.md`, and disabled-state-only requests should route to `docs/skills/structure/skill-074-set-disabled-state.md` when no broader suite configuration change is in scope.
 
 ## 3) Scope
 - In scope:

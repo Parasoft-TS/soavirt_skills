@@ -4,7 +4,7 @@
 Add, modify, read, delete, copy, and validate XML Assertor on XML-producing tool output
 
 ## 2) Objective
-Create a reusable lifecycle pattern for XML Assertors on tool output and validate live XPath assertions against runtime traffic/output.
+Create a reusable lifecycle pattern for XML Assertors on tool output and validate live XPath assertions against runtime traffic/output, while leaving pure rename/copy/delete/enable-disable requests to the centralized operation-centric owners.
 
 ## 3) Scope
 - In scope:
@@ -88,10 +88,14 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
     - state case intent explicitly (case-sensitive default unless configured otherwise).
   - for scalar XML value comparisons, apply Skill 054 XPath normalization and use text-node terminal selectors when needed (for example `/account/balance/text()`).
 5. Read back assertor to confirm persisted settings.
-6. Optional copy flow:
+6. Optional copy flow (substep only):
+  - for pure copy-only intent, prefer `docs/skills/structure/skill-070-copy-tool.md`
+  - keep this branch only when copy is subordinate to broader XML Assertor lifecycle/configuration work
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
   - verify copied assertor via `GET /v6/tools/xmlAssertors?id=<new-id>`.
-7. Optional delete flow:
+7. Optional delete flow (substep only):
+  - for pure delete-only intent, prefer `docs/skills/structure/skill-072-delete-tool.md`
+  - keep this branch only when delete is subordinate to broader XML Assertor lifecycle/configuration work
   - `DELETE /v6/tools?id=<assertor-id>` and verify absence in descendants/children.
 8. Execute focused verification run by following the Skill 012 execution-triad contract and inspect runtime results.
 9. If XML parser errors occur (for example `Content is not allowed in prolog`), treat it as input-binding mismatch and re-check the chosen output-provider/input source.
@@ -223,3 +227,4 @@ Rules:
   - Select semantic output-provider parents (for example response/results) before assertion tuning.
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- For pure rename/copy/delete/enable-disable prompts on an existing XML Assertor, prefer the centralized operation-centric owners; keep Skill 016 for broader assertor lifecycle/configuration work.

@@ -3,7 +3,8 @@
 SOAP Client lifecycle on API-exposed HTTP surface (create/read/update/delete/copy + optional reorder/validation)
 
 ## 2) Objective
-Manage SOAtest SOAP Client tests through the API-exposed request/transport/misc surface, covering scaffold creation, configured HTTP request authoring, safe updates, copy, and runtime validation.
+Manage SOAtest SOAP Client tests through the API-exposed request/transport/misc surface, covering scaffold creation, configured HTTP request authoring, safe updates, and subordinate copy/delete steps when they are part of broader SOAP Client lifecycle work.
+Pure rename/copy/delete/enable-disable requests on an existing SOAP Client should route to the centralized operation-centric owners in `docs/skills/structure/skill-068-rename-object.md`, `docs/skills/structure/skill-070-copy-tool.md`, `docs/skills/structure/skill-072-delete-tool.md`, and `docs/skills/structure/skill-074-set-disabled-state.md`.
 
 First-pass boundary:
 - validated for HTTP-based SOAP Clients,
@@ -174,10 +175,14 @@ Do not call create/update endpoints until required fields for the selected mode 
    - outside scaffold mode, verify request XML is still present
    - verify transport type and endpoint settings match intent
    - if the tool is WSDL-originated or copied from one, do not expect dedicated WSDL-tab state to appear in API readback; verify runnable endpoint/request behavior instead.
-5. Optional copy flow:
+5. Optional copy flow (substep only):
+   - for pure copy-only intent, prefer `docs/skills/structure/skill-070-copy-tool.md`
+   - keep this branch only when copy is subordinate to broader SOAP Client lifecycle/configuration work
    - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
    - verify copied tool via `GET /v6/tools/soapClients?id=<new-id>` and parent readback
-6. Optional delete flow:
+6. Optional delete flow (substep only):
+   - for pure delete-only intent, prefer `docs/skills/structure/skill-072-delete-tool.md`
+   - keep this branch only when delete is subordinate to broader SOAP Client lifecycle/configuration work
    - `DELETE /v6/tools?id=<tool-id>`
    - verify deletion via descendants/children readback
 7. Reorder tool to required position (if needed):
@@ -337,3 +342,4 @@ Update shape (read-merge-write envelope):
 - WSDL-originated compatibility note:
   - copy + read-merge-write PUT preserved runnable behavior for a WSDL-originated SOAP Client in the current workspace,
   - full API control over WSDL/XML Schema UI tabs remains unproven and is intentionally out of scope for this first-pass card.
+- For pure rename/copy/delete/enable-disable prompts on an existing SOAP Client, prefer the centralized operation-centric owners; keep Skill 034 for broader SOAP Client lifecycle/configuration work.

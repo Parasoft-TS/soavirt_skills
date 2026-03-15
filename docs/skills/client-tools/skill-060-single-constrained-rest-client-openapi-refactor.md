@@ -135,4 +135,5 @@ For `write` mode, return:
 - If the client subtree cannot be left structurally coherent, restore that client slice and return `rolled back`.
 ## 10) Reuse Notes
 - This is a hybrid card: local file/YAML evidence owns client-slice analysis and copied-target structure, while runtime ids and constrained JSON body normalization stay API-mediated through Skills 050 and 059.
+- This card is not a general owner for ordinary rename, enable/disable, copy, move, delete, or routine configuration edits on existing assets when dedicated API-backed owners exist.
 - Skill 059 owns constrained REST Client lifecycle mechanics; Skill 060 owns one-client source-to-target refactor reasoning plus supported downstream repair ownership.

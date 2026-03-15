@@ -5,17 +5,17 @@ This family covers file-backed asset operations under the fixed merged-workspace
 - `TestAssets/`
 - `VirtualAssets/`
 - `ProvisioningAssets/`
-It owns local-first selection guidance, not endpoint-level API semantics.
+It owns local-first selection guidance for file-backed assets, not semantic mutation ownership for runtime objects inside those files.
 ## Design Rule
 - Keep one family card for local file-lifecycle selection and anti-duplication guidance.
 - Keep local path-resolution discipline in Skill 001.
-- Keep rollback-preserving local YAML edit choreography in Skill 006.
+- Keep rollback-preserving local YAML edit choreography in Skill 006 as a helper-only exception entered from a validated owning leaf.
 - Keep API-branch discipline in Skill 050.
 ## Foundational Skills
 - `docs/skills/platform/skill-001-shared-introspection.md`
   - local asset-path resolution and ambiguity handling
 - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
-  - rollback-preserving local YAML edit envelope
+  - helper-only rollback-preserving local YAML edit envelope
 - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
   - API-branch preflight when a branch leaves local-only work
 ## Selection Guide
@@ -23,8 +23,9 @@ It owns local-first selection guidance, not endpoint-level API semantics.
   - use Skill 001
 - Need to read, copy, rename, or delete a file-backed asset after the target path is known?
   - use local filesystem operations directly under this family's rules
-- Need to edit YAML locally with an explicit rollback envelope?
+- Need to edit YAML locally because the selected owning leaf explicitly authorizes a narrow YAML exception?
   - use Skill 006 plus the owning leaf skill
+  - do not treat Skill 006 as a first-choice owner for ordinary rename, lifecycle, or configuration work
 - Need to interact with the localhost API for runtime-object ids, semantic mutation, generation, execution, or diagnostics?
   - enter Skill 050 at the API branch transition
 ## Local-First Rules
@@ -44,6 +45,6 @@ Escalate out of this family when:
 - runtime object ids are required
 - semantic API mutation or generation is required
 - execution or diagnostics are required
-- a branch explicitly authorizes local YAML editing and therefore needs Skill 006
+- a branch explicitly authorizes local YAML editing and therefore needs Skill 006 as a helper-only rollback envelope
 ## Legacy Transitional Cards
 The old server-era transfer/copy/rename/delete cards (`002-005`) may remain temporarily in the repo for downstream compatibility cleanup, but they are no longer the primary operator-facing route in the merged local-workspace model.

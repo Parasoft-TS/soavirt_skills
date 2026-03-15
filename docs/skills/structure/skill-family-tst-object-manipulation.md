@@ -1,91 +1,67 @@
 # Skill Family: TST Object Manipulation
-
-Purpose: define a scalable, context-efficient skill architecture for copy/paste/move-style manipulation across `.tst` object types.
-
+Purpose: route object-level mutation across `.tst` suites, tools, data sources, environments, and related nodes without defaulting to ad hoc local YAML edits.
 ## Scope
-This family covers structural operations on these object classes:
+This family covers structural or identity-oriented operations on these object classes:
 - test suites
+- responder suites
 - tools
 - data sources
 - environments
 - global properties
-
+It is the routing surface for choosing the right validated owner, not a single endpoint card.
+## Ownership Model
+Use the smallest validated owner for the requested mutation class:
+- in-place rename of supported suites/tools:
+  - `docs/skills/structure/skill-068-rename-object.md`
+- pure tool copy / move / delete:
+  - `docs/skills/structure/skill-family-tool-lifecycle-operations.md`
+- disabled-state mutation for supported asset kinds:
+  - `docs/skills/structure/skill-family-disabled-state-mutation.md`
+- broad test-suite lifecycle and configuration:
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+- datasource move with implementation-type ambiguity:
+  - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
+- SOAtest environment lifecycle mechanics:
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
 ## Design Rule
 - Keep one umbrella family card for intent routing.
-- Implement operation behavior in atomic cards.
-- Use composite cards only for repeated user workflows.
-
-## Atomic Skill Matrix
-
-### A) Operation-Centric Core (required first)
-1. `copy-object` (server-side where supported)
-2. `move-object` (reparent to new parent)
-3. `reorder-children` (order within same parent)
-4. `rename-object` (in-place identity label change)
-5. `delete-object` (remove node)
-
-Each operation card must define:
-- supported object classes
-- exact endpoint(s)
-- required ids and constraints
-- preflight checks
-- post-condition verification
-- rollback guidance
-
-### B) Object-Class Overlays (thin deltas)
-For each object class, add a thin overlay section/card that states:
-- endpoint deviations from core operation cards
-- object-specific constraints (for example parent compatibility)
-- additional verification probes
-
-Object overlays:
-- suite overlay
-- tool overlay
-- data source overlay
-- environment overlay
-  - canonical v1 owner: `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
-- global property overlay
-
-## Composite Workflow Cards
-Use composites only for high-frequency intents:
-1. copy + reparent + reorder ("paste into target and place at position")
-2. move + normalize name ("move then rename to convention")
-3. clone branch workflow ("copy suite subtree and verify descendants")
-
+- Prefer the smallest validated API-backed owner for each mutation class.
+- Use local YAML only when a validated owning leaf explicitly names a YAML exception and routes rollback through Skill 006.
+- Do not use YAML helper cards as a substitute for ordinary rename, copy, move, delete, enable/disable, or routine configuration work when a supported API path exists.
+## Selection Guide
+- Need to rename an existing suite or supported tool in place?
+  - use `docs/skills/structure/skill-068-rename-object.md`
+- Need to copy, move, or delete an existing tool and nothing broader is changing?
+  - use `docs/skills/structure/skill-family-tool-lifecycle-operations.md`
+- Need to enable or disable an existing supported asset without broader configuration changes?
+  - use `docs/skills/structure/skill-family-disabled-state-mutation.md`
+- Need to create, configure, copy, move, reorder, or otherwise manage a suite as a lifecycle object?
+  - use `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+- Need to move exactly one datasource implementation type when the API branch may not target it deterministically?
+  - use `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
+- Need to manage internal or referenced SOAtest environment nodes?
+  - use `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
 ## Dependency Model
-- L2 atomic operations depend on L0 introspection/download-upload safety and L1 structure mapping.
-- L2 object overlays depend on the L2 operation core card they extend.
-- L2 composites depend on multiple L2 atomic cards and should not duplicate endpoint logic.
-
+- Atomic operation cards should keep endpoint, payload, and verification logic local.
+- Family cards should route to the owning atomic card rather than duplicating endpoint details.
+- YAML-authorized exception cards should depend on Skill 006 and explicitly describe why API-backed ownership is insufficient for that branch.
 ## Validation Standard
 Every atomic manipulation card must include:
-1. Read-only preflight discovery
-2. Explicit mutation request format
-3. Before/after evidence capture
-4. Failure mode mapping (constraint violation, missing id, parent mismatch)
-
+1. explicit target-id or local-target resolution rules
+2. exact endpoint and payload contract
+3. before/after evidence capture
+4. deterministic post-condition verification
+5. fail-closed handling when target class, parent compatibility, or readback authority is unclear
 ## Known Constraints
 - **Environment child ordering is constrained**:
-	- `PUT /v6/suites/children` does not allow arbitrary `QA`/`DEV` swaps in this target file.
-	- Even with explicit `DEV` then `QA` payload, persisted order remained `QA` then `DEV`.
-	- Treat environment reordering as constrained/not supported unless a future product/API version proves otherwise.
+  - `PUT /v6/suites/children` does not allow arbitrary `QA`/`DEV` swaps in this target file.
+  - Even with explicit `DEV` then `QA` payload, persisted order remained `QA` then `DEV`.
+  - Treat environment reordering as constrained/not supported unless a future product/API version proves otherwise.
 - **Data source move can be implementation-ambiguous for shared display ids**:
-	- `POST /v6/datasources/move` may move one underlying implementation per call when multiple data source implementations are represented under the same visible node id/path.
-	- Validation must use before/after YAML (implementation type traces) in addition to REST child listings.
-	- For requests like "move TableDataSource" / "move FileDataSource" / "move WritableDataSource", confirm target implementation type explicitly after move.
-
-## Data Source Move Pattern (Generalized)
-- This skill is **type-targeted**, not table-specific.
-- Target any implementation type under `dataSources`, including:
-	- `TableDataSource`
-	- `FileDataSource`
-	- `WritableDataSource`
-	- `CSVDataSource`
-	- `DbDataSource`
-	- `ExcelDataSource`
-- Preferred execution path:
-	1. Create/resolve destination suite via REST.
-	2. Detect if source has one-to-one id mapping or shared display id ambiguity.
-	3. If ambiguous, perform surgical YAML move of the chosen implementation block.
-	4. Upload and verify by implementation type trace in source and destination suites.
-
+  - `POST /v6/datasources/move` may move one underlying implementation per call when multiple data source implementations are represented under the same visible node id/path.
+  - Validation must use before/after YAML (implementation type traces) in addition to REST child listings.
+  - For requests like `move TableDataSource` / `move FileDataSource` / `move WritableDataSource`, confirm target implementation type explicitly after move.
+## Current Boundary Notes
+- The generic tools API is the right owner for tool copy/move/delete and disabled-state writes, but not for rename.
+- Representative class-specific tool PUT schemas show `name` remains the primary universal tool property that still requires class-specific update ownership.
+- Test-node rename and direct test-node disabled-state readback remain future extension areas unless a later card codifies them explicitly.

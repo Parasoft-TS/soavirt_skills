@@ -232,13 +232,50 @@ Preferred prompts:
 - If a prompt is specifically about datasource inventory, columns, or sample rows, prefer Skill 051 unless the user also asks for broader suite configuration/dataflow analysis.
 - Once Skill 052 is selected, its YAML-only evidence policy and template contract are binding.
 
+### C) Operation-Centric Mutation Routing
+Use this registry before falling back to family-level navigation for object/tool mutation prompts.
+
+#### Route to `docs/skills/structure/skill-068-rename-object.md`
+Use when the user wants to rename one existing supported suite or tool and no broader configuration change is in scope.
+
+Preferred prompts:
+- `rename this tool`
+- `rename this suite`
+- `change the name of this rest client`
+
+#### Route to generic tool lifecycle leaves
+Use when the user wants a pure tool copy, move, or delete and no broader tool-family configuration work is in scope.
+
+Preferred prompts:
+- `copy this tool into that suite`
+- `move this diff tool`
+- `delete this validator`
+
+Routes:
+- copy -> `docs/skills/structure/skill-070-copy-tool.md`
+- move -> `docs/skills/structure/skill-071-move-tool.md`
+- delete -> `docs/skills/structure/skill-072-delete-tool.md`
+
+#### Route to `docs/skills/structure/skill-074-set-disabled-state.md`
+Use when the user wants to enable or disable one supported existing asset without broader configuration changes.
+
+Preferred prompts:
+- `disable this tool`
+- `enable this suite`
+- `turn this responder suite back on`
+
+#### Tie-Break Rule (Required)
+- If the prompt is a pure operation-only request, prefer the smallest operation-centric owner above.
+- If the prompt is already a broader class-specific create/update/configuration workflow, keep the domain-specific lifecycle card as the primary owner.
+- YAML-authorized exception cards are not fallback routes for these ordinary mutation prompts.
+
 ## Primary Navigation by Skill Family
 
 ### 1) Platform / Local File Operations
-Use for local merged-workspace asset targeting, local file lifecycle guidance, and explicitly authorized local YAML edit rollback.
+Use for local merged-workspace asset targeting, local file lifecycle guidance, and helper-only YAML rollback that is entered only from an explicitly authorized owning skill.
 - `docs/skills/platform/skill-family-server-file-lifecycle.md`
 - `docs/skills/platform/skill-001-shared-introspection.md`
-- `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
+- Helper only, not a first-choice routing target: `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
 
 ### 2) Asset Creation / Generation
 Use for creating new `.tst` assets from scratch or from service definitions.
@@ -257,9 +294,12 @@ Use for explanation, configuration tracing, and datasource discovery without mut
 - `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
 
 ### 4) Structural Mutation
-Use for suite/object creation, movement, reordering, and subset pruning.
+Use for suite/object creation, rename, generic tool lifecycle operations, disabled-state changes, movement, reordering, and subset pruning.
 
 - `docs/skills/structure/skill-family-tst-object-manipulation.md`
+- `docs/skills/structure/skill-068-rename-object.md`
+- `docs/skills/structure/skill-family-tool-lifecycle-operations.md`
+- `docs/skills/structure/skill-family-disabled-state-mutation.md`
 - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
 - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
 - `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`

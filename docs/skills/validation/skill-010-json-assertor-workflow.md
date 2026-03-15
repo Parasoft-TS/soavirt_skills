@@ -4,7 +4,8 @@
 JSON Assertor create / modify / delete / copy
 
 ## 2) Objective
-Manage JSON Assertor tools in `.tst` assets, including create, modify, delete, and copy operations with deterministic parent placement.
+Manage JSON Assertor tools in `.tst` assets, including create/modify work plus subordinate copy/delete steps when they are part of broader assertor lifecycle activity.
+Pure rename/copy/delete/enable-disable requests on an existing JSON Assertor should route to the centralized operation-centric owners in `docs/skills/structure/skill-068-rename-object.md`, `docs/skills/structure/skill-070-copy-tool.md`, `docs/skills/structure/skill-072-delete-tool.md`, and `docs/skills/structure/skill-074-set-disabled-state.md`.
 
 This skill supports case-by-case assertion authoring composed from user intent (field selection, comparison strategy, and variable usage), rather than fixed domain recipes.
 
@@ -79,8 +80,14 @@ This skill supports case-by-case assertion authoring composed from user intent (
    - `GET /v6/tools/jsonAssertors?id=<created-id>` for full object readback
 5. Modify with `PUT /v6/tools/jsonAssertors?id=<id>` (name, input, toolSettings).
   - for updates to existing JSON Assertors, follow read-merge-write (`GET` -> mutate -> `PUT`) per Skill 049.
-6. Delete with `DELETE /v6/tools?id=<id>` and verify absence in descendants.
-7. Copy with `POST /v6/tools/copy` (`from.id`, `to.parent.id`, optional `to.name`) and verify new id placement.
+6. Delete flow (substep only):
+  - for pure delete-only intent, prefer `docs/skills/structure/skill-072-delete-tool.md`
+  - keep this branch only when delete is subordinate to broader JSON Assertor lifecycle/configuration work
+  - `DELETE /v6/tools?id=<id>` and verify absence in descendants.
+7. Copy flow (substep only):
+  - for pure copy-only intent, prefer `docs/skills/structure/skill-070-copy-tool.md`
+  - keep this branch only when copy is subordinate to broader JSON Assertor lifecycle/configuration work
+  - `POST /v6/tools/copy` (`from.id`, `to.parent.id`, optional `to.name`) and verify new id placement.
 
 ## 6.0) Authoring Rule (API-First)
 - Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
@@ -223,3 +230,4 @@ Rules:
   - Prefer semantic response/results output-provider anchors over diagnostics-first traffic outputs.
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- For pure rename/copy/delete/enable-disable prompts on an existing JSON Assertor, prefer the centralized operation-centric owners; keep Skill 010 for broader assertor lifecycle/configuration work.

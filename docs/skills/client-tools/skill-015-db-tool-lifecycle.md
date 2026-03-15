@@ -18,6 +18,7 @@ DB Tool create / update / copy / move / delete
 
 ## 2) Objective
 Manage SOAtest DB Tools in `.tst` assets with deterministic placement and validated JDBC connection configuration.
+Pure rename-only requests on existing DB Tools should route to `docs/skills/structure/skill-068-rename-object.md`, and pure copy/move/delete requests may route to the generic tool lifecycle leaves when no broader DB Tool configuration change is in scope.
 
 ## 3) Scope
 - In scope:

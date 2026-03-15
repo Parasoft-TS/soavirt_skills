@@ -44,6 +44,12 @@ Do not use this file as the primary operator-facing routing surface.
 - Validate the rewritten TestAssets-backed project bootstrap and repair flow so registry self-heal, active-project routing, environment-file naming, and sensitive-reference handling behave consistently:
   - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
   - `TestAssets/project-index.yaml`
+- Validate and extend the new API-preferred mutation owners for ordinary rename, generic tool lifecycle operations, and broader disabled-state mutation:
+  - `docs/skills/structure/skill-068-rename-object.md`
+  - `docs/skills/structure/skill-070-copy-tool.md`
+  - `docs/skills/structure/skill-071-move-tool.md`
+  - `docs/skills/structure/skill-072-delete-tool.md`
+  - `docs/skills/structure/skill-074-set-disabled-state.md`
 - Merged local-workspace architecture rewrite closeout is complete; deferred legacy platform cards `002-005` remain on disk only as non-routing historical compatibility references.
 - Broaden Virtualize coverage beyond shared platform/policy surfaces.
 - Convert remaining partially-defined validation/data-exchange cards into fully validated workflows:
@@ -111,7 +117,28 @@ Do not use this file as the primary operator-facing routing surface.
 ### 4) Structural Mutation
 - `docs/skills/structure/skill-family-tst-object-manipulation.md`
   - **State:** Defined
-  - **Notes:** architectural family/intent map, not a full endpoint card.
+  - **Notes:** architectural family/intent map for API-preferred object mutation routing, including rename, generic tool lifecycle operations, disabled-state mutation, and explicit YAML-exception boundaries.
+- `docs/skills/structure/skill-068-rename-object.md`
+  - **State:** Defined
+  - **Notes:** atomic API-backed owner for in-place rename of supported suites and representative tool classes through class-specific `GET/PUT/GET`; created to stop ordinary rename drift into local YAML editing.
+- `docs/skills/structure/skill-family-tool-lifecycle-operations.md`
+  - **State:** Defined
+  - **Notes:** routing family for generic tool copy/move/delete operations owned by `/v6/tools*`.
+- `docs/skills/structure/skill-070-copy-tool.md`
+  - **State:** Defined
+  - **Notes:** atomic generic tool copy owner using `POST /v6/tools/copy` with explicit readback of the copied object.
+- `docs/skills/structure/skill-071-move-tool.md`
+  - **State:** Defined
+  - **Notes:** atomic generic tool move owner using `POST /v6/tools/move` with readback confirmation of final parent placement.
+- `docs/skills/structure/skill-072-delete-tool.md`
+  - **State:** Defined
+  - **Notes:** atomic generic tool delete owner using `DELETE /v6/tools` with absence verification and ambiguous-write reconciliation.
+- `docs/skills/structure/skill-family-disabled-state-mutation.md`
+  - **State:** Defined
+  - **Notes:** broader cross-asset family for supported enable/disable work instead of treating disabled-state as tool-only lifecycle detail.
+- `docs/skills/structure/skill-074-set-disabled-state.md`
+  - **State:** Defined
+  - **Notes:** atomic owner for supported disabled-state mutation via `PUT /v6/tools/disabled`, with v1 readback coverage for tools, test suites, and responder suites.
 - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
   - **State:** Defined
   - **Notes:** reviewed in wave 2 as a hybrid card: local `.tst` path/YAML anchor first, API runtime move branch only when runtime ids are resolved safely, with local YAML fallback through Skill 006.
@@ -134,13 +161,13 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** DB Tool lifecycle validated.
 - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
   - **State:** Validated
-  - **Notes:** unconstrained REST Client creation/configuration is the current recommended path.
+  - **Notes:** unconstrained REST Client creation/configuration is the current recommended path, including validated read-merge-write Basic-auth updates on existing clients through the native `httpAuthentication` subtree with readback confirmation of the persisted auth subtree; schema-visible `ntlm`/`kerberos`/`digest` remain unvalidated.
 - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
   - **State:** Defined
   - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - **State:** Validated
-  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work; reviewed in wave 2 and clarified as a hybrid card with local `.tst`/YAML authority for asset structure and API-only entry for runtime ids, tool lifecycle routes, and constrained JSON body normalization.
+  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work; reviewed in wave 2 and clarified as a hybrid card with local `.tst`/YAML authority for asset structure and API-only entry for runtime ids, tool lifecycle routes, constrained JSON body normalization, and constrained-client Basic-auth updates through the native REST Client auth subtree. Future OAuth2/YAML-auth editing remains out of scope.
 - `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
   - **State:** Defined
   - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a hybrid one-client refactor leaf: local `.tst` slice and copied-target structure first, Skill 050 only when runtime ids or API-normalized body branches are required.
@@ -193,7 +220,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** canonical parent/output mapping authority.
 - `docs/skills/cross-cutting/skill-032-client-header-ownership.md`
   - **State:** Defined
-  - **Notes:** policy-level card for tool-managed request headers.
+  - **Notes:** policy-level card for tool-managed request headers and native auth ownership; REST Client Basic-auth preference for the native auth subtree over literal `Authorization` header injection is now validated.
 - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - **State:** Validated
   - **Notes:** read-merge-write policy promoted from observed tool PUT behavior.
@@ -228,7 +255,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a hybrid composite: local source/copy `.tst` authority for analysis and copied-target sequencing, grouped review ownership at the orchestration layer, and Skill 050 only for delegated runtime-id/API-normalized write branches.
 - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
   - **State:** In progress
-  - **Notes:** additive explicit opt-in top-level owner for the experimental exploration-first REST/OpenAPI broad-authoring lane that reuses Skill 033 intake strengths while delegating live exploration to Skill 066 and exploration-backed validation to Skill 067.
+  - **Notes:** additive explicit opt-in top-level owner for the experimental exploration-first REST/OpenAPI broad-authoring lane that reuses Skill 033 intake strengths while delegating live exploration to Skill 066 and exploration-backed validation to Skill 067; generated or existing REST Clients can now delegate validated Basic-auth wiring to Skills 020/059 instead of being treated as automatically auth-blocked after generation.
 - `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
   - **State:** In progress
   - **Notes:** additive exploration-backed validation owner for the experimental lane; preserves the stable approval and schema-confirmation model while replacing the stable pre-attachment baseline run with trusted exploration evidence plus focused post-attachment verification.
@@ -242,16 +269,16 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** atomic lifecycle owner for Penetration Testing Tool create/read/update work under REST Client `Traffic Object`, including the explicit security-testing exception to normal business-validation chaining rules.
 
 ## Coverage Gaps / Planned New Cards
-- Structural manipulation coverage beyond current validated cards remains incomplete if the project still wants fine-grained standalone cards for:
-  - class-specific move flows
-  - class-specific copy flows
-  - class-specific rename flows
-  - class-specific delete flows
+- Newly added operation-centric owners close the main rename/copy/move/delete/disabled-state routing gap, but broader validation remains desirable for:
+  - additional tool classes beyond the current rename matrix
+  - direct test-node disabled-state readback ownership
+  - any future responder/test rename owner if product workflows need it
   - explicit reorder cards/overlays
 - Virtualize-specific skill coverage remains shallow beyond shared platform/policy surfaces.
 - Additional datasource-family validation evidence is still desirable for Skill 051 and downstream datasource-aware workflows.
 - Repeated-execution response-volatility profiling for validation-bundle selection remains future work rather than part of the v1 validation-enrichment orchestration.
 - Higher-scope constrained REST Client work remains future research, including broader operation-retargeting/multi-client orchestration beyond the validated shell-promotion workflow and non-JSON constrained body modes.
+- OAuth2 and other non-Basic REST Client auth authoring paths remain future research, especially where YAML-safe-editing or non-native auth/header ownership decisions would be required.
 - Future architectural refactor candidate: evaluate whether operator-facing validation/data-exchange lifecycle cards (for example Skills 010, 028, 029, and 031) should eventually separate user-facing lifecycle orchestration from a narrower precomputed action-application contract so higher-order workflows can reuse them without reopening tool-family selection, approval, or baseline-planning logic.
 - Related orchestration follow-up: analyze why Skill 033 still feels awkward/unreliable in execution and whether some of that friction comes from missing lower-layer action-contract boundaries rather than only from top-level intake/orchestration complexity.
 - Future orchestration/leaf candidate: add a narrower negative-test workflow that can take a specified existing happy-path test and generate standard/security negative coverage for that one target without reopening full Skill 033 intake.

@@ -170,4 +170,5 @@ Maintain structured records between phases:
 ## 10) Reuse Notes
 - Use this card for direct bulk version-to-version OpenAPI refactor work on an existing `.tst`.
 - Use Skill 060 instead when the user already wants exactly one constrained REST Client subtree analyzed or refactored.
+- This card is not a general owner for ordinary rename, enable/disable, copy, move, delete, or routine configuration edits on existing assets when dedicated API-backed owners exist.
 - This is a hybrid card: local file/YAML evidence owns source asset identity, copied-target structure, and read-only analysis, while runtime ids and API-normalized write branches stay behind Skill 050.

@@ -1,6 +1,65 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-15 (API-preferred mutation ownership hardening)
+
+### Actions Completed
+- Re-read the approved write-authority hardening plan plus the affected workflow, routing, family, exception, and contributor-sync surfaces before editing.
+- Compared the generic `/v6/tools` surface with representative class-specific tool schemas and confirmed that `name` remains the primary universal tool property that still requires class-specific update ownership, while generic `/v6/tools` owns copy/move/delete and only generic `disabled` updates.
+- Revised the approved plan to split ownership into three lanes: class-specific rename, generic tool lifecycle operations, and broader disabled-state mutation.
+- Added new operation-centric cards:
+  - `docs/skills/structure/skill-068-rename-object.md`
+  - `docs/skills/structure/skill-family-tool-lifecycle-operations.md`
+  - `docs/skills/structure/skill-070-copy-tool.md`
+  - `docs/skills/structure/skill-071-move-tool.md`
+  - `docs/skills/structure/skill-072-delete-tool.md`
+  - `docs/skills/structure/skill-family-disabled-state-mutation.md`
+  - `docs/skills/structure/skill-074-set-disabled-state.md`
+- Updated the workflow/index/family surfaces so API-backed mutation owners are primary and Skill 006 is treated as helper-only rollback support rather than a first-choice mutation lane.
+- Hardened the existing YAML-exception cards so they explicitly reject ordinary rename/lifecycle/configuration work when supported API owners exist.
+- Synced the contributor ledger surfaces in `docs/skills/backlog.md`, `docs/logs/decision-log.md`, and `docs/logs/chat-log.md`.
+- Performed a second-pass broader-card cleanup so REST/SOAP client, assertor, and databank lifecycle cards now defer pure copy/delete prompts to the new centralized operation-centric owners and keep those operations only as subordinate lifecycle substeps.
+
+### Key Outcomes
+- Ordinary rename is now codified as a class-specific API mutation, not a YAML-edit fallback.
+- Pure tool copy/move/delete now have dedicated generic lifecycle owners.
+- Disabled-state mutation is modeled as a broader cross-asset state primitive for supported tools/test suites/responder suites rather than a tool-only lifecycle detail.
+- Local YAML editing remains available only through explicit validated exception cards that route through Skill 006.
+## Session 2026-03-15 (REST Client Basic-auth ownership hardening)
+
+### Actions Completed
+- Re-read the approved contributor plan plus the affected skill/policy/sync surfaces before editing:
+  - plan `3044ab88-7774-4af6-b2a4-3f359aa190c7`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/cross-cutting/skill-032-client-header-ownership.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated the unconstrained REST Client lifecycle owner to encode the validated native Basic-auth path for existing clients:
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - added the exact `httpOptions.transport.<http10|http11>.security.httpAuthentication.performAuthentication` ownership rule
+  - documented the `complexValueFP`/`complexValueMP` wrapper shapes
+  - required `GET/PUT/GET` read-merge-write plus readback confirmation and explicit stop conditions
+- Updated the constrained REST Client lifecycle owner so auth remains API-mediated instead of ad hoc YAML-mediated:
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - clarified that constrained-client auth updates use the native REST Client auth subtree through the API branch
+  - kept OAuth2/YAML-auth editing as future work rather than implied current capability
+- Refined the cross-cutting header/auth ownership policy and the experimental exploration lane:
+  - `docs/skills/cross-cutting/skill-032-client-header-ownership.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - encoded that supported REST Client Basic auth should use the native auth model, while explicit `Authorization` headers remain for unsupported/custom schemes
+  - prevented the experimental lane from treating generated clients as automatically `blocked-auth` when the delegated leaf can still wire Basic auth
+- Synced contributor-facing tracking/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- The validated runtime-supported auth path in the current workspace is Basic auth only.
+- `ntlm`, `kerberos`, and `digest` remain schema-visible but unvalidated.
+- Future OAuth2 or YAML-safe-auth-editing work remains explicitly out of scope for this pass.
 ## Session 2026-03-15 (Experimental live-exploration lane implementation, phase 1)
 
 ### Actions Completed

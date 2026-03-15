@@ -53,7 +53,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - OpenAPI location or already-resolved OpenAPI-backed service-definition reference
 - Conditionally required before writes:
   - target `.tst` name or explicit approval to use deterministic auto-name in interactive mode
-  - minimally viable auth/base URL posture for direct exploration, or enough context to classify `blocked-auth`
+  - minimally viable auth/base URL posture for direct exploration and downstream REST Client configuration, or enough context to classify `blocked-auth`
 - Optional:
   - subset selection
   - autonomous/no-interrupt execution posture
@@ -123,6 +123,10 @@ Conversation-first default: favor natural-language solicitation and interpretati
 23. Apply the normalized request bundle through the existing mutation owner:
   - unconstrained / None-mode REST Client updates -> Skill 020
   - constrained same-operation client updates -> Skill 059
+  - if the exploration-backed request requires Basic auth and credentials are available, treat auth wiring as part of the delegated REST Client configuration contract rather than as a separate blocker:
+    - unconstrained / None-mode clients use Skill 020's native REST Client Basic-auth branch
+    - constrained same-operation clients use Skill 059's API-mediated native auth branch
+  - classify `blocked-auth` only when credentials are missing, the requested auth scheme is outside validated leaf coverage, or the leaf-level auth readback contract fails
 24. Preserve normal client-header ownership and read-merge-write safety rules during these writes.
 
 ### 6.6 Negative, Security, and Validation Phases
@@ -135,6 +139,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 ### 6.7 Fallback and Stop Conditions
 30. If exploration did not produce a usable happy path for a selected slice:
   - classify that slice explicitly rather than trying to hide the failure behind later SOAtest authoring,
+  - do not report `blocked-auth` solely because generated clients initially lack auth when the selected downstream leaf can still apply the validated Basic-auth path,
   - stop the slice as blocked or partial, or
   - explicitly hand that slice to Skill 058 when the user wants fallback remediation rather than a pure exploration-backed result.
 31. Do not silently reopen the stable generation/remediation loop as though this were the default lane.
@@ -165,6 +170,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - Direct exploration evidence is gathered before SOAtest writes begin.
 - The exploration ledger remains transient under `work/`.
 - Existing stable leaves remain authoritative for actual SOAtest mutation and execution mechanics.
+- Credentialed Basic-auth slices are not blocked solely because generated clients initially lack auth; the lane delegates native auth wiring to Skills 020/059 when supported.
 - Interactive mode does not write before explicit approval of the exploration-backed plan.
 - Autonomous mode remains blocker-only once minimally viable inputs are resolved.
 - Standard-negative/security/validation phases are derived from exploration-backed happy-path evidence rather than from a separate pre-attachment SOAtest discovery run.
@@ -177,6 +183,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - Direct endpoint exploration is treated as interchangeable with stable execution-backed evidence outside this explicit lane.
 - Exploration evidence is not captured clearly enough to drive later authoring and validation.
 - The lane invents a parallel mutation stack instead of delegating to existing stable leaves.
+- The lane reports `blocked-auth` for generated or existing REST Clients even though the selected leaf supports the validated Basic-auth update path.
 - Skill 058 fallback is used as the default next phase rather than as an explicit fallback.
 - A failed focused verification run reopens an unbounded rediscovery loop.
 - Security branches are pulled into interim verification runs even though no explicit security execution was requested.

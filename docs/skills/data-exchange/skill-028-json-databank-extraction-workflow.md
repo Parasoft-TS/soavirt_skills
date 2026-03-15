@@ -5,6 +5,7 @@ Add, modify, read, delete, copy, and validate JSON Data Bank on JSON-producing t
 
 ## 2) Objective
 Create a reusable lifecycle pattern for chaining JSON Data Banks to JSON output, extracting XPath-selected values, and storing them in named data bank columns for downstream use.
+Pure rename/copy/delete/enable-disable requests on an existing JSON Data Bank should route to the centralized operation-centric owners in `docs/skills/structure/skill-068-rename-object.md`, `docs/skills/structure/skill-070-copy-tool.md`, `docs/skills/structure/skill-072-delete-tool.md`, and `docs/skills/structure/skill-074-set-disabled-state.md`.
 
 This serves the same data-exchange purpose as XML Data Bank, but for JSON payloads.
 
@@ -69,10 +70,14 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
    - for JSON payloads, provide XPath-style selectors (Skill 011), not JSONPath.
   - Skill 054 boundary: XML text-node normalization (`/text()`) is not required for JSON selector fields; keep JSON selectors in XPath-over-JSON form.
 5. Read back tool and verify mappings persisted.
-6. Optional copy flow:
+6. Optional copy flow (substep only):
+  - for pure copy-only intent, prefer `docs/skills/structure/skill-070-copy-tool.md`
+  - keep this branch only when copy is subordinate to broader JSON Data Bank lifecycle/configuration work
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
   - verify copied JSON Data Bank via `GET /v6/tools/jsonDataBanks?id=<new-id>`.
-7. Optional delete flow:
+7. Optional delete flow (substep only):
+  - for pure delete-only intent, prefer `docs/skills/structure/skill-072-delete-tool.md`
+  - keep this branch only when delete is subordinate to broader JSON Data Bank lifecycle/configuration work
   - `DELETE /v6/tools?id=<databank-id>` and verify absence in descendants/children.
 8. Execute focused run by following the Skill 012 execution-triad contract and confirm extraction is stable.
 
@@ -147,3 +152,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- For pure rename/copy/delete/enable-disable prompts on an existing JSON Data Bank, prefer the centralized operation-centric owners; keep Skill 028 for broader databank lifecycle/configuration work.

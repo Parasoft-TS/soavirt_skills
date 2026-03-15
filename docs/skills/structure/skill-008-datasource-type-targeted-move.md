@@ -73,4 +73,5 @@ Move exactly one selected data source implementation type from one suite to anot
   - for the local YAML fallback branch, use the rollback-preserving workflow in Skill 006
 ## 10) Reuse Notes
 - This is a hybrid card: local `.tst` identity and type evidence come first, while runtime ids and the move call remain API-mediated.
+- This card is a narrow YAML-authorized exception and must not be used for ordinary tool/suite rename, generic tool copy/move/delete, disabled-state mutation, or routine configuration edits when supported API owners exist.
 - Use Skill 051 before mutation when datasource-family or column identity is still unclear.
