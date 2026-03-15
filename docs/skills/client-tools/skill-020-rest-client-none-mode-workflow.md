@@ -54,8 +54,9 @@ Default JSON behavior: when a JSON payload is required, configure payload mode a
 - Never infer or silently apply endpoint, method, headers, payload, or expected status values from prior examples/runs.
 - "Provided input" may come from either:
   - direct user input, or
-  - orchestration-provided context that has been explicitly confirmed by the user.
+  - orchestration-provided context or active project record values that have been explicitly confirmed by the user for this branch.
 - If create/update intent is underspecified, pause mutation and solicit missing values.
+- In project-aware branches, consult active project facts/references/environment files for candidate base URLs, auth/header variable tokens, and known request-value anchors before asking the user to restate them, but do not silently treat those candidates as approved.
 - Do not switch to scaffold mode implicitly.
 
 ### 4.2) Conditional Required Matrix

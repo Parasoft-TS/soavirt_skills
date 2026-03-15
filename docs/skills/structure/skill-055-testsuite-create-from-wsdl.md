@@ -19,14 +19,15 @@ Safely generate WSDL-derived SOAP tests under an existing suite using `POST /v6/
   - new `.tst` file creation from WSDL
   - suite-level generation from OpenAPI/RAML/XSD
   - runtime execution of generated tests as a required validation step
-  - treating `referenceExistingEnvironment.file` as a safe/default substitute for managed environment normalization
+  - treating `referenceExistingEnvironment.file` as a safe/default substitute for `local_managed` environment normalization
   - assuming the API exposes the UI "Organize as Positive and Negative Unit Tests" toggle for WSDL generation
 
 ## 3.1) Dependencies
 - Required:
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
-  - `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
 - Additive:
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
+  - `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
   - `docs/skills/platform/skill-001-shared-introspection.md`
   - `docs/skills/platform/skill-023-tst-create-from-wsdl.md` (contrast with file-level generation)
 
@@ -37,9 +38,9 @@ Safely generate WSDL-derived SOAP tests under an existing suite using `POST /v6/
   - WSDL source location (URL or file-system path)
 - Optional:
   - environment mode:
-    - managed existing-`.tst` generation (preferred default)
-    - disabled environment generation (hardcoded generated values)
-    - referenced external environment file (validated, non-default)
+    - `local_managed` existing-`.tst` generation (preferred default)
+    - `disabled` environment generation (hardcoded generated values)
+    - `reference_external` referenced external environment file (validated, non-default)
   - preferred variable prefix override
   - `variableTypes`:
     - `wsdlUriFields`
@@ -49,8 +50,9 @@ Safely generate WSDL-derived SOAP tests under an existing suite using `POST /v6/
 ## 4.1) Required Input Resolution Rule
 - Resolve WSDL source input using this precedence:
   1. explicit value in current user request,
-  2. value confirmed earlier in current session,
-  3. relevant environment variable already configured for this target.
+  2. active project record sections relevant to the branch (`environment_files`, `services`, `facts`, `references`, `notes`),
+  3. value confirmed earlier in current session,
+  4. relevant environment variable already configured for this target.
 - Normalize source to API-compatible location fields internally:
   - URL input -> `location.url`
   - file path input -> resolve to workspace-accessible source and use `location.id` when applicable.
@@ -58,10 +60,10 @@ Safely generate WSDL-derived SOAP tests under an existing suite using `POST /v6/
   - read the target parent suite,
   - resolve the owning `.tst` / root suite,
   - inspect current root-suite environments and the active local environment if present.
-- If environment generation is enabled for an existing `.tst`, inspect the active environment variables before finalizing the create payload.
+- If environment generation is enabled for an existing `.tst`, inspect the active environment variables before finalizing the create payload, and when project context already defines canonical external environment files or generation-mode expectations, consult Skill 064 before finalizing the branch.
 
 ## 4.2) Variable-Naming Decision Rule (Required)
-- Preferred default for existing-`.tst` generation is managed environment mode.
+- Preferred default for existing-`.tst` generation is `local_managed` environment mode.
 - If the active environment already contains any variable names that the requested `variableTypes` branch would create, use a deterministic prefix strategy before generation.
 - If no collisions are expected, non-prefixed generation is allowed.
 - If a user-supplied prefix would still collide with existing variables, resolve the collision before write; do not proceed with an ambiguous prefix.
@@ -71,7 +73,7 @@ Safely generate WSDL-derived SOAP tests under an existing suite using `POST /v6/
 - API reachable and authenticated.
 - Target parent suite exists and is writable.
 - WSDL source is reachable and parseable from server runtime.
-- If managed environment mode is selected:
+- If `local_managed` environment mode is selected:
   - the owning `.tst` is readable,
   - the active environment state can be read before mutation,
   - the active environment can be updated after generation if normalization is needed.
@@ -96,22 +98,22 @@ Before the first write:
 1. Resolve required WSDL location from user-provided URL or file path using the input-resolution rule.
 2. Resolve the target parent suite id and owning `.tst` / root suite.
 3. Inspect the current active environment and its variable inventory.
-4. Choose generation mode:
-   - if the user explicitly wants hardcoded generated values, set `createEnvironment.enabled=false`;
-   - if the user explicitly wants an external referenced environment file, use the validated reference-file branch and treat it as non-default;
-   - otherwise use managed environment mode with collision-aware prefixing when needed.
+4. Choose generation mode using Skill 064 terminology:
+   - if the user explicitly wants hardcoded generated values, use `disabled` and set `createEnvironment.enabled=false`;
+   - if the user explicitly wants an external referenced environment file, use `reference_external`, route the external-file/reference semantics through Skill 064, and treat the branch as non-default;
+   - otherwise use `local_managed` with collision-aware prefixing when needed.
 5. Build the create payload:
    - `parent.id=<target-parent-suite-id>`
    - `name=<generated-suite-name>`
    - `location.url=<wsdl-url>` or `location.id=<workspace-file-id>`
    - `createEnvironment`:
      - disabled mode -> `{ "enabled": false }`
-     - managed mode -> `enabled=true`, `environmentSource.addNewEnvironment.name=<active-environment-name>`, optional `prefix`, `variableTypes=<requested-or-default>`
-     - reference-file mode -> `enabled=true`, `environmentSource.referenceExistingEnvironment.file.id=<env-file-id>`, `variableTypes=<requested-or-default>`
+     - `local_managed` mode -> `enabled=true`, `environmentSource.addNewEnvironment.name=<active-environment-name>`, optional `prefix`, `variableTypes=<requested-or-default>`
+     - `reference_external` mode -> `enabled=true`, `environmentSource.referenceExistingEnvironment.file.id=<env-file-id>`, `variableTypes=<requested-or-default>`
 6. `POST /v6/suites/testSuites/wsdl`.
 7. Do not trust the POST response id alone for placement, especially when the parent is nested.
 8. Re-read the target parent children and target subtree descendants to locate the actual generated content.
-9. Environment-normalization branch for managed mode:
+9. Environment-normalization branch for `local_managed` mode:
    - compare the post-create environment list with the pre-change baseline;
    - if a new generated environment was created, read it in full;
    - merge the generated variables into the original active environment via GET -> merge -> PUT, preserving:
@@ -122,7 +124,7 @@ Before the first write:
    - delete the generated extra environment after successful merge.
 10. Final structural verification:
    - confirm the actual generated port/test suites exist under the requested target subtree,
-   - confirm the active environment contains the expected merged variables when managed mode was used,
+   - confirm the active environment contains the expected merged variables when `local_managed` mode was used,
    - confirm no extra generated environment remains after normalization,
    - confirm the original active environment remains active.
 
@@ -149,7 +151,7 @@ Before the first write:
   - normalize generated variables into the intended active environment after generation.
 
 ## 6.3) Validated Non-Default Reference-Environment Branch
-- Runtime validation showed that `referenceExistingEnvironment.file` does work structurally, but does not behave like a safe replacement for managed normalization into the active local environment.
+- Runtime validation showed that `referenceExistingEnvironment.file` does work structurally, but does not behave like a safe replacement for `local_managed` normalization into the active local environment.
 - Observed behavior:
   - generation added a new inactive referenced environment node such as `Environment Reference 2`,
   - that node pointed at the requested external `.env` file,
@@ -160,7 +162,7 @@ Before the first write:
 - Therefore:
   - treat this branch as validated but non-default,
   - use it only when the user explicitly wants a referenced environment node created and understands that runtime still follows the active local environment,
-  - do not treat it as equivalent to the safer managed-generation-plus-normalization path.
+  - do not treat it as equivalent to the safer `local_managed` generation-plus-normalization path.
 
 ## 7) Canonical Payloads (API-First)
 Disabled environment generation:
@@ -173,7 +175,7 @@ Disabled environment generation:
 }
 ```
 
-Reference-file generation (validated, non-default):
+`reference_external` generation (validated, non-default):
 ```json
 {
   "parent": { "id": "/TestAssets/MySuite.tst/Test Suite/SOAP" },
@@ -195,7 +197,7 @@ Reference-file generation (validated, non-default):
 }
 ```
 
-Managed generation with prefix:
+`local_managed` generation with prefix:
 ```json
 {
   "parent": { "id": "/TestAssets/MySuite.tst/Test Suite/SOAP" },
@@ -224,7 +226,7 @@ Managed generation with prefix:
 - Required post-condition checks:
   - actual generated content exists under the intended target subtree
   - active environment remains the intended active environment
-  - generated variables are present in the active environment after normalization when managed mode is used
+  - generated variables are present in the active environment after normalization when `local_managed` mode is used
   - no extra generated environment remains after normalization
   - referenced-environment mode, if used, leaves the expected referenced environment node present and does not silently change the active environment
 - Validation boundary:
@@ -258,7 +260,8 @@ Managed generation with prefix:
 
 ## 11) Reuse Notes
 - Primary target: SOAtest.
+- Use Skill 064 as the canonical owner for general environment terminology, external-file mechanics, internal/referenced environment-node lifecycle, and active-environment verification.
 - Use this skill when the user wants generated WSDL-based tests added to an existing `.tst`, not a brand-new `.tst`.
 - The server API does not expose the UI "Organize as Positive and Negative Unit Tests" toggle for WSDL generation; downstream restructure is the way to achieve that layout when callers need it.
 - Use `docs/skills/platform/skill-023-tst-create-from-wsdl.md` for file-level WSDL generation instead.
-- Prefer managed generation plus post-create normalization by default; use the reference-file branch only on explicit user intent.
+- Prefer `local_managed` generation plus post-create normalization by default; use the `reference_external` branch only on explicit user intent.

@@ -27,6 +27,8 @@ Define how canonical docs, logs, indexes, templates, and transient artifacts sta
   - chronological record of what happened in specific build/maintenance sessions.
 - `docs/templates/`
   - canonical output contracts and reusable response structure.
+- `TestAssets/project-index.yaml` and `TestAssets/<project>/`
+  - durable project-context registry, per-project records, environment files, project data/resources, and default project-local asset roots.
 - `work/`
   - transient run-specific evidence, experiments, caches, and snapshots.
 
@@ -41,6 +43,7 @@ Define how canonical docs, logs, indexes, templates, and transient artifacts sta
 - Keep reusable knowledge in:
   - `docs/skills/` (skill cards)
   - `docs/templates/` (reusable output formats)
+  - `TestAssets/project-index.yaml` and `TestAssets/<project>/` (durable project context)
   - `docs/workflow/` (process and policy)
 - Keep run-specific files in `work/`:
   - downloaded YAML/JSON snapshots
@@ -76,9 +79,10 @@ When response shape or template rules change:
 - log the rationale in `docs/logs/decision-log.md` if the change affects reusable behavior or compliance expectations.
 
 ### 4) Routing / Taxonomy / Information Architecture Changes
-When the project reorganizes routing, taxonomy, or navigation:
+When the project reorganizes routing, taxonomy, navigation, or canonical project-context storage:
 - update `docs/skills/skill-index.md` as the live operator-facing surface,
 - update `docs/workflow/skill-authoring-workflow.md` if contributor guidance changed,
+- update `TestAssets/project-index.yaml` and any affected `TestAssets/<project>/` records if the project-context registry/record contract changed,
 - update `README.md` if contributor/operator entry points changed,
 - add a `docs/logs/decision-log.md` entry to preserve rationale.
 
@@ -91,4 +95,5 @@ When a proposal or transition document is no longer needed:
 ## Canonical-Source Rule
 - Each reusable concept should have one obvious canonical home.
 - Workflow docs should point to canonical skill cards, indexes, templates, or logs instead of re-explaining content they do not own.
+- Durable project-specific context belongs under `TestAssets/project-index.yaml` and `TestAssets/<project>/`, while session-specific evidence belongs under `work/`.
 - If two docs appear to govern the same behavior, consolidate ownership rather than maintaining parallel guidance.

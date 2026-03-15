@@ -26,6 +26,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - autonomous/no-interrupt execution mode after explicit user opt-in
   - template-backed approval artifact generation before writes in interactive mode
   - high-level phase sequencing across broad generation/authoring, readiness stabilization, standard negative derivation, optional security branching, calibration, and validation enrichment
+  - user-facing blocker ownership for batched unresolved request-readiness blockers returned from Skill 058 during autonomous broad-authoring runs
   - deterministic orchestration handoff to branch-specific orchestration cards or atomic/workflow skills once the branch is clear
   - staged execution only for branches that still require multi-step orchestration after clarification
   - concise completion artifact generation at the end of the approved workflow slice
@@ -34,6 +35,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - acting as the mandatory route for already-specific direct requests that the routing registry can send to a smaller matching card
   - repeated clarified request-readiness remediation semantics now owned by Skill 058
   - repeated clarified validation-enrichment semantics now owned by Skill 057
+  - explicit opt-in exploration-first broad authoring now owned by Skill 065
   - domain-specific business test recipes as mandatory defaults
 
 ## 3.1) Dependencies
@@ -46,6 +48,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - `docs/skills/execution-diagnostics/skill-014-test-failure-diagnostics-from-traffic.md`
   - `docs/skills/structure/skill-047-generated-subset-prune.md`
   - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
   - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
@@ -96,8 +99,10 @@ Conversation-first default: favor natural-language solicitation and interpretati
    - After generation, control returns to Skill 033 for readiness stabilization, standard-negative derivation, optional security branching, calibration, and validation enrichment unless the user explicitly narrowed scope to generation-only.
 4. Resolve remaining missing required inputs by precedence:
    - explicit values in current prompt,
+   - active project record sections relevant to the branch (`environment_files`, `services`, `facts`, `references`, `notes`),
    - values confirmed earlier in current session,
    - relevant environment variables.
+4a. In project-aware branches, consult the active project record before asking the user to restate service-definition locations, default file placement, environment-sensitive defaults, or known request/configuration values that may already be stored.
 5. Detect whether the user explicitly requested autonomous/no-interrupt behavior.
    - if yes, use autonomous posture:
      - ask only blocker questions required to resolve minimally viable inputs,
@@ -150,6 +155,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
    - Payload strategy only for body-bearing happy-path operations in the selected scope.
 21. In autonomous mode, use this default-decision ledger unless the user already constrained the run:
    - deterministic `.tst` auto-name when no host asset/name was explicitly provided,
+   - active-project-local asset placement defaults when the user did not explicitly choose another destination,
    - full operation scope unless a subset was specified,
    - standard negative coverage enabled,
    - security coverage enabled,
@@ -238,7 +244,22 @@ Conversation-first default: favor natural-language solicitation and interpretati
 43. If generated or existing happy-path targets still need broader request/configuration remediation after those gates are applied:
    - do not keep that generalized remediation logic in Skill 033,
    - hand off to Skill 058,
-   - resume broad authoring only after Skill 058 verifies readiness.
+   - resume broad authoring only after Skill 058 either verifies readiness or returns an aggregated blocker set for user resolution.
+43a. When Skill 033 is in autonomous posture, preserve that posture through the Skill 058 handoff:
+  - do not reopen a separate remediation-plan approval interruption,
+  - allow Skill 058 to synthesize request/configuration values from the allowed evidence ladder,
+  - keep live-service probing opt-in only, per Skill 058.
+43b. In that inherited autonomous branch, Skill 058 must use a bounded remediation loop per underconfigured target:
+  - one initial synthesis attempt,
+  - at most one evidence-driven correction,
+  - no third remediation attempt for the same target in the same pass.
+43c. If Skill 058 cannot resolve some targets within that bounded loop, it must return one aggregated blocker set to Skill 033 rather than interrupting inline per target.
+43d. Skill 033 owns the resulting user-facing interruption for those aggregated blockers:
+  - present the blocked clients/tests together when batching is possible,
+  - include which target is still misconfigured,
+  - include the most recent request/configuration attempts made,
+  - include the best next candidate value or the missing fact the user should provide,
+  - keep already-ready slices moving where safe instead of stalling the whole run unnecessarily.
 44. Use the finalized ready happy-path baseline before creating standard negative variants, creating security branches, or handing off to validation enrichment.
 44a. Treat that verified-ready happy-path baseline as the execution authority for any later copied security branch:
   - do not require a separate interim runtime re-validation of the copied security branch just to reconfirm the copied request,
@@ -342,6 +363,9 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - Interactive `POST`/`PUT`/`PATCH` happy-path tests do not write before payload source and payload content are explicitly approved.
 - Autonomous `POST`/`PUT`/`PATCH` happy-path tests default to autonomous payload fill unless the user constrained payload handling differently.
 - Generalized post-generation readiness remediation is handed off to Skill 058 rather than duplicated locally.
+- Autonomous Skill 033 -> Skill 058 readiness handoff preserves autonomous posture and does not reopen a separate remediation approval gate.
+- Inherited autonomous readiness remediation is bounded to one initial synthesis attempt plus at most one evidence-driven correction per target.
+- Unresolved inherited-autonomous readiness blockers are aggregated by Skill 058 and surfaced by Skill 033 in one interruption when batching is possible.
 - Standard-negative coverage is dynamic and may legitimately produce fewer than five evidence-backed families.
 - Interactive intake treats standard negatives and security coverage as separate decisions.
 - Autonomous mode defaults both standard negatives and security coverage on unless the user constrained the run otherwise.
@@ -360,10 +384,13 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - Scope explosion when user requests all operations plus multiple follow-on branches at once.
 - Autonomous mode still pauses for planning summaries/approval artifacts and no longer feels autonomous.
 - Autonomous broad-authoring continues without minimally viable source input instead of rerouting to one-client work or stopping blocked.
+- Skill 058 reopens a remediation confirmation gate during an autonomous Skill 033 run and breaks the no-interrupt posture.
+- Autonomous request-readiness remediation loops past one synthesis attempt plus one evidence-driven correction for the same target.
 - File asset created with unintended auto-name because naming gate was skipped.
 - `POST`/`PUT`/`PATCH` tests fail due to unapproved or mismatched AI-generated payload.
 - Autonomous one-client or broad-authoring flow stalls on a host-choice question even though deterministic new-host defaulting should have been applied.
 - Generated or existing happy-path targets remain underconfigured but are not handed off to Skill 058 before later phases proceed.
+- Request-readiness blockers are surfaced one-at-a-time instead of being batched back through Skill 033 when batching was possible.
 - Generated full-definition suites are left unpruned despite subset intent.
 - Security coverage is silently bundled into standard negatives during interactive intake.
 - Focused/interim execution pulls copied security suites into calibration, traffic, or validation-design runs and causes avoidable delay.
@@ -381,6 +408,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - If the request is already specific enough to match a direct branch in `docs/skills/skill-index.md`, route to that smaller card instead of forcing Skill 033.
 - Keep this card focused on ambiguity resolution, template-backed approval/completion artifacts, generation-critical pre-write gates, and high-level phase sequencing.
 - Use Skill 058 for generalized readiness/configuration remediation and Skill 057 for detailed validation-enrichment behavior after readiness is stable.
+- During autonomous broad-authoring runs, Skill 033 remains the owner of any user-facing interruption caused by unresolved request-readiness blockers returned from Skill 058.
 - Preferred location for this class of cards: `docs/skills/composite-orchestration/`.
 
 ## 11) Prompt Sequence Templates
@@ -401,6 +429,7 @@ Use these condensed sequences to preserve posture-aware intake. If the top-level
 4. If broad authoring was requested but only an endpoint is available, reroute to Skill 056 for one-client authoring rather than forcing broad generation without minimally viable input.
 5. If a host asset is still unresolved for autonomous work, default to creating a deterministic new host asset rather than interrupting solely for host-choice approval.
 6. Once blocker inputs are resolved, continue execution without a pre-write approval artifact.
+7. If Skill 058 later returns unresolved request-readiness blockers, interrupt once with the aggregated blocker set rather than surfacing one blocker at a time.
 
 ### 11.3) Agentic Context Adaptation
 In non-conversational or agentic execution contexts:

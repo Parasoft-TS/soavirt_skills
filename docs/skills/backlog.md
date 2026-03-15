@@ -19,18 +19,32 @@ Do not use this file as the primary operator-facing routing surface.
 - **Deferred/Retired**: intentionally not being expanded right now.
 
 ## Active Priorities
+- Define and thread the canonical SOAtest environment owner so internal environments, referenced environment nodes, external project `.env` / `.envs` files, and active-environment verification all have one reusable runtime owner:
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
+- Harden the project-aware runtime contract so direct atomic routing still inherits active project context for placement, source/value resolution, validation priorities, and environment-sensitive work:
+  - `docs/workflow/agent-workflow.md`
+  - `AGENTS.md`
+  - `docs/skills/skill-index.md`
 - Harden and validate Skill 033 so template-backed approval/completion artifacts, autonomous defaults, dynamic standard-negative planning, separate interactive security intake, and always-on validation sequencing behave consistently:
   - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
-- Harden and validate the new validation-enrichment orchestration path so happy-path bundle proposal, DB Tool resultset enrichment, multi-signal readiness heuristics, schema-source confirmation, negative/security exception handling, and response-vs-database routing behave consistently:
+- Implement and harden the additive explicit opt-in experimental exploration-first broad-authoring lane so direct API exploration, exploration-backed validation, and bounded post-authoring correction have clear owners without weakening stable `033/057/058`:
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
+- Harden and validate the validation-enrichment orchestration path so happy-path bundle proposal, DB Tool resultset enrichment, multi-signal readiness heuristics, schema-source confirmation, negative/security exception handling, and response-vs-database routing behave consistently:
   - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
 - Define and validate the Penetration Testing Tool lifecycle path used by Skill 033 security branches:
   - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
-- Define and validate the new request-readiness remediation orchestration path so underconfigured existing/generated REST/SOAP client tests and DB Tools can be repaired before validation or later orchestration continues:
+- Define and validate the request-readiness remediation orchestration path so underconfigured existing/generated REST/SOAP client tests and DB Tools can be repaired before validation or later orchestration continues:
   - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 - Maintain and refine the validated v1 single constrained REST Client lifecycle path that uses shell-first YAML promotion for constrained binding and REST Client `GET/PUT/GET` for constrained JSON request payload normalization, while keeping broader orchestration work out of scope:
   - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
-- Define and validate the new top-level `Change Advisor` orchestration path so one-source-spec bulk constrained REST Client OpenAPI refactor work has a stable owner for intake, grouped review, copied-target sequencing, and completion reporting:
+- Define and validate the top-level `Change Advisor` orchestration path so one-source-spec bulk constrained REST Client OpenAPI refactor work has a stable owner for intake, grouped review, copied-target sequencing, and completion reporting:
   - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
+- Validate the rewritten TestAssets-backed project bootstrap and repair flow so registry self-heal, active-project routing, environment-file naming, and sensitive-reference handling behave consistently:
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - `TestAssets/project-index.yaml`
+- Merged local-workspace architecture rewrite closeout is complete; deferred legacy platform cards `002-005` remain on disk only as non-routing historical compatibility references.
 - Broaden Virtualize coverage beyond shared platform/policy surfaces.
 - Convert remaining partially-defined validation/data-exchange cards into fully validated workflows:
   - `docs/skills/platform/skill-024-tst-create-from-raml.md`
@@ -38,35 +52,33 @@ Do not use this file as the primary operator-facing routing surface.
   - `docs/skills/validation/skill-029-json-validator-workflow.md`
   - `docs/skills/validation/skill-030-xml-validator-workflow.md`
   - `docs/skills/validation/skill-031-diff-tool-workflow.md`
-- Decide whether the remaining structural-manipulation gaps should become standalone cards or be retired as unneeded complexity:
-  - class-specific move/copy/rename/delete/reorder cards beyond the current family + existing validated coverage
 - Continue refining contributor-facing canonical docs so `skill-index.md`, `backlog.md`, and workflow docs stay tightly aligned.
-- Validate and tune the new cross-cutting XPath scalar-normalization policy in mixed XML/JSON tool chains:
+- Validate and tune the cross-cutting XPath scalar-normalization policy in mixed XML/JSON tool chains:
   - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
 
 ## Skill Status Registry
 ### 1) Platform / File Operations
 - `docs/skills/platform/skill-family-server-file-lifecycle.md`
   - **State:** Defined
-  - **Notes:** canonical selection/anti-duplication surface for file-level lifecycle operations and shared rollback expectations.
+  - **Notes:** canonical local-first selection/anti-duplication surface for merged-workspace file lifecycle operations, root scoping, ambiguity handling, and escalation into Skill 001, Skill 006, or Skill 050 as needed.
 - `docs/skills/platform/skill-001-shared-introspection.md`
   - **State:** Defined
-  - **Notes:** canonical shared read/discovery surface; used broadly across runtime routing, with likely-root-first exact-name lookup and fail-closed response-collection normalization for discovery responses whose top-level collection field varies by runtime.
+  - **Notes:** canonical shared local asset-path resolution surface for `TestAssets/`, `VirtualAssets/`, and `ProvisioningAssets/`, with active-project-first lookup, likely-root-first search, and fail-closed ambiguity handling.
 - `docs/skills/platform/skill-002-shared-file-transfer.md`
-  - **State:** Validated
-  - **Notes:** shared download/upload flow with no-BOM upload safety.
+  - **State:** Deferred/Retired
+  - **Notes:** deferred legacy compatibility/reference card only; removed from `skill-index.md` so it is no longer an operator-facing routing target.
 - `docs/skills/platform/skill-003-server-copy.md`
-  - **State:** Validated
-  - **Notes:** server-side file copy workflow with optional destination naming; foundation for rollback-safe server fallback copies.
+  - **State:** Deferred/Retired
+  - **Notes:** deferred legacy compatibility/reference card only; removed from `skill-index.md` so it is no longer an operator-facing routing target.
 - `docs/skills/platform/skill-004-server-rename.md`
-  - **State:** Validated
-  - **Notes:** in-place file rename workflow.
+  - **State:** Deferred/Retired
+  - **Notes:** deferred legacy compatibility/reference card only; removed from `skill-index.md` so it is no longer an operator-facing routing target.
 - `docs/skills/platform/skill-005-server-delete.md`
-  - **State:** Validated
-  - **Notes:** file delete workflow.
+  - **State:** Deferred/Retired
+  - **Notes:** deferred legacy compatibility/reference card only; removed from `skill-index.md` so it is no longer an operator-facing routing target.
 - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
   - **State:** Defined
-  - **Notes:** rollback-preserving local YAML edit composite intended for YAML fallback write branches such as constrained REST edits and structural fallback workflows.
+  - **Notes:** narrow rollback-preserving local YAML edit envelope for explicitly authorized local YAML branches across merged-workspace asset types.
 
 ### 2) Asset Creation / Generation
 - `docs/skills/platform/skill-021-tst-create-empty.md`
@@ -88,13 +100,13 @@ Do not use this file as the primary operator-facing routing surface.
 ### 3) Read-Only Analysis
 - `docs/skills/cross-cutting/skill-007-tst-content-summarization.md`
   - **State:** Defined
-  - **Notes:** retained as the high-level human-friendly summary route.
+  - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a local-path-authoritative, YAML-evidence summary route.
 - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
   - **State:** Defined
   - **Notes:** foundational datasource discovery card; family-by-family validation still pending.
 - `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
   - **State:** Defined
-  - **Notes:** canonical deep YAML-based configuration/dataflow analysis route; representative runtime validation remains useful.
+  - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a local-path-authoritative, YAML-only configuration/dataflow analysis route.
 
 ### 4) Structural Mutation
 - `docs/skills/structure/skill-family-tst-object-manipulation.md`
@@ -102,13 +114,16 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** architectural family/intent map, not a full endpoint card.
 - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
   - **State:** Defined
-  - **Notes:** generalized move flow exists; YAML fallback branch now aligns to the shared rollback-preserving local-edit composite.
+  - **Notes:** reviewed in wave 2 as a hybrid card: local `.tst` path/YAML anchor first, API runtime move branch only when runtime ids are resolved safely, with local YAML fallback through Skill 006.
 - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
   - **State:** Defined
   - **Notes:** broad suite lifecycle card exists; targeted runtime validation can continue incrementally.
 - `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
   - **State:** Validated
-  - **Notes:** suite-level WSDL generation workflow validated for disabled-environment generation, collision-aware managed generation, post-generation environment normalization into the original active environment, nested-parent placement readback, and a validated but non-default `referenceExistingEnvironment.file` branch that creates inactive reference nodes while runtime resolution still follows the active local environment.
+  - **Notes:** suite-level WSDL generation workflow validated for `disabled`, collision-aware `local_managed`, post-generation environment normalization into the original active environment, nested-parent placement readback, and a validated but non-default `reference_external` branch that can add referenced environment nodes without implicitly switching the active environment.
+- `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
+  - **State:** Defined
+  - **Notes:** canonical v1 owner for SOAtest environment terminology, external project environment-file authoring, internal/referenced environment lifecycle, active-environment verification, local-to-external consolidation, and shared generation-mode semantics across Skills 022-025.
 - `docs/skills/structure/skill-047-generated-subset-prune.md`
   - **State:** Validated
   - **Notes:** generated-suite prune workflow is validated and reusable.
@@ -125,10 +140,10 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - **State:** Validated
-  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work: read/copy/delete, same-operation edits on existing constrained clients, fresh non-body constrained creation through shell-first YAML promotion, and fresh JSON body-bearing constrained creation through minimal YAML promotion plus REST Client `GET/PUT/GET` body normalization; same-spec token reuse is preferred when consistent peers exist, while no-peer creation falls back to explicit literals or caller-supplied variable tokens. Default completion is persisted-state/API/YAML verification; focused execution and traffic are follow-up branches only when explicitly in scope.
+  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work; reviewed in wave 2 and clarified as a hybrid card with local `.tst`/YAML authority for asset structure and API-only entry for runtime ids, tool lifecycle routes, and constrained JSON body normalization.
 - `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
   - **State:** Defined
-  - **Notes:** lower-layer one-client refactor leaf for source-to-target OpenAPI migration of exactly one constrained REST Client subtree, with `analysis` and `write` modes, supported downstream repair limited to JSON Validator / JSON Data Bank / JSON Assertor / Diff Tool, and client-slice structural plus persisted body-shape verification plus rollback beneath future `Change Advisor` orchestration.
+  - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a hybrid one-client refactor leaf: local `.tst` slice and copied-target structure first, Skill 050 only when runtime ids or API-normalized body branches are required.
 
 ### 6) Validation Tools
 - `docs/skills/validation/skill-010-json-assertor-workflow.md`
@@ -184,30 +199,42 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** read-merge-write policy promoted from observed tool PUT behavior.
 - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
   - **State:** Defined
-  - **Notes:** canonical runtime API preflight policy; broadly active as a workflow dependency.
+  - **Notes:** canonical API-branch preflight policy for runtime-object discovery, semantic mutation, generation, execution, and diagnostics; explicitly out of scope for pure local filesystem work.
 - `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
   - **State:** Defined
   - **Notes:** policy-level counterpart to Skill 049 for non-tool objects.
 - `docs/skills/cross-cutting/skill-054-xpath-scalar-extraction-normalization.md`
   - **State:** Defined
   - **Notes:** centralizes XML scalar-selector `/text()` normalization guidance with explicit JSON boundary behavior.
+- `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - **State:** In progress
+  - **Notes:** additive experimental owner for bounded direct endpoint exploration, CRUD reconciliation, transient exploration ledgers, and exploration-evidence legitimacy inside the explicit opt-in live-exploration lane only.
 
 ### 10) Composite Orchestration
 - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
   - **State:** In progress
-  - **Notes:** canonical underspecified-intent entry point for service-test authoring; now uses staged intake, an interactive-only approval artifact, a true no-interrupt autonomous execution posture with default payload fill plus blocker-only clarifications, preferred wording for mandatory intake questions, dynamic standard-negative family planning with a cap-of-five ceiling and a richer protocol/schema/state candidate-family set, separate interactive security intake, an always-on `033 -> 058 -> negatives/security -> combined 057 validation pass` sequencing model, post-completion DB/full-run follow-up options, and an execution-efficiency rule that excludes copied security suites from interim calibration/traffic/validation runs unless the user explicitly wants an end-of-workflow full `.tst` execution.
+  - **Notes:** canonical underspecified-intent entry point for service-test authoring; now uses staged intake, an interactive-only approval artifact, a true no-interrupt autonomous execution posture with default payload fill plus blocker-only clarifications, preferred wording for mandatory intake questions, dynamic standard-negative family planning with a cap-of-five ceiling and a richer protocol/schema/state candidate-family set, separate interactive security intake, an always-on `033 -> 058 -> negatives/security -> combined 057 validation pass` sequencing model, post-completion DB/full-run follow-up options, an execution-efficiency rule that excludes copied security suites from interim calibration/traffic/validation runs unless the user explicitly wants an end-of-workflow full `.tst` execution, and caller-owned batched blocker presentation when Skill 058 cannot finish bounded autonomous remediation.
 - `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
   - **State:** Defined
-  - **Notes:** branch-specific orchestration card for one-client authoring intent across endpoint-only and contract-informed REST/SOAP flows; now preserves interactive versus autonomous posture through the one-client branch, defaults unresolved autonomous host placement to a minimal new `.tst`, provides preferred wording for mandatory one-client questions, and routes REST/SOAP execution to the smallest matching lifecycle leaf rather than broad generation cards.
+  - **Notes:** branch-specific orchestration card for one-client authoring intent across endpoint-only and contract-informed REST/SOAP flows; now preserves interactive versus autonomous posture through the one-client branch, defaults unresolved autonomous host placement to a minimal new `.tst` under the active project root when project context exists, delegates environment mechanics to Skill 064 when needed, provides preferred wording for mandatory one-client questions, and routes REST/SOAP execution to the smallest matching lifecycle leaf rather than broad generation cards.
 - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
   - **State:** Defined
   - **Notes:** branch-specific orchestration card for adding validation to existing or newly generated tests and DB Tool resultsets, with live-runtime-evidence gating, multi-signal readiness fail-closed behavior, an explicit remediation-approval-vs-validation-approval boundary, combined happy-path-plus-standard-negative plan/approval by default when both slices are ready, an empty-response-payload no-tool exception for REST Client validation, happy-path schema-plus-content bundle defaults for API responses, default conservative validation for standard negatives, explicit security-branch no-tool exception handling, and response-vs-database orchestration.
 - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
   - **State:** Defined
-  - **Notes:** branch-specific orchestration card for detecting and repairing underconfigured existing/generated REST/SOAP client tests and DB Tools before validation or later orchestration proceeds; now enforces a strict candidate-value sourcing ladder (user/session/contract/same-`.tst` only by default), best-guess proposal gating, and no autonomous live-service probing unless the user explicitly approves it, while supporting REST-only, SOAP-only, DB-only, and mixed remediation slices and keeping SQL strategy and DB-side setup out of scope.
+  - **Notes:** branch-specific orchestration card for detecting and repairing underconfigured existing/generated REST/SOAP client tests and DB Tools before validation or later orchestration proceeds; now consults the active project record ahead of weaker inference sources, preserves inherited autonomous posture from Skill 033, uses a bounded one-synthesis-plus-one-evidence-driven-correction remediation loop per target, returns unresolved targets as an aggregated blocker set instead of interrupting inline, and keeps autonomous live-service probing and DB-side strategy out of scope unless explicitly approved.
 - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
   - **State:** Defined
-  - **Notes:** top-level operator-facing owner for one-source-spec bulk constrained REST Client OpenAPI refactor work on an existing `.tst`; owns mandatory read-only analysis plus mutate-on-copy-after-approval flow, analyzes the full exact-match constrained-client slice for the confirmed source OpenAPI without subset-selection or redundant intake-summary confirmation, performs grouped review including approval-stage base URL policy selection, preserves context-rich structural-tree rendering, sequences copied-target writes, and stops at structural/persisted-state completion with execution left as a suggested follow-up.
+  - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a hybrid composite: local source/copy `.tst` authority for analysis and copied-target sequencing, grouped review ownership at the orchestration layer, and Skill 050 only for delegated runtime-id/API-normalized write branches.
+- `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - **State:** In progress
+  - **Notes:** additive explicit opt-in top-level owner for the experimental exploration-first REST/OpenAPI broad-authoring lane that reuses Skill 033 intake strengths while delegating live exploration to Skill 066 and exploration-backed validation to Skill 067.
+- `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
+  - **State:** In progress
+  - **Notes:** additive exploration-backed validation owner for the experimental lane; preserves the stable approval and schema-confirmation model while replacing the stable pre-attachment baseline run with trusted exploration evidence plus focused post-attachment verification.
+- `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - **State:** Defined
+  - **Notes:** canonical session-start owner for matching, loading, creating, repairing, and updating durable application project context under `TestAssets/`; encodes deterministic registry matching, active-project routing, canonical project environment-file locations and references, environment-aware service-definition intake with multi-environment disambiguation, service-definition readback plus BASE_URL confirmation, explicit sensitive-data storage choices with a gitignored `.soavirt/projects/<slug>/secrets.env` default, and the progressive load order `TestAssets/project-index.yaml -> TestAssets/<slug>/<slug>.yaml -> referenced files`.
 
 ### 11) Security Testing
 - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`

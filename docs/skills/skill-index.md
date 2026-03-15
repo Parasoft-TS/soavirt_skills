@@ -13,6 +13,42 @@ Use skill routing cue policy from `docs/workflow/agent-workflow.md` under `Paras
 If cues are absent and the request appears general-purpose/non-Parasoft, do not force skill routing; ask one clarification question when uncertain.
 
 ## Practical Routing Registry
+### 0) Project Context / Session Bootstrap
+Route to `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` when the user wants to:
+- tell the agent what project they are working on at session start
+- load or resume stored project context for a known project
+- register a new project for future sessions
+- update saved project facts such as environments, service-definition references, business data, or durable notes
+- persist reusable project-specific context before any further task work in the session
+
+Preferred prompts:
+- `I'm working on the Parabank project`
+- `load the project context for Loan Service`
+- `this is a new project`
+- `update the stored project info for Parabank`
+- `remember this project for future sessions`
+
+Workflow note:
+- `docs/workflow/agent-workflow.md` invokes this skill automatically immediately after the AGENTS/bootstrap required reading for sessions that loaded `AGENTS.md`.
+- Loading `AGENTS.md` is the opt-in signal for SOAtest/Virtualize-oriented follow-on work, so do not skip Skill 063 merely because the next task appears contributor-facing or otherwise not yet project-specific.
+- This file routes to Skill 063; the card owns the exact bootstrap interview, matching, repair, and persistence procedure.
+- Once Skill 063 has resolved an active project, later direct routing to smaller cards still inherits the workflow-level project-context contract for placement, source/value selection, validation priorities, and environment-sensitive behavior.
+
+### 0.5) SOAtest Environment Mechanics
+Route to `docs/skills/structure/skill-064-soatest-environment-lifecycle.md` when the user wants to:
+- inspect or explain internal SOAtest environments versus external project environment files
+- create or update project-scoped external `.env` / `.envs` files
+- create, inspect, update, attach, or remove internal/referenced environment nodes in a `.tst`
+- merge/fold values between an internal environment and the canonical project external environment file
+- make a referenced environment node active, verify active-environment state, or safely remove redundant local environments after environment consolidation
+- choose or verify `disabled`, `local_managed`, or `reference_external` environment strategy for service-definition-driven generation
+
+Preferred prompts:
+- `attach this project environment file to this tst`
+- `take these internal environment values and fold them into the external project env file`
+- `make the referenced environment active and remove the internal one`
+- `inspect the environments in this tst`
+- `set up the environment mode for generation from this OpenAPI`
 
 ### A) Service-Test Authoring
 Route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` when the user wants to:
@@ -24,6 +60,23 @@ Route to `docs/skills/composite-orchestration/skill-033-service-test-intent-orch
 - resolve whether a contract is the generation source or only planning input
 
 Use Skill 033 as the canonical route for underspecified service-test authoring prompts, not as the mandatory route for already-specific direct requests.
+#### Experimental exploration-first routing
+Route to `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md` when the user explicitly wants the additive experimental broad-authoring lane, for example:
+- they explicitly ask for the experimental branch
+- they explicitly ask for exploration-first or live-probing broad authoring
+- they explicitly want direct endpoint research before SOAtest writes
+- the source is REST/OpenAPI and the request is still broad authoring rather than a narrow lifecycle action
+
+Preferred prompts:
+- `use the experimental branch for this OpenAPI`
+- `try the exploration-first approach for this service`
+- `use live endpoint exploration before authoring the tests`
+- `I want the experimental broad authoring lane`
+
+Boundary note:
+- explicit opt-in is required
+- keep Skill 033 as the default broad-authoring route when that opt-in signal is absent
+- do not treat Skill 067 as a first-choice direct route in the initial rollout; the operator-facing experimental entry point is Skill 065
 #### Direct generation eligibility gate (required)
 Route directly to generation cards (Skills 022-025) only when all of the following are true:
 - the user explicitly requests generation/create action from a service definition (OpenAPI/WSDL/RAML/XSD),
@@ -121,6 +174,7 @@ Route directly to the smallest matching generation workflow only when the prompt
 
 Tie-break rule:
 - If the request is vague, use Skill 033.
+- If the user explicitly opts into the experimental exploration-first broad-authoring lane for REST/OpenAPI, use Skill 065.
 - If the request is help-style or outcome-level (for example `help me create tests for this OpenAPI`) and does not explicitly request a **new `.tst`**, use Skill 033.
 - If the request is already clearly validation-enrichment intent on existing/generated tests, use Skill 057.
 - If the request is already clearly request-readiness/configuration-remediation intent on existing/generated tests, use Skill 058.
@@ -180,15 +234,10 @@ Preferred prompts:
 
 ## Primary Navigation by Skill Family
 
-### 1) Platform / File Operations
-Use for workspace-level discovery and file lifecycle operations.
+### 1) Platform / Local File Operations
+Use for local merged-workspace asset targeting, local file lifecycle guidance, and explicitly authorized local YAML edit rollback.
 - `docs/skills/platform/skill-family-server-file-lifecycle.md`
-
 - `docs/skills/platform/skill-001-shared-introspection.md`
-- `docs/skills/platform/skill-002-shared-file-transfer.md`
-- `docs/skills/platform/skill-003-server-copy.md`
-- `docs/skills/platform/skill-004-server-rename.md`
-- `docs/skills/platform/skill-005-server-delete.md`
 - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
 
 ### 2) Asset Creation / Generation
@@ -214,6 +263,7 @@ Use for suite/object creation, movement, reordering, and subset pruning.
 - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
 - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
 - `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
+- `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
 - `docs/skills/structure/skill-047-generated-subset-prune.md`
 
 ### 5) Client Tools
@@ -264,6 +314,7 @@ Use these as required dependencies when a target skill calls for them. These are
 - `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
 
 #### Capability / Compatibility
+- `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
 - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
 
 ### 10) Composite Orchestration
@@ -273,7 +324,10 @@ Use for multi-step conversational intake and cross-skill planning/execution.
 - `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
 - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
 - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+- `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+- `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
 - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
+- `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
 
 ### 11) Security Testing
 Use for security-testing tool lifecycle and security-branch attachment rules.
@@ -282,17 +336,19 @@ Use for security-testing tool lifecycle and security-branch attachment rules.
 
 ## Selection Heuristic
 1. For each new user prompt, re-run this routing heuristic before reusing any previously selected target card.
-2. Determine whether the request is:
+2. If `AGENTS.md`/bootstrap has been loaded for the current session and Skill 063 has not yet completed its bootstrap, use Skill 063 first. If the user explicitly asks to load/store/update project context later in the session, use Skill 063 again.
+2a. After Skill 063 has completed, treat the active project as in-scope runtime state for later direct routes whenever the branch still involves placement defaults, request/config synthesis, source resolution, validation priorities, or environment-sensitive behavior.
+3. Determine whether the request is:
    - authoring/generation
    - read-only analysis
    - structural mutation
    - tool lifecycle/configuration
    - execution diagnostics
-3. Apply any explicit routing registry above.
-4. If no explicit routing rule applies, choose the smallest matching skill family from the Primary Navigation section.
-5. Load the target card and its declared dependencies.
-6. For server-API-mediated Parasoft requests, also apply the workflow-mandated runtime prelude from `docs/workflow/agent-workflow.md`; for write-capable requests, also apply the operation-class bundles.
-7. Avoid loading unrelated cards.
+4. Apply any explicit routing registry above.
+5. If no explicit routing rule applies, choose the smallest matching skill family from the Primary Navigation section.
+6. Load the target card and its declared dependencies.
+7. For server-API-mediated Parasoft requests, also apply the workflow-mandated runtime prelude from `docs/workflow/agent-workflow.md`; local file-backed requests should stay local-first and enter Skill 050 only if the branch later requires API interaction.
+8. Avoid loading unrelated cards.
 
 ## Architectural Layering Model (Secondary View)
 This section is for dependency reasoning and long-term architecture. It is not the primary operator-facing navigation model.

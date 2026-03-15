@@ -1,67 +1,49 @@
-# Skill Family: Server File Lifecycle
-
-Purpose: define the shared routing, safety, and verification model for file-level server operations across SOAtest and Virtualize assets.
-
+# Skill Family: Local Workspace File Lifecycle
+Purpose: define the shared local-first selection, safety, and verification model for file-level operations across merged-workspace SOAtest and Virtualize assets.
 ## Scope
-This family covers file-level operations on server-hosted assets such as:
-- `.tst`
-- `.pva`
-- `.pvn`
-
-It does not own endpoint execution details; atomic cards own the exact request/response behavior.
-
+This family covers file-backed asset operations under the fixed merged-workspace roots:
+- `TestAssets/`
+- `VirtualAssets/`
+- `ProvisioningAssets/`
+It owns local-first selection guidance, not endpoint-level API semantics.
 ## Design Rule
-- Keep one family card for file-lifecycle selection and anti-duplication guidance.
-- Keep endpoint behavior in atomic cards.
-- Use composites only for repeated rollback-preserving workflows that coordinate multiple atomic cards.
-
+- Keep one family card for local file-lifecycle selection and anti-duplication guidance.
+- Keep local path-resolution discipline in Skill 001.
+- Keep rollback-preserving local YAML edit choreography in Skill 006.
+- Keep API-branch discipline in Skill 050.
 ## Foundational Skills
 - `docs/skills/platform/skill-001-shared-introspection.md`
-  - root-aware target discovery and verification
-- `docs/skills/platform/skill-002-shared-file-transfer.md`
-  - download/upload and format-safe file transfer
+  - local asset-path resolution and ambiguity handling
+- `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
+  - rollback-preserving local YAML edit envelope
 - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
-  - mandatory preflight for write-capable branches
-
-## Atomic Skill Matrix
-### A) Core file-lifecycle operations
-1. `docs/skills/platform/skill-003-server-copy.md`
-   - create a new server-side copy, optionally with a destination name
-2. `docs/skills/platform/skill-004-server-rename.md`
-   - rename an existing file in place
-3. `docs/skills/platform/skill-005-server-delete.md`
-   - delete a file or explicitly targeted folder id
-
-### B) Composite file-edit workflow
-1. `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
-   - use when a write workflow requires local YAML fallback with an explicit rollback-preserving envelope
-
+  - API-branch preflight when a branch leaves local-only work
 ## Selection Guide
-- Need a new artifact or a server-side failsafe copy before riskier work?
-  - use Skill 003
-- Need to change only the existing file name in place?
-  - use Skill 004
-- Need to remove a file or cleanup artifact?
-  - use Skill 005
-- Need to download, edit locally, upload, verify, and restore/cleanup if needed?
-  - use Skill 006 plus the owning leaf skill for the semantic edit itself
-
+- Need to resolve where a file-backed asset lives in the merged workspace?
+  - use Skill 001
+- Need to read, copy, rename, or delete a file-backed asset after the target path is known?
+  - use local filesystem operations directly under this family's rules
+- Need to edit YAML locally with an explicit rollback envelope?
+  - use Skill 006 plus the owning leaf skill
+- Need to interact with the localhost API for runtime-object ids, semantic mutation, generation, execution, or diagnostics?
+  - enter Skill 050 at the API branch transition
+## Local-First Rules
+- Explicit local paths win immediately.
+- When the path is not explicit, search the active project first when project context exists.
+- Use likely-root-first search before broadening across other roots/projects.
+- Keep file-backed path identity separate from API-authoritative runtime object identity.
+- Fail closed and ask for clarification when multiple plausible local targets remain.
 ## Shared Validation Expectations
-Every file-lifecycle branch should:
-1. Resolve exact rooted ids under the canonical server roots before mutation.
-2. Apply Skill 050 before the first write in the branch.
-3. Perform deterministic post-condition verification:
-   - listing/readback for copy/rename/delete
-   - re-download/readback for local-edit fallback branches
-4. Keep rollback handling explicit before destructive or high-risk changes.
-
-## Shared Root Awareness
-- Treat these as the canonical server root directories:
-  - `/TestAssets`
-  - `/VirtualAssets`
-  - `/ProvisioningAssets`
-- Prefer likely-root-first resolution before broader recursive scans.
-
-## Duplication Rule
-- Do not repeat shared file-lifecycle selection guidance in Skills 003-005.
-- Do not use Skill 006 as a generic wrapper for all file operations; reserve it for rollback-preserving local YAML edit workflows.
+Every local file-lifecycle branch should:
+1. confirm the exact local target before mutation
+2. keep operations scoped to the merged asset roots
+3. verify the intended postcondition deterministically after the operation
+4. avoid broad destructive guessing when multiple plausible targets exist
+## Escalation Rule
+Escalate out of this family when:
+- runtime object ids are required
+- semantic API mutation or generation is required
+- execution or diagnostics are required
+- a branch explicitly authorizes local YAML editing and therefore needs Skill 006
+## Legacy Transitional Cards
+The old server-era transfer/copy/rename/delete cards (`002-005`) may remain temporarily in the repo for downstream compatibility cleanup, but they are no longer the primary operator-facing route in the merged local-workspace model.

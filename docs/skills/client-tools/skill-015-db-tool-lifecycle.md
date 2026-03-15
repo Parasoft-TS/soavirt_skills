@@ -54,8 +54,9 @@ Manage SOAtest DB Tools in `.tst` assets with deterministic placement and valida
 - Never infer or silently apply connection/query values from prior examples.
 - "Provided input" may come from either:
   - direct user input, or
-  - orchestration-provided context that has been explicitly confirmed by the user.
+  - orchestration-provided context or active project record values that have been explicitly confirmed by the user for this branch.
 - If create request is underspecified, pause creation and solicit missing values.
+- In project-aware branches, active project facts, references, or environment-file values may be used as candidate DB configuration sources, but do not treat them as approved for non-scaffold create until the user or owning orchestration has explicitly confirmed them.
 - Required before non-scaffold create:
   - `driver class`
   - `URL` (`jdbc:{db}:{connectionstring}`)

@@ -10,7 +10,7 @@ Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger
 - In scope:
   - create `.tst` from OpenAPI/Swagger URL or file-system path
   - verify resulting test file and root suite creation
-  - optional environment creation flag
+  - deterministic handling of the optional environment-creation request
   - optional cleanup via file delete
 - Out of scope:
   - traffic-based generation
@@ -28,24 +28,27 @@ Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger
 - Additive:
   - `docs/skills/platform/skill-001-shared-introspection.md`
   - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md` (post-create traceability/tagging handoff)
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
 
 ## 4) Inputs
 - Required:
-  - parent directory id (for example `/TestAssets`)
+  - parent directory id (default to the active project root when a project is already active and the user did not override it; for example `/TestAssets/<Project>` or `/TestAssets`)
   - test file base name
 - Conditional required (must be resolved before create):
   - service-definition source location (user-provided URL or file-system path)
 - Optional:
-  - `createEnvironment` object
+  - `restCreateEnvironment` object, but only when the environment branch was already explicitly resolved using Skill 064 generation modes (`disabled`, `local_managed`, `reference_external`)
 
 ## 4.1) Required Input Resolution Rule
 - Resolve service-definition input using this precedence:
   1. explicit value in current user request,
-  2. value confirmed earlier in current session,
-  3. relevant environment variable already configured for this target.
+  2. active project record sections relevant to the branch (`environment_files`, `services`, `facts`, `references`, `notes`),
+  3. value confirmed earlier in current session,
+  4. relevant environment variable already configured for this target.
 - Normalize source to API-compatible location fields internally:
   - URL input -> `location.url`
   - file path input -> resolve to workspace-accessible source and use `location.id` when applicable.
+- When a project is already active and `parent.id` was not explicitly chosen, default the new `.tst` to that project's root test-assets directory rather than a repo-global catch-all folder.
 - Apply confidence gate before create:
   - proceed only when one candidate is unambiguous and format-compatible with OpenAPI/Swagger,
   - if source is missing, conflicting, or weakly inferred, ask a targeted user question and wait for confirmation,
@@ -71,7 +74,7 @@ Run this preflight before `POST /v6/files/tsts/swagger`:
 ## 5.2) Name Collision Gate (Fallback)
 Run this guard only when target name uncertainty exists (for example after ambiguous write output) or when create returns `already exists`:
 1. Query existing `.tst` files under target parent:
-  - `GET /v6/descendants/files?id=/TestAssets&type=tst`
+  - `GET /v6/descendants/files?id=<resolved-parent-id>&type=tst`
 2. Check exact file-name match for `<name>.tst`.
 3. If match exists, do not retry create blindly. Branch by user intent:
   - reuse existing file,
@@ -81,15 +84,18 @@ Run this guard only when target name uncertainty exists (for example after ambig
 ## 6) Procedure
 1. Resolve required service-definition location from user-provided URL or file path using the input-resolution rule.
 2. If location is not confidently resolved, ask user for OpenAPI/Swagger source and stop before write.
-3. Build create payload:
+3. Build create payload using the resolved project-aware parent and source location:
    - `parent.id=<directory-id>`
    - `name=<file-base-name>`
    - `location.url=<openapi-url>` or `location.id=<workspace-file-id>`
+   - default v1 branch: omit `restCreateEnvironment`, rely on the generator's built-in local environment behavior, and do not plan a separate post-create environment creation step
+   - include `restCreateEnvironment` only when the current request or already-confirmed upstream context explicitly resolves a non-default or explicitly parameterized environment branch from Skill 064
 4. Create file from service definition:
    - `POST /v6/files/tsts/swagger`
 5. Verify response:
    - response `id` ends with `.tst`
    - response includes root `Test Suite` in `relationships.childrenRel`
+   - inspect the generated `.tst` environment state and reuse it as the initial environment context rather than creating a second environment by default
 5.1 If create output is ambiguous (truncated/missing fields), reconcile before retry:
   - run a deterministic read check for exact `<name>.tst` under parent,
   - if found, treat create as successful and continue,
@@ -140,6 +146,7 @@ Run this guard only when target name uncertainty exists (for example after ambig
 - API-first rule:
   - Build payload from `tstsSwaggerRequest` schema directly; do not require pre-existing generated files as templates.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
+- Use Skill 064 for `restCreateEnvironment` selection and any follow-on environment mechanics; v1 default generation mode is `local_managed`, which for brand-new `.tst` generation means relying on the generator's built-in local environment behavior unless the user or already-confirmed upstream context explicitly selects another supported branch.
 - When invoked directly from routing, this card may be the full workflow for generation-only intent.
 - When invoked from `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` during broad authoring, this card owns only initial `.tst` generation plus create/readback verification.
 - In that caller context, readiness remediation, negative/security authoring, calibration, and validation enrichment remain owned by Skill 033 and its downstream orchestration/leaf skills.

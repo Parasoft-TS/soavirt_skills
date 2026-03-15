@@ -1,2 +1,6 @@
 # Local, run-specific working artifacts
 work/
+.soavirt/projects/
+.bak
+.settings
+.parasoft

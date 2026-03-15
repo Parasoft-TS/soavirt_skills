@@ -1,113 +1,41 @@
-# Skill Card 002: Shared File Transfer (Download/Upload)
-
+# Skill Card 002: Legacy Server File Transfer (Deferred Compatibility)
 ## 1) Skill Name
-Shared File Transfer (download for local edit, upload for server update)
-
-## 2) Objective
-- Transfer asset files between SOAVirt server and local workspace using shared REST endpoints so local inspection or edits can be made safely when needed.
-
-## 3) Scope
+Legacy server file transfer (`download` / `upload`) compatibility reference
+## 2) Status
+Deferred / legacy. Retained temporarily for compatibility and historical endpoint reference.
+## 3) Objective
+Document the old server-mediated file transfer path for exceptional cases where a workflow explicitly requires API byte transfer. This is not the normal path in the merged local-workspace model.
+## 4) When to Use
+Use this card only when:
+- a task explicitly requires API file byte transfer
+- local filesystem access is not the intended or sufficient path
+- the branch has already determined that it is leaving local-first file work
+Do not use this card for normal `.tst`, `.pva`, `.pvn`, env-file, or project-file work in this repo.
+## 5) Preferred Alternatives
+Prefer:
+- `docs/skills/platform/skill-family-server-file-lifecycle.md`
+- `docs/skills/platform/skill-001-shared-introspection.md`
+- `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
+- `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+## 6) Scope
 - In scope:
-  - Download file bytes/content by file id.
-  - Upload local file bytes/content back to target file id.
-  - Verify round-trip success using read-back checks.
+  - legacy reference for `GET /v6/files/download`
+  - legacy reference for `POST /v6/files/upload`
+  - byte-level transfer safety notes that may still matter in rare compatibility branches
 - Out of scope:
-  - Semantic editing of YAML internals.
-  - Product-specific behavior beyond generic transfer.
-
-## 3.1) Dependencies
-- Required when target file id is unresolved or only a filename/partial path is known:
-  - `docs/skills/platform/skill-001-shared-introspection.md`
-- Required for write flows:
-  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
-## 3.2) Canonical Root Awareness
-- These server root directories are always present and act as the base-path roots for server files:
-  - `/TestAssets`
-  - `/VirtualAssets`
-  - `/ProvisioningAssets`
-- If `id` already starts with one of these rooted paths, use it directly and skip root rediscovery.
-- If only a filename or partial path is known, resolve the exact rooted `id` first via Skill 001 using the likely-root-first rule:
-  - SOAtest `.tst` and related test assets -> `/TestAssets`
-  - Virtualize `.pva` -> `/VirtualAssets`
-  - Provisioning Assets `.pvn` and related provisioning/support files -> `/ProvisioningAssets`
-
-## 4) Inputs
-- Required:
-  - `baseUrl` (for example `http://localhost:9080/soavirt/api/v6`)
-  - `id` (file id such as `/TestAssets/example.tst`)
-  - `localPath` (local file path for download or upload)
-- Optional:
-  - `replace` (upload replacement behavior, default false)
-  - `deploy` (upload deploy behavior, default true; mainly relevant for `.pva`)
-
-## 5) Preconditions
-- API base URL reachable.
-- Auth requirements satisfied.
-- Caller has read permission for the target file id.
-- For upload/write-back flows, caller also has write permission for the target file id.
-- For upload, local file exists and is readable.
-
-## 6) Procedure
-1. Resolve the exact rooted file `id` first.
-2. Download current server file with `GET /v6/files/download?id=<id>` and save locally.
-3. If the workflow is read-only, stop after download and perform any local parse/hash/content checks needed by the consuming workflow.
-4. If the workflow includes edits, create a backup copy of the downloaded file before editing.
-5. Apply minimal local edits to the file content.
-6. Upload edited file using `POST /v6/files/upload?id=<id>&replace=true` as multipart form-data (`file`).
-7. Re-download same id and confirm expected changes are present.
-
-## 7) Validation
-- Expected HTTP status codes:
-  - `200` success
-  - `400` invalid parameter or payload
-  - `401` unauthorized
-  - `403` forbidden
-  - `404` item not found
-- Expected response shape:
-  - Download: binary/octet-stream response body.
-  - Upload: JSON response with file metadata.
-- Post-condition checks:
-  - Download-only branch: local content is readable/parseable for the consuming workflow.
-  - Re-downloaded content reflects intended edits only.
-  - File remains parseable in its expected format (for example YAML when a YAML-backed workflow is in scope).
-  - No unexpected asset/folder/root relocation.
-
-## 8) Failure Modes
-- `400` on upload: malformed multipart payload or incompatible content.
-- `403`: write not allowed or license restrictions.
-- `404`: target id invalid.
-- Upload succeeds but content unchanged: wrong target `id` or `replace` behavior not enabled.
-- `StreamCorruptedException: invalid stream header: EFBBBF2D`: YAML was saved with UTF-8 BOM before upload.
-
-## 8.1) Encoding Safety (Critical)
-- Always write edited YAML as UTF-8 **without BOM**.
-- Before upload, verify first bytes are `2D 2D 2D` (`---`), not `EF BB BF 2D`.
-- Keep original downloaded bytes as rollback source.
-- For PowerShell, use explicit no-BOM encoding when writing files:
-  - `[System.IO.File]::WriteAllText($path, $text, (New-Object System.Text.UTF8Encoding($false)))`
-
-## 9) Safety / Rollback
-- Read-only by default? No (this skill includes writes).
-- Rollback plan for writes:
-  - Always keep a pre-edit backup copy.
-  - If upload result is wrong, immediately re-upload backup file to same `id` with `replace=true`.
-  - Re-download and verify rollback content.
-
-## 10) Reuse Notes
-- SOAtest usage: transfer `.tst` files under `/TestAssets`.
-- Virtualize usage: transfer `.pva` files under `/VirtualAssets`.
-- Provisioning usage: transfer `.pvn` files under `/ProvisioningAssets`.
-- Shared components involved (e.g., JSON Data Bank): transfer layer is shared regardless of tool type.
-
-## 11) Examples
-- Example request(s):
-  - `GET http://localhost:9080/soavirt/api/v6/files/download?id=%2FTestAssets%2FBasic_Test_Construction_Learning.tst`
-  - `POST http://localhost:9080/soavirt/api/v6/files/upload?id=%2FTestAssets%2FBasic_Test_Construction_Learning.tst&replace=true`
-  - `GET http://localhost:9080/soavirt/api/v6/files/download?id=%2FProvisioningAssets%2Fexample.pvn`
-  - `POST http://localhost:9080/soavirt/api/v6/files/upload?id=%2FProvisioningAssets%2Fexample.pvn&replace=true`
-- Example command pattern (PowerShell):
-  - `Invoke-WebRequest -UseBasicParsing -Uri "<downloadUrl>" -OutFile "<localPath>"`
-  - `curl.exe -sS -o upload_response.json -w "%{http_code}" -X POST -F "file=@<localPath>" "<uploadUrl>"`
-  - `([System.IO.File]::ReadAllBytes("<localPath>")[0..3] | ForEach-Object { $_.ToString('X2') }) -join ' '`
-- Example response snippet(s):
-  - Upload response contains file metadata for updated target.
+  - default file targeting
+  - default file editing workflow
+  - default operator-facing local asset work
+  - any claim that server transfer is the standard route
+## 7) Legacy Endpoint Notes
+- Download endpoint: `GET /v6/files/download?id=<id>`
+- Upload endpoint: `POST /v6/files/upload?id=<id>&replace=true`
+- If ever used for YAML, preserve UTF-8 without BOM.
+## 8) Safety Notes
+- Enter Skill 050 before any write-capable API transfer branch.
+- Keep a rollback source before upload.
+- Re-read and verify the postcondition if this branch is used at all.
+## 9) Routing Note
+This card is not a primary routing destination. Load it only when another workflow explicitly calls for a legacy API-transfer compatibility branch.
+## 10) Retirement Note
+Remove this card once no active workflow depends on it and no meaningful legacy API-transfer branch remains.

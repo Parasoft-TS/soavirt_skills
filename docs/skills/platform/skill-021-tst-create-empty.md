@@ -25,7 +25,7 @@ Create a brand-new test asset with default root `Test Suite` using `POST /v6/fil
 
 ## 4) Inputs
 - Required:
-  - parent directory id (for example `/TestAssets`)
+  - parent directory id (default to the active project root when a project is already active and the user did not override it; for example `/TestAssets/<Project>` or `/TestAssets`)
   - test file base name (without `.tst` extension)
 
 ## 5) Preconditions
@@ -33,21 +33,25 @@ Create a brand-new test asset with default root `Test Suite` using `POST /v6/fil
 - parent directory id exists and is writable.
 
 ## 6) Procedure
-1. Build create payload:
+1. Resolve `parent.id` before create:
+   - explicit user-selected target parent wins,
+   - otherwise, if a project is already active, default to that project's root test-assets directory,
+   - otherwise use the confirmed fallback parent directory.
+2. Build create payload:
    - `parent.id=<directory-id>`
    - `name=<file-base-name>`
-2. Create file:
+3. Create file:
    - `POST /v6/files/tsts`
-3. If create returns name-conflict (`already exists`), switch to create-or-reuse mode:
+4. If create returns name-conflict (`already exists`), switch to create-or-reuse mode:
   - resolve existing id by listing target folder descendants,
   - continue with the resolved existing `.tst` id.
-4. Verify response/resolved id:
+5. Verify response/resolved id:
    - response `id` ends with `.tst`
-5. Verify root suite with compatibility-safe reads:
+6. Verify root suite with compatibility-safe reads:
   - apply Skill 050 Profile B readback route:
     - primary: `GET /v6/children?id=<tst-id>` and confirm `testSuite` child exists,
     - optional context: `GET /v6/descendants/assets?id=<tst-id>`.
-6. Optional cleanup:
+7. Optional cleanup:
    - `DELETE /v6/files?id=<created-tst-id>`
 
 ## 7) Canonical Payload (API-First)
@@ -83,3 +87,4 @@ Create a brand-new test asset with default root `Test Suite` using `POST /v6/fil
 - API-first rule:
   - Author payload directly from endpoint schema (`tstsRequest`), not from existing workspace templates.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
+- In project-aware flows, prefer the active project's root test-assets directory as the default parent rather than a repo-global catch-all folder.

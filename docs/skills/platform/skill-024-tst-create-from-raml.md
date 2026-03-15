@@ -10,7 +10,7 @@ Create a brand-new `.tst` with generated tests from a RAML definition using `POS
 - In scope:
   - create `.tst` from RAML URL or file-system path
   - verify generated file/root suite
-  - optional environment creation object
+  - deterministic handling of the optional environment-creation request
   - optional cleanup delete
 - Out of scope:
   - traffic-based generation
@@ -27,24 +27,27 @@ Create a brand-new `.tst` with generated tests from a RAML definition using `POS
 - Additive:
   - `docs/skills/platform/skill-001-shared-introspection.md`
   - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md` (post-create traceability/tagging handoff)
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
 
 ## 4) Inputs
 - Required:
-  - `parent.id` (directory id, for example `/TestAssets`)
+  - `parent.id` (default to the active project root when a project is already active and the user did not override it; for example `/TestAssets/<Project>` or `/TestAssets`)
   - `name` (file base name)
 - Conditional required (must be resolved before create):
   - RAML source location (user-provided URL or file-system path)
 - Optional:
-  - `createEnvironment`
+  - `restCreateEnvironment` object, but only when the environment branch was already explicitly resolved using Skill 064 generation modes (`disabled`, `local_managed`, `reference_external`)
 
 ## 4.1) Required Input Resolution Rule
 - Resolve RAML source input using this precedence:
   1. explicit value in current user request,
-  2. value confirmed earlier in current session,
-  3. relevant environment variable already configured for this target.
+  2. active project record sections relevant to the branch (`environment_files`, `services`, `facts`, `references`, `notes`),
+  3. value confirmed earlier in current session,
+  4. relevant environment variable already configured for this target.
 - Normalize source to API-compatible location fields internally:
   - URL input -> `location.url`
   - file path input -> resolve to workspace-accessible source and use `location.id` when applicable.
+- When a project is already active and `parent.id` was not explicitly chosen, default the new `.tst` to that project's root test-assets directory rather than a repo-global catch-all folder.
 - Apply confidence gate before create:
   - proceed only when one candidate is unambiguous and format-compatible with RAML,
   - if source is missing, conflicting, or weakly inferred, ask a targeted user question and wait for confirmation,
@@ -66,9 +69,11 @@ Run this preflight before `POST /v6/files/tsts/raml`:
 ## 6) Procedure
 1. Resolve required RAML location from user-provided URL or file path using the input-resolution rule.
 2. If location is not confidently resolved, ask user for RAML source and stop before write.
-3. Build payload with parent/name/location.
+3. Build payload with the resolved project-aware parent, name, and location:
+   - default v1 branch: omit `restCreateEnvironment`, rely on the generator's built-in local environment behavior, and do not plan a separate post-create environment creation step
+   - include `restCreateEnvironment` only when the current request or already-confirmed upstream context explicitly resolves a non-default or explicitly parameterized environment branch from Skill 064
 4. `POST /v6/files/tsts/raml`.
-5. Validate returned `id`, `url`, and root `Test Suite` relation.
+5. Validate returned `id`, `url`, and root `Test Suite` relation, then inspect the generated `.tst` environment state and reuse it as the initial environment context rather than creating a second environment by default.
 6. Optional rollback: `DELETE /v6/files?id=<created-id>`.
 
 ## 7) Canonical Payload (API-First)
@@ -103,3 +108,4 @@ Run this preflight before `POST /v6/files/tsts/raml`:
 - Covers the `POST /v6/files/tsts/raml` generation path for RAML source inputs.
 - API-first authoring required; no dependency on pre-existing generated examples.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
+- Use Skill 064 for `restCreateEnvironment` selection and any follow-on environment mechanics; v1 default generation mode is `local_managed`, which for brand-new `.tst` generation means relying on the generator's built-in local environment behavior unless the user or already-confirmed upstream context explicitly selects another supported branch.

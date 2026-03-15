@@ -1,6 +1,184 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+## Session 2026-03-15 (Experimental live-exploration lane implementation, phase 1)
+
+### Actions Completed
+- Added the new experimental lane owners:
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
+- Added experimental approval/completion templates:
+  - `docs/templates/skill-065-approval-artifact-template.md`
+  - `docs/templates/skill-065-completion-artifact-template.md`
+- Wired the experimental lane into the canonical routing and status surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+- Added stable-boundary notes so the default lane remains distinct:
+  - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-057-validation-enrichment-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+- Recorded the additive-lane rationale in:
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally keeps the experimental route operator-simple: Skill `065` is the only new first-choice experimental broad-authoring route in the initial registry, while Skills `066` and `067` remain delegated policy/orchestration owners beneath it.
+- Stable Skills `033/057/058` remain the default operator-facing path; the new exploration-backed evidence model is explicit opt-in only.
+## Session 2026-03-14 (Architecture rewrite closeout sweep)
+
+### Actions Completed
+- Ran a repo-wide sweep for lingering pre-rewrite wording after the two implementation waves and the legacy-card de-routing pass
+- Patched the remaining stale phrases in:
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - `docs/templates/project-bootstrap-context-summary-template.md`
+  - `docs/workflow/agent-workflow.md`
+- Updated contributor-facing closeout status/rationale:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- The merged local-workspace architecture rewrite is now treated as cleanly implemented repo-wide.
+- Skills `002-005` intentionally remain on disk only as deferred legacy historical/compatibility records and are not part of the operator routing surface.
+## Session 2026-03-14 (Legacy platform-card de-routing and downgrade)
+
+### Actions Completed
+- Rewrote the remaining server-era platform cards as deferred legacy compatibility/reference cards only:
+  - `docs/skills/platform/skill-002-shared-file-transfer.md`
+  - `docs/skills/platform/skill-003-server-copy.md`
+  - `docs/skills/platform/skill-004-server-rename.md`
+  - `docs/skills/platform/skill-005-server-delete.md`
+- Removed any mention of Skills `002-005` from `docs/skills/skill-index.md` so they are no longer visible to future agents as part of the operator routing surface
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally keeps `002-005` only as narrow historical/compatibility references while preventing future agents from encountering them during normal routing.
+- The remaining decision is whether to leave those compatibility stubs in place for a while or delete them entirely in a later cleanup.
+## Session 2026-03-14 (Merged local-workspace architecture rewrite implementation, wave 2)
+
+### Actions Completed
+- Audited the remaining cards identified by the architecture plan as likely still carrying server-first assumptions:
+  - `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
+  - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
+  - `docs/skills/cross-cutting/skill-007-tst-content-summarization.md`
+  - `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
+  - `docs/skills/structure/skill-008-datasource-type-targeted-move.md`
+- Classified the audited cards under the merged-workspace authority split:
+  - Skills `007` and `052` -> local-path-authoritative YAML analysis
+  - Skills `008`, `059`, `060`, and `061` -> hybrid local-file anchor plus API branch only when runtime ids or API-normalized mutation are actually needed
+- Rewrote the audited cards to match that classification and patched the downstream constrained REST lifecycle dependency surface in `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md` so the refactor cards no longer inherit operator-facing server-era transfer/copy assumptions
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This wave intentionally kept the local/API split explicit per card instead of flattening everything into one lane: local `.tst` paths and YAML slices are now the authoritative file-backed anchors, while runtime ids and constrained JSON body normalization still enter the API lane through Skill 050.
+- The legacy server-era platform cards `002-005` are now no longer required by the main operator-facing cards touched in this wave, leaving them as transitional compatibility surfaces pending a final retire-or-delete cleanup decision.
+## Session 2026-03-14 (Merged local-workspace architecture rewrite implementation, wave 1)
+
+### Actions Completed
+- Re-read the approved architecture plan and the canonical runtime/routing surfaces before implementation:
+  - plan `54de4039-caf6-4fca-8831-8a3ce1ec43c0`
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+- Rewrote the first-wave architecture cards to the merged local-workspace model:
+  - `docs/skills/platform/skill-family-server-file-lifecycle.md`
+  - `docs/skills/platform/skill-001-shared-introspection.md`
+  - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+- Migrated the existing Parabank durable project context into the new workspace-local layout:
+  - `TestAssets/project-index.yaml`
+  - `TestAssets/parabank/parabank.yaml`
+  - `TestAssets/parabank/environments/parabank.envs`
+  - removed the superseded `docs/projects/` Parabank files
+- Synchronized contributor-facing status/rationale surfaces with the rewrite direction:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This wave establishes one explicit split: local paths are canonical for file-backed asset identity, while the localhost API remains canonical for runtime object ids, semantic mutation, execution, and diagnostics.
+- The project bootstrap contract is now `TestAssets/project-index.yaml -> TestAssets/<slug>/<slug>.yaml -> project-local environment/reference files as needed`, with the active project becoming the default routing anchor for follow-up local asset work.
+- Legacy server-era platform cards `002-005` remain in the repo only as transitional compatibility surfaces pending downstream cleanup.
+## Session 2026-03-14 (Skill 063 environment-aware service-definition intake hardening)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`:
+  - made the service-definition question depend on whether one or multiple environments are already known
+  - added a fail-closed disambiguation step when multi-environment service-definition answers do not clearly map definitions to environments
+  - required service-definition readback before storing it as understood context
+  - required BASE_URL candidate extraction plus user confirmation of environment-to-BASE_URL mapping before persisting `BASE_URL`
+  - updated validation/failure-mode wording and the `project.yaml` schema example to reflect environment-associated definitions and confirmed base URLs
+- Updated contributor-facing status/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor feedback that service-definition intake should not stop at collecting URLs: future agents should resolve multi-environment ambiguity explicitly, read the provided definitions, infer candidate base URLs, and confirm those environment mappings before storing reusable project context.
+## Session 2026-03-14 (Skill 063 bootstrap default-path simplification)
+
+### Actions Completed
+- Re-read contributor synchronization guidance in:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+- Refined `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`:
+  - removed the mandatory app-vs-contributor classification question from the new-project interview
+  - made application-under-test the default new-project bootstrap path
+  - limited the contributor-maintenance repository branch to cases where the user explicitly identifies that context
+  - added a failure-mode note to prevent future agents from reintroducing the unnecessary question
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- This pass was driven by contributor feedback after live bootstrap use: contributor-maintenance is still a supported project-context branch, but it should be user-signaled rather than introduced as a mandatory early classification question for every new project.
+## Session 2026-03-14 (Project bootstrap orchestration and durable project-context store implementation)
+
+### Actions Completed
+- Re-read the approved bootstrap plan and the canonical bootstrap/runtime/routing/synchronization surfaces before implementation:
+  - plan `37d13324-4704-4916-888e-f87e8c75a1c5`
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+- Added durable project-context scaffolding:
+  - `docs/projects/index.yaml`
+  - `.gitignore` entry for `.soavirt/projects/`
+- Added new composite orchestration skill:
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - encoded session-start project matching, deterministic fuzzy scoring, new-project interview flow, existing-project update flow, persistence rules, project-local `.env`/`.envs` handling, and explicit sensitive-data storage choice
+- Added reusable project-bootstrap output contract:
+  - `docs/templates/project-bootstrap-context-summary-template.md`
+- Wired the canonical surfaces to the new bootstrap path:
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `README.md`
+- Updated contributor-facing rationale:
+  - `docs/logs/decision-log.md`
+
+### Notes
+- `docs/projects/` is now the canonical durable store for reusable project context, distinct from transient `work/` artifacts.
+- The bootstrap load order is `docs/projects/index.yaml -> selected project.yaml -> referenced environment/reference files only as needed`.
+- Sensitive values are not stored in tracked docs by default; the documented default persisted location is a gitignored `.soavirt/projects/<slug>/secrets.env` only after explicit user approval.
 ## Session 2026-03-14 (Workspace-wide repeated-rule cleanup review and implementation)
 
 ### Actions Completed

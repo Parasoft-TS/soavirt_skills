@@ -1,88 +1,76 @@
 # Skill 008: Data Source Type-Targeted Move
-
 ## 1) Skill Name
-Data source type-targeted move (suite-to-suite)
-
+Data source type-targeted move (suite-to-suite, hybrid local+API)
 ## 2) Objective
-Move exactly one selected data source implementation type (for example `TableDataSource`, `FileDataSource`, `WritableDataSource`) from one suite to another without moving sibling data source types.
-
+Move exactly one selected data source implementation type from one suite to another inside one `.tst`, without moving sibling datasource types, while using the local `.tst` path as the authoritative asset anchor and the localhost API only where runtime object ids or move semantics are required.
 ## 3) Scope
 - In scope:
-  - SOAtest `.tst` suite-to-suite data source moves.
-  - Type-targeted moves for `TableDataSource`, `FileDataSource`, `WritableDataSource`, `CSVDataSource`, `DbDataSource`, `ExcelDataSource`.
-  - REST-first with YAML fallback when ids are implementation-ambiguous.
+  - SOAtest `.tst` suite-to-suite datasource moves within one local file-backed asset
+  - type-targeted moves for `TableDataSource`, `FileDataSource`, `WritableDataSource`, `CSVDataSource`, `DbDataSource`, `ExcelDataSource`
+  - hybrid execution:
+    - local path/YAML evidence for file-backed targeting and type confirmation
+    - API move path when exact runtime datasource and suite ids can be resolved safely
+    - local YAML fallback when the API branch cannot target the intended datasource implementation deterministically
 - Out of scope:
-  - Cross-file moves between different `.tst` assets in one step.
-  - Semantic edits to datasource internals beyond relocation.
-
+  - cross-file moves between different `.tst` assets in one step
+  - semantic edits to datasource internals beyond relocation
 ## 3.1) Dependencies
 - Required:
+  - `docs/skills/platform/skill-001-shared-introspection.md`
   - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
   - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
-- Required for YAML fallback branch:
+- Required for local YAML fallback:
   - `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md`
-
 ## 4) Inputs
 - Required:
-  - source file id (for example `/TestAssets/... .tst`)
-  - source suite id
-  - destination suite id or destination suite name + parent id
+  - local `.tst` path or enough file-backed identity to resolve it through Skill 001
+  - source suite reference
+  - destination suite reference
   - target implementation type (for example `TableDataSource`)
 - Optional:
   - target datasource name in destination suite
-
+  - active project context
 ## 5) Preconditions
-- API base URL reachable.
-- Auth requirements satisfied.
-- File is restorable (snapshot available) before write operations.
-
+- The local `.tst` is readable.
+- If the API move branch is used, API auth/base path is valid through Skill 050.
+- A rollback-capable local edit path exists before local YAML fallback begins.
 ## 6) Procedure
-1. Resolve/create destination suite using `POST /v6/suites/testSuites` when needed.
-2. Discover source suite children with `GET /v6/children?id=<source-suite-id>`.
-3. Attempt REST move via `POST /v6/datasources/move` using candidate datasource id.
-4. Download YAML and verify whether the target implementation type moved.
-5. If REST move selected a different implementation (ambiguous shared id), invoke Skill 006 for the YAML fallback branch:
-   - establish rollback-preserving fallback copy/local rollback sources
-   - perform only the surgical YAML edit owned by this card
-   - upload/read back/restore/cleanup through the Skill 006 workflow
-6. For the YAML fallback edit itself, move only the datasource block where `impl.$type == <target-type>`.
-7. Re-download and verify implementation type distribution by suite.
-
+1. Resolve the local `.tst` path through Skill 001.
+2. Inspect local YAML first to confirm:
+   - the source and destination suites exist in the file-backed asset
+   - the target datasource implementation type exists in the source suite
+   - sibling datasource types that must remain in place are visible
+3. Decide the branch:
+   - if one exact runtime datasource candidate of the requested implementation type and the destination suite runtime id can be resolved safely, enter the API branch
+   - otherwise use the local YAML fallback branch
+4. API branch:
+   - enter Skill 050 before runtime-object discovery or mutation
+   - resolve source datasource and destination suite runtime ids
+   - if several runtime datasource candidates remain or type identity is still ambiguous, fail closed and switch to the local YAML fallback branch rather than guessing
+   - call the supported datasource move route
+5. Verify the API branch with both runtime and local evidence:
+   - API readback confirms the runtime move landed under the intended destination suite
+   - local file readback confirms the watcher-visible `.tst` now reflects the intended type move
+   - if the wrong implementation moved, stop and recover through the local YAML fallback branch rather than treating the API result as success
+6. Local YAML fallback branch:
+   - use Skill 006 to create a rollback-preserving local edit envelope
+   - move only the datasource block where `impl.$type == <target-type>` from the source suite to the destination suite
+   - do not broaden the edit to sibling datasource types or unrelated suite structure
+7. Re-read the local `.tst` and confirm postconditions.
 ## 7) Validation
-- Expected HTTP status codes:
-  - `200` for suite creation/move/upload success
-  - `400/404` possible when ids/parents are invalid
-- Expected response shape:
-  - move/create responses include `id`, `name`, `url`
-- Post-condition checks:
-  - source suite no longer contains target implementation type
-  - destination suite contains target implementation type
-  - non-target sibling datasource types remain in source suite
-
+- The source suite no longer contains the target implementation type.
+- The destination suite now contains the target implementation type.
+- Non-target sibling datasource types remain in the source suite.
+- If the API branch was used, runtime readback and local file readback agree on the final location.
 ## 8) Failure Modes
-- Shared datasource id maps to multiple implementations and REST move moves a different one first.
-- `children` view shows duplicate generic `dataSource` entries without type specificity.
-- Upload fails if `id` is not provided as query parameter on this server.
-
+- Multiple datasource runtime ids map ambiguously to one generic datasource family and the card guesses.
+- The API move branch moves a different implementation first and that outcome is accepted without local verification.
+- The local YAML fallback broadens beyond the intended datasource block.
 ## 9) Safety / Rollback
-- Read-only by default? No (this is a write skill).
+- Read-only by default? No
 - Rollback plan for writes:
-  - for REST move branch, verify target-type distribution immediately and stop if the wrong implementation moved
-  - for YAML fallback branch, use the rollback-preserving workflow in Skill 006
-
+  - for the API branch, verify immediately and stop on wrong-target movement
+  - for the local YAML fallback branch, use the rollback-preserving workflow in Skill 006
 ## 10) Reuse Notes
-- Primary target: SOAtest.
-- Virtualize object models may differ and are outside this card's default scope.
-- Shared components involved: `GET/POST /v6/suites/testSuites`, `POST /v6/datasources/move`, `GET /v6/files/download`, `POST /v6/files/upload`.
-- The YAML fallback branch should route through `docs/skills/platform/skill-006-safe-local-yaml-edit-composite.md` rather than re-documenting copy/upload/restore choreography locally.
-- Foundational dependency:
-  - `docs/skills/cross-cutting/skill-051-datasource-introspection-column-discovery.md`
-  - Use it before mutation to confirm available datasource families/columns and to improve move-impact analysis for downstream parameterized tests.
-
-## 11) Examples
-- Example intent:
-  - Move only `WritableDataSource` from `Source Suite` to `Target Suite`.
-- Example verification:
-  - Source types before: `CSV, Db, Excel, File, Writable`
-  - Source types after: `CSV, Db, Excel, File`
-  - Target types after: includes `Writable`
+- This is a hybrid card: local `.tst` identity and type evidence come first, while runtime ids and the move call remain API-mediated.
+- Use Skill 051 before mutation when datasource-family or column identity is still unclear.

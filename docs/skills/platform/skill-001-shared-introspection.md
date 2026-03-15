@@ -1,145 +1,66 @@
-# Skill Card 001: Shared File Introspection
-
+# Skill Card 001: Shared Asset Path Resolution
 ## 1) Skill Name
-Shared File Introspection (roots, folders, and typed descendants)
-
+Shared asset path resolution and local discovery
 ## 2) Objective
-- Discover what files/assets are on the SOAVirt server using shared REST endpoints that apply to both SOAtest and Virtualize.
-
+Resolve file-backed assets in the merged workspace safely and deterministically using local-path authority, project-local search, likely-root-first search, and fail-closed ambiguity handling.
 ## 3) Scope
 - In scope:
-  - List workspace roots and immediate children.
-  - Enumerate descendants under a folder.
-  - Filter descendants by type (for example `tst`, `pva`, or `pvn`).
-  - Resolve `.tst` structural children (for example root suite) using compatibility-safe paths.
+  - resolve explicit local asset paths
+  - search for file-backed assets under `TestAssets/`, `VirtualAssets/`, and `ProvisioningAssets/`
+  - prefer active-project-local search before broader search
+  - likely-root-first search by asset family/type
+  - exact-name matching before broader recursive search
+  - ambiguity detection and clarification thresholds
 - Out of scope:
-  - Downloading file content.
-  - Uploading changes.
-  - Editing asset internals.
-
+  - API runtime-object discovery
+  - downloading or uploading file bytes
+  - semantic mutation of asset contents
 ## 3.1) Dependencies
 - Required:
   - none
 - Additive:
-  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` when this skill is used as a runtime capability-preflight or target-resolution foundation.
-
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` when active project context is available
+  - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` only when the branch later needs API interaction
 ## 4) Inputs
-- Required:
-  - `baseUrl` (for example `http://localhost:9080/soavirt/api/v6`)
 - Optional:
-  - `id` (folder or file id such as `/TestAssets`)
-  - `type` (file type filter such as `tst`, `pva`, or `pvn`)
-
+  - explicit local path
+  - filename or partial path
+  - file-backed asset type (`tst`, `pva`, `pvn`, env, data file, resource file)
+  - active project context
 ## 5) Preconditions
-- API base URL reachable.
-- Auth requirements satisfied.
-- Caller has read access to workspace content.
-## 5.1) Workspace Root Invariants (Practical)
-- The server always exposes these workspace-root directories:
-  - `/TestAssets`
-  - `/VirtualAssets`
-  - `/ProvisioningAssets`
-- Treat these as the canonical base-path roots for server-hosted files.
-- If the caller already provides a rooted server id/path under one of these directories, use it directly and do not relist roots first.
-- If the caller provides only a filename or partial path, choose the most likely root first:
-  - SOAtest `.tst` and related test assets -> `/TestAssets`
-  - Virtualize `.pva` -> `/VirtualAssets`
-  - Provisioning Assets `.pvn` and related Virtualize provisioning/support files -> `/ProvisioningAssets`
-- Broaden to sibling roots only after the likely-root query returns no match.
-
+- Workspace roots are locally readable.
+## 5.1) Root Invariants
+Treat these as the fixed local roots for merged-workspace asset discovery:
+- `TestAssets/`
+- `VirtualAssets/`
+- `ProvisioningAssets/`
 ## 6) Procedure
-1. If root context is unresolved, call `GET /v6/children` with no `id` to confirm workspace roots and base-path reachability.
-2. If the caller already has an exact rooted file/folder id under `/TestAssets`, `/VirtualAssets`, or `/ProvisioningAssets`, use that id directly.
-3. If only a filename, file type, or partial path is known, choose the likely root first using Section 5.1.
-4. When the caller provides an exact filename and the likely root is known (for example `.tst` under `/TestAssets`), call `GET /v6/children?id=<likely-root>` first and attempt an exact-name match before broadening to recursive discovery.
-5. Call `GET /v6/children?id=<id>` for immediate children when the target is likely a direct child of the chosen root.
-6. Call `GET /v6/descendants/files?id=<id>` to retrieve recursive descendants only when immediate-child lookup is insufficient.
-7. Add `type=<value>` (for example `tst`, `pva`, or `pvn`) to narrow recursive results.
-8. After any discovery call, inspect the actual top-level response properties and normalize to the collection field the server returned (for example `children`, `files`, or another endpoint-specific collection).
-   - do not infer the collection field solely from the endpoint name
-   - if no collection field is present, stop and surface the mismatch rather than treating a missing property as an empty result set
-9. For `.tst` structure reads, prefer:
-  - `GET /v6/children?id=<tst-id>` for direct root-suite discovery,
-  - `GET /v6/descendants/assets?id=<tst-id>` for broader asset context.
-  - Do not assume class-specific file GET endpoints are available for structure reads.
-
-### 6.1) Endpoint Selection Rule (Required)
-- Use `GET /v6/descendants/files` for filesystem discovery only:
-  - folders/files under workspace roots,
-  - `.tst`/`.pva`/`.pvn` file resolution by path/name/type.
-- Prefer one of the canonical roots (`/TestAssets`, `/VirtualAssets`, `/ProvisioningAssets`) as the recursive discovery base instead of broad or synthetic root ids.
-- Use `GET /v6/children?id=<asset-id>` and `GET /v6/descendants/assets?id=<asset-id>` for asset-graph discovery only:
-  - suites, tests, tools, datasources, environments, and other in-file objects.
-- Do not use `GET /v6/descendants/assets` with directory ids (for example `/TestAssets`); resolve file ids first.
-- Parse the collection field returned by the specific endpoint; do not assume every discovery response uses the `children` array.
-### 6.1.1) Response-Collection Normalization Rule (Required)
-- For every discovery response, determine the returned collection field from the actual top-level JSON properties before filtering or matching.
-- Accept whichever collection field the runtime returned for that endpoint/profile (for example `children` for some `descendants/files` responses on this runtime) instead of assuming a fixed field name from the path.
-- If the expected discovery response has no usable collection field, fail closed and surface the response-shape mismatch rather than filtering a missing property to an empty result set.
-### 6.2) Common Response Type Literals (Practical Reference)
-- File/root discovery commonly returns API `type` values such as:
-  - `directory`
-  - `tst`
-  - `pva`
-  - `pvn`
-- Asset-graph discovery commonly returns API `type` values such as:
-  - `testSuite`
-  - `restClient`
-  - `excelDataSource`
-  - `environment`
-- These are API literals, not UI labels.
-- When filtering or matching objects, use the observed `type` values returned by the API instead of guessing from display names such as "suite" or "REST Client".
-
-### 6.3) Post-Mutation Nested Target Re-Resolution Rule (Shared)
-- After a container-level mutation such as file copy or suite generation, treat nested object ids inside the new container as unstable unless the runtime/API explicitly proves id preservation.
-- Do not assume that a nested source id continues to identify the copied/generated target object.
-- Do not rely on one broad descendants query alone to guess the intended nested target when multiple similar objects may exist.
-- Re-resolve nested targets from the new container root using this narrowing order:
-  1. re-establish the copied/generated container root id exactly
-  2. walk the stable structural path context captured before mutation (for example suite -> scenario -> test)
-  3. narrow by expected object `type`
-  4. narrow by stable local identity such as preserved name/label
-  5. use preserved source-tree order only as a final tie-breaker when multiple otherwise-equivalent candidates remain
-- If the local subtree cannot be re-established exactly or multiple candidates still remain after narrowing, fail closed and surface the ambiguity instead of guessing a nested target id.
-
+1. If the caller provides an explicit local path, use it directly.
+2. If active project context exists, search the canonical project-local locations first:
+   - `TestAssets/<project>/`
+   - `TestAssets/<project>/environments/`
+   - `TestAssets/<project>/data/`
+   - `TestAssets/<project>/resources/`
+3. If only a filename/partial path is known, choose the likely root first:
+   - `.tst` and SOAtest project files -> `TestAssets/`
+   - `.pva` -> `VirtualAssets/`
+   - `.pvn` -> `ProvisioningAssets/`
+4. Prefer exact-name immediate-child lookup in the likely location before broader recursive search.
+5. Broaden to other projects or sibling roots only after the likely-root/local search returns no match.
+6. If one clear match remains, return that local path.
+7. If multiple plausible matches remain, stop and ask the user to clarify.
+8. If the task later requires runtime object ids rather than file-backed identity, stop local targeting and enter the API lane through Skill 050.
 ## 7) Validation
-- Expected HTTP status codes:
-  - `200` success
-  - `400` invalid parameter
-  - `401` unauthorized
-  - `403` forbidden
-  - `404` item not found
-- Expected response shape:
-  - `GET /v6/children`: JSON object with `children` array.
-  - Descendants endpoints: JSON object with the endpoint-specific returned collection.
-  - Returned objects include fields such as `id`, `name`, `type`, and `url`.
-- Post-condition checks:
-  - Root listing contains expected top folders (`TestAssets`, `VirtualAssets`, `ProvisioningAssets`).
-  - Type-filtered queries return only requested file type entries.
-
+- The returned target is a concrete local path.
+- The path exists and is readable for the intended branch.
+- If multiple plausible paths were found, no guess was made.
 ## 8) Failure Modes
-- Empty result set: wrong `id`, wrong `type`, or no matching files.
-- A missing or misread collection field is treated as an empty result set, causing false \"not found\" conclusions even though matching files were present in the response.
-- `400`: malformed query parameters.
-- `401` / `403`: credentials or permission issue.
-- `404`: resource id does not exist.
-
+- A runtime object request is mistaken for a file-backed path-resolution request.
+- Search broadens across roots/projects before exhausting the active-project/likely-root path.
+- Multiple matches are silently guessed instead of clarified.
 ## 9) Safety / Rollback
 - Read-only by default? Yes
-- Rollback plan for writes: Not applicable (no writes in this skill).
-
+- Rollback plan for writes: not applicable
 ## 10) Reuse Notes
-- SOAtest usage: list `.tst` under `/TestAssets` via `type=tst`.
-- Virtualize usage: list `.pva` under `/VirtualAssets` via `type=pva`.
-- Provisioning usage: list `.pvn` under `/ProvisioningAssets` via `type=pvn`.
-- Shared components involved (e.g., JSON Data Bank): not required for this skill.
-
-## 11) Examples
-- Example request(s):
-  - `GET http://localhost:9080/soavirt/api/v6/children`
-  - `GET http://localhost:9080/soavirt/api/v6/children?id=%2FTestAssets`
-  - `GET http://localhost:9080/soavirt/api/v6/descendants/files?id=%2FTestAssets&type=tst`
-  - `GET http://localhost:9080/soavirt/api/v6/descendants/files?id=%2FVirtualAssets&type=pva`
-  - `GET http://localhost:9080/soavirt/api/v6/descendants/files?id=%2FProvisioningAssets&type=pvn`
-- Example response snippet(s):
-  - `{"children":[{"id":"/TestAssets","name":"TestAssets","type":"directory"}]}`
+- Use this card as the canonical owner of local asset targeting discipline.
+- Do not use it to infer API-authoritative runtime object ids from local YAML alone.

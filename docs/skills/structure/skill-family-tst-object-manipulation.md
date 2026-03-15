@@ -43,6 +43,7 @@ Object overlays:
 - tool overlay
 - data source overlay
 - environment overlay
+  - canonical v1 owner: `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
 - global property overlay
 
 ## Composite Workflow Cards

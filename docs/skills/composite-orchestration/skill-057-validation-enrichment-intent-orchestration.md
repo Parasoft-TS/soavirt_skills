@@ -82,6 +82,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 2. If the request is still broad service-test creation/generation intent, route back through Skill 033 instead of continuing here.
 3. Resolve target scope by precedence:
    - explicit values in the current prompt,
+   - active project record sections relevant to the branch (`environment_files`, `services`, `facts`, `references`, `notes`),
    - values confirmed earlier in the current session,
    - relevant environment variables or existing asset references that have already been confirmed.
 4. Ask scope once when unresolved:
@@ -103,6 +104,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 11. Trustworthy baseline evidence must come from the selected target's own execution traffic/results context:
   - prefer the selected target's execution traffic payloads and related run evidence,
   - do not substitute ad-hoc direct endpoint calls for baseline design.
+  - the exploration-backed exception to this stable rule is owned only by experimental Skill 067 inside the explicit opt-in experimental lane.
 12. If usable baseline evidence is missing, stale, or low-confidence:
   - run focused execution for the selected targets using Skill 012,
   - gather response traffic/results from that execution before proposing validation bundles.
@@ -159,7 +161,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 28. Only after a slice is confirmed ready, inspect the current live output for validation-bundle design, including any static-vs-dynamic characteristics needed for Diff Tool vs Assertor selection.
   - classify payload type from the observed semantic response/result body first and use response headers such as `Content-Type` only as supporting evidence.
   - if headers and observed payload disagree, route from the observed payload/body rather than the header value.
-  - if the observed REST Client response payload is empty, treat that target as a special no-tool exception: do not propose validator/assertor/diff chaining, and rely on the REST Client expected response code alone as the validation outcome.
+  - if the observed REST Client response payload/body is empty or HTML, treat that target as a special no-tool exception: do not propose validator/assertor/diff chaining, and rely on the REST Client expected response code alone as the validation outcome.
 29. For happy-path JSON/XML REST/SOAP responses, propose `schema validator + content validation` by default:
   - JSON response -> JSON Validator + (JSON Assertor or Diff Tool JSON mode),
   - XML response -> XML Validator + (XML Assertor or Diff Tool XML mode).
@@ -169,11 +171,13 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - response with obvious volatile fields (for example generated ids, timestamps, tokens, session artifacts) -> prefer targeted Assertor,
   - when uncertain, the agent may choose either Diff Tool or Assertor, but must not run repeated executions solely to prove volatility in v1.
 32. For non-JSON/XML happy-path responses:
-  - do not attach JSON/XML validators by default,
+  - if the observed payload/body is HTML, treat it as the same no-tool exception and rely on the REST Client expected response code alone,
+  - otherwise, do not attach JSON/XML validators by default,
   - route to Diff Tool mode that matches the observed runtime payload type.
 33. Present the proposed content checks after inspecting the live response:
   - for small scopes, show concise per-test proposed checks,
   - for larger scopes, summarize the proposal by grouped pattern rather than exhaustively listing every suggested check.
+33a. Before finalizing the validation proposal, consult active project facts/notes/references for stored business-critical identifiers, global validation rules, or environment-specific caveats that should influence what matters to validate. Use that project context to prioritize or include checks; do not invent new business assertions from vague notes.
 
 ### 6.3.1 DB Tool Resultset Validation Proposal
 34. For direct DB Tool resultset enrichment, inspect the observed semantic result output and propose XML Assertor or Diff Tool XML mode by default.
@@ -186,6 +190,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 ### 6.4 Schema-Source Confirmation Policy
 40. Schema/service-definition sources for validators must come from:
   - explicit user-provided WSDL/XSD/OpenAPI inputs, or
+  - active project references already stored for the branch and presented back to the user for confirmation, or
   - clearly discoverable existing references that are presented back to the user for confirmation.
 41. Do not invent schema sources.
 42. If a likely environment-variable-backed definition source is discovered:
@@ -204,7 +209,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - do not attach JSON/XML validators,
   - choose content validation from the observed negative response media type only,
   - do not assume the negative response media type matches the happy-path media type,
-  - if the observed REST Client response payload is empty, do not attach any chained tools and keep the calibrated/approved expected response code as the only validation,
+  - if the observed REST Client response payload/body is empty or HTML, do not attach any chained tools and keep the calibrated/approved expected response code as the only validation,
   - prefer Diff Tool for simple static-looking error payloads,
   - prefer Assertor when targeted field checks are more appropriate.
 47. For security branches created through the Penetration Testing Tool workflow:
@@ -242,7 +247,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - baseline-evidence source,
   - request-readiness status,
   - API or DB-resultset bundle proposal,
-  - any empty-payload no-tool exceptions,
+  - any empty/HTML-body no-tool exceptions,
   - any negative-test exceptions,
   - schema-source status,
   - DB-resultset-validation scope and/or DB-comparison scope,
@@ -268,7 +273,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - When happy-path and standard-negative targets are both approved and ready, Skill 057 prefers one combined validation plan and one approval by default rather than separate user-visible enrichment phases.
 - Underconfiguration classification requires multi-signal evidence rather than one weak clue or failure alone.
 - Empty-but-valid DB resultsets do not trigger request-readiness remediation by themselves.
-- Empty REST Client response payloads are a special no-tool exception: do not attach chained validators/assertors/diffs, and rely on the REST Client expected response code alone as the validation outcome.
+- Empty or HTML REST Client response payloads/bodies are special no-tool exceptions: do not attach chained validators/assertors/diffs, and rely on the REST Client expected response code alone as the validation outcome.
 - Happy-path JSON/XML tests default to `schema validator + content validation` unless the user explicitly prefers otherwise.
 - Once the user approves a per-target validation plan, execution preserves that approved family per target unless the user explicitly re-approves a change.
 - Mixed-media scopes remain per-target during execution; they are not normalized into one shared validation family across the batch.
@@ -291,7 +296,7 @@ Conversation-first default: favor natural-language solicitation and interpretati
 - Pre-remediation response/result evidence is reused to design validation tooling after a Skill 058 handoff.
 - Validation writes proceed because remediation approval was mistakenly treated as validation-plan approval.
 - Happy-path and standard-negative validation are serialized into separate user-visible phases even though no readiness split, blocker, or user instruction required the split.
-- Chained validation tools are added even though the observed REST Client response payload is empty and the expected response code alone should have remained the validation.
+- Chained validation tools are added even though the observed REST Client response payload/body is empty or HTML and the expected response code alone should have remained the validation.
 - An approved per-target validation plan is silently substituted during execution.
 - Approved JSON/XML validator coverage is omitted even though it was part of the confirmed plan.
 - Response headers are trusted over the observed payload/body, causing validator/assertor family mismatch.

@@ -2,10 +2,7 @@
 
 Use this template when explaining a `.tst` file to users.
 
-## 0) Output Profile
-- **Depth:** brief / standard / deep
-
-## 0.1) Default Detail Heuristic
+## 0) Default Detail Heuristic
 - Determine size from YAML structure counts: number of suites and tests.
 - Default behavior:
 	- **Small TST** (<= 15 tests): include suites and tests in Section C.
@@ -13,6 +10,7 @@ Use this template when explaining a `.tst` file to users.
 	- **Large TST** (> 50 tests): include suites only by default; omit test lists unless user asks.
 - Always allow explicit user override (for example: "include all tests" or "suite-only view").
 - Heuristic bucket is internal guidance and should not be shown in the default user summary.
+- Do not show this section when emitting to the user, for internal guidance only.
 
 ## A) Executive Summary
 - **What this TST does (1-3 sentences):**
@@ -31,9 +29,9 @@ Use this template when explaining a `.tst` file to users.
 
 When Environment Reference is used:
 - Download referenced `.env` or `.envs` file from server.
-- Resolve active environment to a concrete environment node from that file.
-- Populate the variable table from the resolved active environment.
-- Include note of source file and whether it is `.env` (single env) or `.envs` (multiple envs).
+- Treat the referenced file as reference evidence, not as proof that runtime switched to it.
+- Populate the variable table from the referenced file only when the values are clearly labeled as referenced-file content rather than verified active-environment values.
+- Include note of source file, whether it is `.env` (single env) or `.envs` (multiple envs), and whether the values shown are verified active-environment values or reference-file evidence only.
 
 ## C) Structure at a Glance
 - **File id:**

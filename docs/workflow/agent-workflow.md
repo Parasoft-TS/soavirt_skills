@@ -24,7 +24,55 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - When a skill lists cross-cutting dependencies, load them before executing the skill's procedure. If two skills address the same domain (for example JSON validation tools), load ALL listed dependencies from BOTH skills before proceeding.
 - Skill-declared dependencies are additive safeguards, not the only safeguards.
 - Do not allow missing dependency declarations in a target card to bypass mandatory prelude safeguards.
-
+### Session-Start Project Bootstrap Rule (Global)
+- For every new session under this repo that has loaded `AGENTS.md`, immediately after the session-start required reading defined there, load `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` and run project bootstrap before any further task work.
+- Treat loading `AGENTS.md` as explicit opt-in to SOAtest/Virtualize-oriented follow-on work, even when the next task appears contributor-facing, policy-oriented, or otherwise not yet clearly project-aware.
+- At a high level, bootstrap must either:
+  - resolve one existing project and continue with that project's durable context
+  - ask one disambiguation question when several close matches exist
+  - create, update, or repair a durable project record under `TestAssets/` when needed
+- Preserve progressive context loading after bootstrap:
+  - resolve project context in this order: `TestAssets/project-index.yaml` -> selected `TestAssets/<slug>/<slug>.yaml` -> referenced environment file(s) under `TestAssets/<slug>/environments/` -> only the specific referenced files needed for the active task
+  - do not preload all project references, notes, or history by default
+- Skill 063 owns the exact prompts, matching thresholds, persistence steps, update flow, and summary contract.
+### Post-Bootstrap Project Context Contract (Global)
+- Once Skill 063 resolves an active project, that project record becomes part of session runtime state for all later project-aware work until the user changes projects or the branch is clearly project-agnostic.
+- Direct routing from `docs/skills/skill-index.md` to a smaller atomic/workflow card, or handoff from one card to another, does not clear that active-project obligation.
+- For project-aware branches, consult the active project record before:
+  - asking the user for information that may already be stored,
+  - choosing default file-backed asset locations,
+  - synthesizing request/configuration values,
+  - resolving schema/service-definition sources when the owning workflow still needs source selection,
+  - making validation-priority or environment-sensitive decisions.
+- Shared consultation order for project-aware branches:
+  1. explicit current-task instructions,
+  2. active project record sections relevant to the task (`environment_files`, `services`, `facts`, `references`, `notes`),
+  3. values already confirmed in the current session,
+  4. direct runtime evidence or contract evidence appropriate to the current branch,
+  5. same-`.tst` local evidence when the owning skill allows it,
+  6. one targeted user question.
+- Relevance gate:
+  - project-record consultation is mandatory only when the branch still involves asset placement/default destinations, request/config synthesis, schema/service-definition source resolution, validation priorities/business rules, or environment-specific behavior.
+  - if those decisions are already fully specified, the smaller card may proceed without mechanically reloading all project context while still treating the active project as in scope.
+- Override rule:
+  - explicit current-task instructions outrank stored project defaults for target paths, project selection, environment choice, source location, and destination location.
+  - active project context supplies defaults, durable references, and missing facts; it must not silently override explicit user scope.
+  - intentional cross-project work is valid and must not be collapsed back into the currently active project.
+### SOAtest Environment Model and Owner (Global)
+- Use these terms distinctly:
+  - `project environment`: semantic deployment/test context captured during bootstrap (for example `QA`, `DEV`)
+  - `project environment file`: canonical external `.env` / `.envs` stored under `TestAssets/<slug>/environments/`
+  - `internal SOAtest Environment object`: environment node inside a `.tst`, managed through `/v6/environments`
+  - `referenced environment node`: `.tst` environment node that points at an external environment file
+  - `active environment`: execution-time environment actually used by a `.tst`
+- Canonical mapping:
+  - Skill 063 owns semantic environment capture and durable project environment-file references,
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md` owns environment mechanics across external files, internal nodes, referenced nodes, active-environment verification, and shared generation-mode semantics,
+  - runtime behavior follows the verified active environment of the `.tst`, not merely the existence of a referenced environment node or project environment file.
+- Runtime rule:
+  - creating or attaching local/internal or referenced environments does not by itself prove that execution has switched to that environment source.
+  - changing the active environment is a separate explicit action after new environments are added to a `.tst`.
+  - until a branch verifies active-environment behavior explicitly, treat the `.tst`'s verified active environment as the runtime authority.
 ### Parasoft Intent Detection Gate (Global)
 - Before selecting cards, detect whether the user request is Parasoft-domain or general-purpose.
 - Treat requests as Parasoft-domain when prompt cues include (case-insensitive, singular/plural allowed):
@@ -49,15 +97,19 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - If a read-only analysis request remains ambiguous after applying the routing rules, prefer the more evidence-constrained matching analysis skill unless the user explicitly asks for a higher-level summary.
 
 ### Decision Rule
+- If the operation is a pure local file-backed asset operation, prefer the local workspace path and do not force API discovery first.
 - If the operation can be done entirely server-side with a dedicated endpoint, prefer that endpoint.
-- Runtime asset targeting policy (mandatory for SOAtest/Virtualize asset tasks):
-  - treat server API as the source of truth for resolving runtime targets (`.tst`/`.pva`, suites, tools, data sources, and ids).
-  - resolve target identity via API discovery first (for example `GET /v6/children` then descendants/asset reads).
-  - do not use local filesystem search (`ripgrep`, glob scans, local path heuristics) to discover runtime server assets.
-  - do not inspect repository files, `work/` snapshots, or prior run artifacts as a substitute for API-first runtime asset resolution when the task names a runtime asset.
+- File-backed asset targeting policy (mandatory for file-backed asset tasks):
+  - treat explicit local paths and merged-workspace search as the source of truth for locating file-backed assets such as `.tst`, `.pva`, `.pvn`, env files, and project resources.
+  - use active-project-local search and likely-root-first search before broadening to other local roots/projects.
+  - do not force API discovery first when a file-backed asset has already been resolved locally.
+- Runtime object targeting policy (mandatory for runtime-object tasks):
+  - treat the localhost API as the source of truth for runtime object ids (`testSuite`, tool, datasource, environment, output-provider, execution target, and similar in-file runtime identities).
+  - resolve runtime object identity via API discovery when the task depends on those ids.
+  - do not infer runtime object ids from local files alone.
 - API-first mutation policy:
   - if a supported API write path exists, use API mutation.
-  - use download/edit/upload only when file content must actually change and no suitable API mutation path is available for the intended operation.
+  - use local YAML fallback only when file content must actually change, the selected skill explicitly allows local YAML editing, and no suitable API mutation path is available for the intended operation.
 - For assertion authoring, compose logic from the user prompt at runtime (field/rule/source), and avoid codifying domain-specific fixed assertion recipes as mandatory patterns.
 - For Diff/Assertor stabilization branches, summarize runtime differences in human-readable form (field/XPath/property and expected vs actual) and require explicit user confirmation before adding ignore rules.
 - Build new tool configurations from endpoint contracts and skill rules first; existing workspace tool instances may be used only as optional verification, never as a required source template.
@@ -82,11 +134,16 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - If response headers and the observed payload disagree, follow the observed payload and parser-compatible content shape for tool-family selection.
 - Do not attach JSON/XML validation tools only because the producer class or response headers suggest JSON/XML when the observed payload is actually plain text or another type.
 
+### Experimental Exploration Lane Boundary (Global)
+- Direct endpoint exploration evidence is a first-class baseline only inside the explicit opt-in experimental lane owned by `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`, `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`, and `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`.
+- Outside that explicit lane, keep the stable execution-backed evidence model owned by Skills 033, 057, and 058.
+- Do not generalize the experimental exploration baseline into stable routing or stable validation/remediation branches without an explicit later architectural change.
+
 ### Capability Preflight Gate (Global)
-- `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` is the canonical preflight policy surface for server-API runtime work.
-- Before first write in a branch/session, resolve and normalize the active API base path with a read probe (for example `GET /v6/children`).
-- Before first write in a branch/session, run the matched Skill 050 preflight.
-- Before first write in a branch/session, this gate is mandatory/fail-closed.
+- `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` is the canonical preflight policy surface for API-based runtime work.
+- Use the lightweight Skill 050 lane for API-read branches that need safe base-path, endpoint-method, and `404` handling.
+- Before first API mutation or execution branch in a session, resolve and normalize the active API base path with a read probe (for example `GET /v6/children`) and run the matched Skill 050 preflight.
+- The write/execution lane is mandatory/fail-closed before continuation.
 - Prefer verified-supported endpoint-method pairs and documented fallback routes over optimistic assumptions.
 
 ### SOAVirt Base URL Bootstrap Rule (Global)
@@ -116,23 +173,26 @@ For Parasoft-domain requests, load in this order:
 1. Runtime Prelude (above).
 2. Route via `docs/skills/skill-index.md` and load the minimal target card for user intent.
 3. Load target-card declared dependencies (additive).
-4. If the task escalates into writes, add the write-branch bundle that matches the mutation class:
-  - file writes: platform file ops + capability preflight
+4. If the task remains local file-backed work, stay in the local-first branch and load only the local asset/path surfaces needed for that work.
+5. If the task escalates into an API branch, enter Skill 050 with the matching branch profile before continuing.
+6. If the task escalates into writes or execution, add the branch bundle that matches the mutation class:
+  - local file writes: platform file ops / local path handling, plus Skill 006 only when local YAML editing is explicitly authorized
   - suite/object writes: structure skill + object/suite PUT safety policy + capability preflight
   - tool writes: target tool skill + tool PUT safety policy + capability preflight
   - output chaining writes: target skill + Skill 017 + Skill 018 + capability preflight
   - execution-observation branches (baseline run, verification run, or traffic observation): apply `Execution Diagnostics Default (Global)`.
 This algorithm is mandatory; do not rely on target-card dependency declarations alone.
-
-### Two-Phase Execution Policy for Server Asset Tasks (Required)
-Apply the Decision Rule in this sequence for SOAtest/Virtualize runtime asset operations:
-1. Phase A - Target resolution (API-first):
-  - identify target files/objects/parents via server API reads only.
-  - if target cannot be resolved from API, request clarification rather than switching to local filesystem discovery.
-2. Phase B - Mutation path selection:
-  - use verified-supported API mutation when available.
-  - use download/edit/upload only when the selected skill explicitly allows it and Skill 050 fallback routing indicates no suitable API write path for the intended mutation.
-This policy prevents local-search misrouting while preserving legitimate YAML fallback workflows.
+### Two-Lane Execution Policy for Asset Tasks (Required)
+Apply the Decision Rule in this sequence for SOAtest/Virtualize asset operations:
+1. Phase A - Target resolution:
+  - for file-backed assets, resolve the target by explicit local path or merged-workspace search first
+  - for runtime objects, resolve the target id through the localhost API
+  - if the correct lane still leaves the target ambiguous or unresolved, request clarification rather than guessing
+2. Phase B - Operation path selection:
+  - use local filesystem operations for pure file-level reads/copy/rename/delete work
+  - use verified-supported API mutation or execution paths when the branch is semantic, generative, or execution/diagnostic in nature
+  - use local YAML fallback only when the selected skill explicitly allows it and the local rollback/preflight requirements for that branch are satisfied
+This policy prevents API-first misrouting for file-backed assets while preserving API authority where runtime semantics still require it.
 
 ### Failure Response Rule (Global)
 - `401`/`403`: stop writes and resolve credentials/licensing.
@@ -161,4 +221,9 @@ This policy prevents local-search misrouting while preserving legitimate YAML fa
   - `docs/logs/decision-log.md`
   - include `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md` for server-API runtime work
 - Use `docs/skills/skill-index.md` as the routing surface after re-intake.
+- If the prior session under this repo had an active project, re-load the selected `TestAssets/<slug>/<slug>.yaml` before task-specific execution and then load only the referenced environment/reference files needed for the resumed task.
+- Treat the previously active project as still in scope after re-intake for project-aware branches unless the user explicitly changes projects or the resumed task is clearly project-agnostic.
+- If the user later names a different project, supplies an explicit path rooted in another project, or otherwise changes project scope mid-session, update active-project state through Skill 063 before continuing project-aware work.
+- If continuity resumes with only a partial project record loaded, reload the needed portions of the active project context instead of assuming either that all project context is known or that it has been lost entirely.
+- After `AGENTS.md`/startup re-intake in a resumed session under this repo, do not skip project-context reload merely because the resumed task looks contributor-facing or not yet clearly project-aware.
 - Optionally review latest transient run artifacts under `work/runs/<date>/<run-name>/` when runtime context is relevant, but treat them as supplementary evidence only; they must not replace API-first target resolution when the active workflow requires server-side discovery.

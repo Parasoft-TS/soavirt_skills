@@ -1,173 +1,126 @@
 # Skill 050: Server API Capability Preflight
-
 ## 1) Skill Name
-Server API capability preflight (endpoint-method compatibility and fallback routing)
-
+Server API capability preflight (API-branch safety, compatibility, and fallback routing)
 ## 2) Objective
-Minimize trial-and-error during server interactions by standardizing per-session API capability classification, fallback routing, and reusable evidence for server-API-mediated runtime branches, with fail-closed gating before writes.
-
+Prevent trial-and-error mistakes when a branch interacts with the localhost API by standardizing API-root normalization, capability classification, `404` disambiguation, fallback routing, and opportunistic transient capability reuse.
 ## 3) Scope
 - In scope:
-  - base URL/API-root reachability probe.
-  - operation-class/runtime-branch preflight profiles.
-  - capability-sensitive read, write, transfer, and execution branch compatibility checks.
-  - endpoint-method capability classification and `404` disambiguation.
-  - deterministic fallback routing for unsupported/unavailable paths.
-  - per-session capability ledger recording for reuse.
+  - API-read safety for runtime-object discovery and other API-mediated reads
+  - API-write/execution safety before semantic mutation, generation, execution, or diagnostics
+  - base URL / API-root normalization
+  - branch-category capability classification
+  - `404` disambiguation
+  - fallback-routing policy by branch class
+  - transient capability-ledger reuse
 - Out of scope:
-  - modifying OpenAPI cache files.
-  - replacing endpoint-level behavior in atomic skills.
-  - redefining payload schemas owned by endpoint-specific cards.
-
+  - pure local filesystem operations
+  - local file-backed read-only analysis
+  - endpoint-specific payload schemas and detailed request/response choreography owned by other skills
 ## 3.1) Canonical Ownership Boundaries
-- Endpoint role semantics for discovery/targeting are owned by:
-  - `docs/skills/platform/skill-001-shared-introspection.md`
-- File transfer safety and encoding invariants are owned by:
-  - `docs/skills/platform/skill-002-shared-file-transfer.md`
-- Execution payload and traffic retrieval constraints are owned by:
-  - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
-- This skill owns runtime API capability preflight policy only (classification, routing, and evidence model).
-
+This card owns:
+- branch-category policy for API interaction
+- base-URL/path normalization
+- `404` disambiguation
+- capability classification
+- capability cache/ledger rules
+- gate conditions for allowing an API branch to continue
+This card does not own:
+- endpoint payload schemas
+- object semantics
+- leaf-skill request/response details
 ## 4) Inputs
 - Required:
-  - resolved `baseUrl`.
-  - intended workflow branch.
+  - resolved or candidate `baseUrl`
+  - intended API branch class
 - Optional:
-  - force-refresh flag for capability re-probe.
-  - cached OpenAPI spec key/path.
-
+  - force-refresh flag
+  - transient capability cache key/path
 ## 5) Preconditions
-- Server is reachable on network.
-- Authentication requirements are satisfied.
-## 5.1) Preflight Evidence Cache (Optional, Recommended)
+- The branch actually needs API interaction.
+- Authentication requirements are satisfied for the intended branch.
+## 5.1) Capability Ledger (Optional, Transient)
 - When available, read and persist capability outcomes in `work/cache/capability-ledger/<baseurl-key>.json`.
-- Treat the ledger as an opportunistic transient cache: if it is present and readable, consult it before probing; if it is missing or unreadable, continue with live preflight and do not block probing.
-- Reuse existing verified results for unchanged cache keys to avoid redundant probing across:
-  - multi-skill composition for one operator request,
-  - multiple operator prompts in the same ongoing agent session.
-
-## 5.2) Canonical Cache Key
-- Cache key tuple:
-  - `baseUrlKey + endpointPath + method + operationProfile + authContextKey`
-- `authContextKey` should distinguish principal/auth mode at minimum (for example user or auth scheme identity marker).
-
+- Treat the ledger as an opportunistic transient cache only.
+- Cache absence, deletion, unreadability, or write failure must never block live preflight.
+- Local-only branches do not consult or update the capability ledger.
 ## 6) Procedure
-1. Determine operation class for the pending branch (see Section 6.1 profiles).
-2. Attempt to load capability ledger from `work/cache/capability-ledger/<baseurl-key>.json`; if it is missing or unreadable, continue with an empty in-memory cache and do not block preflight.
-3. Resolve cache keys for planned endpoint-method checks.
-4. For each planned check:
-  - if a valid cache entry exists and no invalidation condition applies (Section 6.4), reuse cached classification and skip runtime probe.
-  - otherwise queue the check for runtime probing.
-5. Probe base API reachability with a lightweight read when no valid cached reachability record exists:
-   - `GET /v6/children`
-6. Perform spec-first verification for queued checks:
-  - when cached OpenAPI is available, confirm endpoint-path/method presence before runtime probe.
-7. Apply the matching preflight profile from Section 6.1.
-8. Classify each new runtime probe result using Section 6.2.
-9. Update ledger entries for new/invalidated checks and persist ledger file on a best-effort basis; if cache persistence fails, continue with the current session's preflight results.
-10. Select fallback route only from the matched profile and documented references in Section 7.
-11. Continue execution using only profile-verified endpoint-method pairs.
-
-### 6.1) Canonical Runtime Branch Profiles
-- Profile A: filesystem and asset target resolution (read-only)
-  - use endpoint-role semantics from Skill 001:
-    - `GET /v6/children`
-    - `GET /v6/descendants/files`
-    - `GET /v6/descendants/assets` only with asset/file ids (never directory ids).
-- Profile B: `.tst` generation/create-readback branches
-  - pre-write checks:
-    - parent id resolvable/writable.
-    - name-collision check when name uncertainty exists (or after ambiguous output).
-  - write path:
-    - `POST /v6/files/tsts*` endpoint selected by target generation card.
-  - readback route:
-    - primary: `GET /v6/children?id=<tst-id>`
-    - optional context: `GET /v6/descendants/assets?id=<tst-id>`
-  - compatibility guard:
-    - do not use `GET /v6/files/tsts?id=...` as a cross-server readback assumption.
-- Profile C: file transfer branches
-  - resolve id existence with read probes before upload/download.
-  - enforce UTF-8 without BOM for upload-bound content per Skill 002.
-  - require re-download verification after upload writes.
-- Profile D: execution and traffic-observation branches
-  - payload contract and fail-fast behavior are owned by Skill 012.
-  - traffic retrieval must use two-step suite/viewer flow:
-    - suite `entityId` -> returned viewer ids -> focused viewer payload call.
-- Profile E: suite/object/tool mutation branches
-  - resolve target ids/parents through current readback before write.
-  - use read-merge-write policies:
-    - tools: Skill 049
-    - non-tool objects: Skill 053
-  - avoid synthetic sparse-write probes as method compatibility checks.
-
-### 6.2) Capability Classification and `404` Disambiguation
-- `200`: supported and successful.
-- `400`: method/path likely supported; classify payload/input issue unless contradictory evidence exists.
-- `401`/`403`: auth/license blocked; stop write branch and resolve access.
-- `405`: method unsupported for endpoint; route via profile fallback.
-- `404`: ambiguous until disambiguated.
-
+### Lane A: API-read preflight
+Use this lane for API-mediated read-only branches such as runtime-object discovery.
+1. Confirm the usable API root with a lightweight read probe when no valid cached root result exists.
+2. Consult the transient capability cache opportunistically when present.
+3. Apply only the minimal profile checks needed for the read branch.
+4. If id/path ambiguity remains unresolved, stop and ask rather than guessing.
+### Lane B: API-write / execution preflight
+Use this lane before API generation, semantic mutation, execution, or diagnostics.
+1. Confirm the usable API root with a lightweight read probe when needed.
+2. Consult the transient capability cache opportunistically when present.
+3. Apply the matching write/execution profile.
+4. Classify the route before continuation.
+5. If the route is unsupported or ambiguous, stop and hand off to the documented fallback route.
+## 6.1) Branch Profiles
+- Profile A: API-read / runtime-object discovery
+  - use when the branch needs API-authoritative runtime ids or other API-mediated reads
+- Profile B: API generation / create / readback
+  - use for API-based asset generation and create flows
+- Profile C: semantic mutation
+  - use for API PUT/POST/PATCH/DELETE branches that change runtime objects or semantic asset structures
+- Profile D: execution / traffic / diagnostics
+  - use for `/testExecutions`, traffic retrieval, and related diagnostics branches
+- Profile E: explicit transfer / sync fallback
+  - keep only if a meaningful transfer/sync fallback still survives after the platform-family rewrite
+## 6.2) Capability Classification and `404` Disambiguation
+- `200`: supported and successful
+- `400`: path/method likely supported; classify as payload/input issue unless stronger evidence contradicts it
+- `401` / `403`: auth/license blocked; stop the branch and resolve access
+- `405`: method unsupported for that endpoint; route through the documented fallback for the branch profile
+- `404`: ambiguous until disambiguated
 `404` disambiguation sequence:
-1. Re-verify referenced ids/parents via read endpoints (target-resolution check).
+1. Re-check the active base path and target id/path assumptions.
 2. Verify endpoint-path/method presence from cached OpenAPI when available.
 3. Classify outcome:
-  - input/id mismatch -> fix inputs; keep same branch path.
-  - endpoint unavailable/unsupported in target runtime -> route to profile fallback.
-
-### 6.3) Capability Ledger Format (Canonical)
-For each probed endpoint-method pair, store:
-- timestamp.
-- base URL key.
-- operation class/profile.
-- endpoint + method.
-- probe intent.
-- HTTP status.
-- final classification.
-- selected fallback (if any).
-- evidence reference (artifact path or response id).
-- cache key tuple fields from Section 5.2.
-
-Reuse rules (mandatory):
-- do not re-probe unchanged endpoint-method tuples within the same session when a valid verified outcome is already available from the loaded ledger or the current session's in-memory preflight state.
-- attempt to persist ledger updates after preflight completion so subsequent prompts in the same session can reuse them when cache write succeeds.
-
-### 6.4) Cache Invalidation Rules (Mandatory)
-Invalidate and re-probe a cached entry when any of the following is true:
-1. `baseUrl` changes.
-2. auth context changes (principal/scheme marker differs from `authContextKey`).
-3. force-refresh is requested.
-4. runtime behavior contradicts cached classification (for example cached supported path later returns `405`/contradictory `404` after id/path validation).
-
+  - input/id/path mismatch -> fix inputs and stay in the same branch class
+  - unsupported/unavailable route -> hand off to the documented fallback route for the profile
+## 6.3) Capability Ledger Reuse
+For each cached result, store only transient compatibility evidence such as:
+- timestamp
+- base URL key
+- branch profile
+- endpoint + method
+- final classification
+- selected fallback (if any)
+Reuse rules:
+- do not re-probe unchanged endpoint-method tuples within compatible API branches when a valid cached result already exists
+- do not treat cached results as durable repository knowledge
 ## 7) Canonical Fallback Routing References
-- Discovery/asset-graph endpoint-role selection:
-  - `docs/skills/platform/skill-001-shared-introspection.md`
-- File transfer encoding/round-trip safety:
-  - `docs/skills/platform/skill-002-shared-file-transfer.md`
-- Execution payload schema + traffic retrieval flow:
+- runtime-object discovery and targeting discipline:
+  - `docs/workflow/agent-workflow.md`
+  - `docs/skills/platform/skill-001-shared-introspection.md` when the branch starts local-first and later needs API runtime ids
+- execution payload/traffic details:
   - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
-- `.tst` create/readback branch behavior:
-  - `docs/skills/platform/skill-021-tst-create-empty.md`
-  - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
-  - `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
-  - `docs/skills/platform/skill-024-tst-create-from-raml.md`
-  - `docs/skills/platform/skill-025-tst-create-from-xsd.md`
-
+- API generation / mutation details:
+  - owning atomic or composite skill for that branch
 ## 8) Validation
-- Preflight output includes ledger entries for all probed endpoint-method pairs.
-- No runtime branch continues with an endpoint-method pair classified unsupported/unavailable once the matched profile has selected a supported route; write branches remain fail-closed.
-- `404` outcomes are annotated as either:
-  - input/id mismatch (correct-and-retry same endpoint), or
-  - confirmed unavailable endpoint/path (fallback route).
-
+- Lane A succeeds only when the API read branch can proceed without base-path or id/path guessing.
+- Lane B succeeds only when the write/execution route is classified and the branch can continue without trial-and-error retries.
+- Cache reuse never becomes a hard dependency.
 ## 9) Failure Modes
-- Preflight omitted on a capability-sensitive branch, causing mid-run `405`/`404` retries.
-- Over-broad probing increases startup latency and reintroduces trial behavior.
-- Misinterpreting auth failures (`401`/`403`) as method incompatibility.
-- Misclassifying write-probe `404` as endpoint incompatibility without id/path disambiguation.
-- Treating payload-shape `400` as unsupported method without corroborating evidence.
-- Duplicating canonical endpoint behavior in downstream cards, creating policy drift.
-
-## 10) Reuse Notes
-- Shared across SOAtest and Virtualize when server-API capability differences can affect runtime routing.
-- Use as a dependency for composite orchestration, runtime capability-sensitive read/transfer branches, and write-capable atomic cards.
-- Keep this skill as the canonical preflight policy surface; keep endpoint/payload specifics in their atomic owner cards.
+- Skill 050 is skipped for a branch that actually uses the API.
+- Skill 050 is invoked for a local-only branch where it is not needed.
+- A `404` is treated as endpoint incompatibility before checking base path or target assumptions.
+- Cached transient results are treated as durable truth.
+- Profile definitions duplicate leaf-skill payload behavior instead of staying at the policy/gating level.
+## 10) Applicability Examples
+Use Skill 050 for:
+- resolving a suite/tool/datasource id through the localhost API
+- generating a new `.tst` through API-based creation
+- updating a runtime object through an API mutation path
+- running executions or traffic diagnostics
+Do not use Skill 050 for:
+- renaming a local `.tst` file under `TestAssets/`
+- deleting a local project resource file
+- analyzing a `.tst` by local path using YAML/file evidence only
+Hybrid rule:
+- start local-first, and enter Skill 050 only at the moment an API interaction becomes necessary
+## 11) Reuse Notes
+- Keep this card as the canonical owner of API-access discipline.
+- Keep endpoint-specific semantics in the owning leaf skills.

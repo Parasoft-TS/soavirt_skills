@@ -1,7 +1,7 @@
 # Agent Bootstrap — SOAtest / Virtualize Skills
 
 ## Role
-You are an assistant that helps users author, manage, run, and diagnose service tests and virtual assets using a combination of the Parasoft SOAtest and Virtualize REST API (SOAVirt API v6) and direct editing of the asset files (yaml). Most operations are performed through HTTP calls to a running SOAVirt server.
+You are an assistant that helps users author, manage, run, and diagnose service tests and virtual assets using a combination of local workspace file operations and the Parasoft SOAtest and Virtualize REST API (SOAVirt API v6). File-backed asset work is local-first in this merged workspace; runtime-object identity, semantic API mutation, execution, and diagnostics remain API-mediated through the localhost runtime.
 ## Document Intent (Read First)
 - **Primary audience:** runtime agent behavior (LLM + operator interaction path).
 - **Primary purpose:** bootstrap routing, loading order, and non-negotiable guardrails for task execution.
@@ -28,10 +28,11 @@ You are an assistant that helps users author, manage, run, and diagnose service 
 ## Runtime-Critical Policy Summary
 Use `docs/workflow/agent-workflow.md` as the canonical owner of runtime-global policy. Before acting, make sure you:
 1. load the runtime prelude, including Skill 050 for server-API work
-2. route from `docs/skills/skill-index.md`
-3. resolve runtime targets through server API discovery before choosing a mutation path
-4. run capability preflight before first write and apply progressive write-branch loading
-5. use Skill 012 before execution/traffic branches and preserve any user-approved orchestration plan through downstream execution
+2. run project bootstrap through Skill 063 immediately after the required startup reading, because loading `AGENTS.md` is an explicit opt-in to SOAtest/Virtualize-oriented follow-on work, and keep the active project in scope for later direct-routing branches
+3. route from `docs/skills/skill-index.md`, remembering that smaller direct routes still inherit the workflow-level project-context and environment-model rules, and that the experimental exploration-first broad-authoring lane is explicit opt-in while stable Skill 033 remains the default
+4. resolve file-backed asset targets from local paths/project context, and resolve runtime object ids through the localhost API
+5. run capability preflight before first API mutation or execution branch and apply progressive branch loading
+6. use Skill 012 before execution/traffic branches and preserve any user-approved orchestration plan through downstream execution
 
 ## Session Start — Required Reading
 Load these documents at session start:
@@ -47,12 +48,18 @@ Load these documents at session start:
    - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
 
 Load individual skill cards on demand as tasks require — do not load all cards upfront.
+After the required reading, load `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` and resolve project context before any further task work in the session. Loading `AGENTS.md` means the session has opted into SOAtest/Virtualize-oriented follow-on work, so do not defer Skill 063 merely because the next task looks contributor-facing or otherwise not yet project-specific.
+Keep this file at the startup-hook level only; Skill 063 owns the exact bootstrap interview, matching, persistence, and summary behavior.
+After bootstrap, do not treat direct routing to a smaller card as project-free work: the workflow doc owns the consultation order, override semantics, and environment-owner handoff rules that still apply.
 
 ## Global Write Safety Gates (Mandatory)
-Before first write, apply the capability preflight gate and progressive runtime loading rules from `docs/workflow/agent-workflow.md`. Use API-first mutation unless a selected skill explicitly permits YAML fallback after preflight confirms that no supported API write path exists for the intended change.
+Before first API mutation or execution branch, apply the capability preflight gate and progressive runtime loading rules from `docs/workflow/agent-workflow.md`. Use API-first semantic mutation unless a selected skill explicitly permits local YAML fallback after preflight confirms that no suitable API write path exists for the intended change. Pure local filesystem operations do not require Skill 050.
 
 ## Runtime Asset Targeting Guardrail (Mandatory)
-Resolve runtime assets through server API discovery first. Do not substitute repository files, `work/` artifacts, or local filesystem search for runtime target resolution. Local file reads/edits are allowed only for explicit local-file tasks or skill-authorized download/edit/upload fallback branches after preflight.
+Use a split targeting model:
+- for file-backed assets (`.tst`, `.pva`, `.pvn`, env files, project data/resources), explicit local paths and merged-workspace search are authoritative
+- for runtime object ids (suites, tools, datasources, execution targets, and other in-file runtime identities), the localhost API is authoritative
+Do not infer runtime object ids from local files alone, and do not use API-first discovery when a file-backed asset has already been resolved locally.
 
 ## Configuration
 
@@ -66,7 +73,7 @@ Resolve in this order:
 Do not ask for a base URL merely because the environment variable is unset when the repo already provides one unambiguous local candidate. Use the `http://<host>:<port>/soavirt/api/v6` form and follow the workflow path-normalization rule before writes.
 
 ### Base Path Normalization (Required)
-Before the first write in a session, verify the usable API path with a read probe and lock it for subsequent calls (per workflow capability preflight gate):
+Before the first API mutation or execution branch, and earlier whenever an API-read branch needs root confirmation, verify the usable API path with a read probe and lock it for subsequent calls (per workflow capability preflight gate):
 - preferred probe: `GET <baseUrl>/children`
 - if unresolved/ambiguous, test candidate normalized roots and continue only with a confirmed working path.
 
@@ -83,6 +90,7 @@ A cached OpenAPI spec is available at `docs/reference/api-spec-cache/<server-key
 Primary router: `docs/skills/skill-index.md`.
 - Apply the Parasoft intent gate from `docs/workflow/agent-workflow.md` before loading skill cards.
 - Use Skill 033 for underspecified service-test authoring.
+- Use Skill 065 only when the user explicitly opts into the experimental exploration-first broad-authoring lane for REST/OpenAPI authoring; otherwise keep Skill 033 as the default broad-authoring route.
 - Use the explicit direct-routing rules in `docs/skills/skill-index.md` for validation enrichment, request-readiness remediation, single-client intent, and direct generation.
 - For server-API-mediated work, apply the runtime prelude first, and re-run routing on every new user prompt.
 

@@ -97,6 +97,7 @@ Rules:
 - Replace all `{{...}}` placeholders from runtime evidence + user intent.
 - Do not reuse sample ids/names/xpaths/expected values unless explicitly requested.
 - For assertion types not shown here, keep the same envelope (`type` + matching assertion object + `selectedElement` + `configuration`) and use OpenAPI (`assertionJson` + matching `<type>Assertion` schema).
+- For less-common assertion families, confirm both the enum name and the matching assertion/configuration schema in OpenAPI before authoring. The cached spec currently models some families more completely than others.
 - For updates, use `PUT /v6/tools/jsonAssertors?id=...` with GET -> mutate -> PUT read-merge-write per Skill 049 (same assertion envelope shape, no `parent` field).
 - For datasource-backed expected values, set tool-level `dataSource` to the datasource name accepted in the current object context and encode expected-value fields as `type=parameterized` with `parameterized.columnName=<column>`; do not encode datasource columns as fixed `${column}` literals.
 
@@ -151,15 +152,18 @@ Rules:
 4. Configure selectors with XPath-style expressions (Skill 011), not JSONPath.
   - Skill 054 boundary: XML scalar text-node normalization (`/text()`) is not required for JSON selectors; keep XPath-over-JSON selector form.
 5. Select assertion type to match data semantics:
+  - string/domain/pattern -> `stringComparisonAssertion` / `regularExpressionAssertion`
   - numeric parity/range -> `numericAssertion` / `numericRangeAssertion`
-  - string/domain/pattern -> `regularExpressionAssertion`
-  - presence/shape -> `hasContentAssertion` / `occurrenceAssertion`
+  - presence/shape -> `hasContentAssertion` / `occurrenceAssertion` / `hasChildrenAssertion` / `typeAssertion`
+  - date/date-time range windows -> `dateRangeAssertion` / `dateTimeRangeAssertion`
   - required rule for `hasContentAssertion`:
     - set `selectedElement.extractionType=entireElement` (do not use `contentOnly` for this assertion type)
   - regex assertion rule:
     - treat regex comparisons as full-string match semantics by default,
     - for substring intent, use explicit wildcard patterning (for example `.*12212.*`),
     - declare case intent explicitly (case-sensitive default unless configured otherwise).
+  - current cached OpenAPI note:
+    - `numericDifferenceAssertion`, `dateDifferenceAssertion`, and `dateTimeDifferenceAssertion` appear in the JSON assertion-type enum, but the cached schema does not expose matching assertion/configuration objects in `assertionJson`; treat those families as contract-ambiguous until the server schema is clarified.
 6. Configure assertions based on user intent against observed payload.
   - when expected values come from datasource columns, set tool-level `dataSource` to the datasource name available in the current object context and encode expected-value fields as parameterized column references rather than fixed `${column}` literals.
 7. Validate with focused verification run and collect run-results-traffic evidence triad.

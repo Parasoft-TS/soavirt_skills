@@ -28,6 +28,7 @@ Convert requests whose normalized intent is "create one client/test" into a post
 - Additive:
   - `docs/skills/platform/skill-021-tst-create-empty.md`
   - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
   - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
   - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
@@ -78,7 +79,7 @@ Convert requests whose normalized intent is "create one client/test" into a post
    - contract-informed planning
 
 ### 6.2) Contract-Informed Planning Branch
-5. If a service definition is provided, use it as planning input rather than as a promise of durable tool binding:
+5. If a service definition is provided, use it as planning input rather than as a promise of durable tool binding. In project-aware branches, consult active project references first so the user does not need to restate a known contract/source location unnecessarily:
    - summarize available operations,
    - when multiple operations are present, show the operation list before asking the user to choose one,
    - preferred wording for operation selection is: "Which operation do you want me to build the single client for?"
@@ -95,7 +96,7 @@ Convert requests whose normalized intent is "create one client/test" into a post
 8. Resolve where the client should live:
    - existing `.tst` + target suite, or
    - create a minimal new `.tst` host via Skill 021, then use the root `Test Suite` or create/select a non-root hosting suite via Skill 009 when needed.
-   - if posture is autonomous and the user did not specify an existing host asset, default to creating a minimal new `.tst` host rather than interrupting solely for host-choice approval.
+   - if posture is autonomous and the user did not specify an existing host asset, default to creating a minimal new `.tst` host under the active project root when project context exists, rather than interrupting solely for host-choice approval.
    - when interactive host placement is still unresolved, preferred wording is: "Should I place this client into an existing `.tst`, or create a minimal new `.tst` to host it?"
 9. Resolve any missing target ids with API-first discovery before client creation.
 
@@ -106,6 +107,7 @@ Convert requests whose normalized intent is "create one client/test" into a post
 11. For SOAP single-client execution:
    - route to `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`.
 12. Carry forward the resolved interactive inputs or autonomous defaults from intake/contract planning into the downstream leaf skill without reopening broader intake.
+12a. If the one-client branch requires environment-node creation, external environment-file attachment, or active-environment verification, delegate those mechanics to Skill 064 rather than improvising them inside this card.
 
 ### 6.4.1) Optional Post-Execution Validation-Enrichment Handoff
 13. After the downstream client skill has created and executed the selected one-client test successfully enough to produce runtime evidence:
