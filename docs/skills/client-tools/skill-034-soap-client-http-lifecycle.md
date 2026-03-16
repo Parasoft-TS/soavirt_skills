@@ -106,6 +106,13 @@ Do not call create/update endpoints until required fields for the selected mode 
   - list remaining fields needed for operational readiness.
 - Do not enter scaffold mode implicitly.
 
+### 4.5) SOAP Request Parameterization Rule
+- When request XML needs datasource-backed parameterization, target primitive leaf text or attribute values inside the existing SOAP envelope rather than replacing a larger XML subtree.
+- Validated authoring pattern for this card: place `${TOKEN}` directly in `request.literal.text` at the primitive leaf value that should vary.
+- In SOAtest/Virtualize terminology, the referenced "data source column" may come from either a true datasource-backed column or a tool-produced custom column such as Data Bank or Data Generator output.
+- Keep the surrounding SOAP envelope structure intact and change only the intended primitive leaf values.
+- Do not generalize this evidence to whole-element or whole-subtree replacement; primitive leaf values remain the validated boundary for this card today.
+
 ## 5) Preconditions
 - API reachable and authenticated.
 - Target suite exists.

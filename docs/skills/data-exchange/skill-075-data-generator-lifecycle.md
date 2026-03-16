@@ -69,6 +69,13 @@ When required fields are missing, ask for all unresolved values in one prompt:
   - number branch: `min`, `max`, optional `decimalPlaces`:
   - date branch: `startDate` mode/value, `outputDate` format/timeZone/locale as needed, optional `offset` fields:
 Do not call create endpoints until the requested extract definitions are fully resolved.
+
+### 4.3) Terminology Rule: "Data Source Column"
+- In SOAtest/Virtualize, "data source column" is overloaded terminology: it may refer to a true datasource-backed column or to a tool-produced custom column such as `customColumn.customColumnName` emitted by a Data Bank or Data Generator.
+- Downstream consumers that ask for a data source column may therefore validly bind to these tool-produced custom columns.
+- The API and persisted local `.tst` may serialize the same destination differently; for example, API readback may show `customColumn.customColumnName`, while local YAML may materialize the corresponding writable-custom-column shape under `virtualDSCreator.writableColumns.customName`.
+- Treat those forms as equivalent representations of the same downstream binding intent, not as conflicting models.
+
 ## 5) Preconditions
 - API reachable and authenticated.
 - Parent suite ids exist.
@@ -173,6 +180,14 @@ Generator branch variants:
   - each extract readback preserves the intended destination branch (`customColumn`, `suiteVariable`, or `writableDataSource`)
   - each extract readback preserves the intended generator `type` and branch-specific settings
   - temporary copy/move artifacts are absent after cleanup
+
+### 7.1) Validated Downstream Consumption Pattern
+- Project history now includes a validated authoring path in `TestAssets/parasoftdemoapp/ParasoftDemoApp_QA_Experimental.tst`: a `Category Name Generator` Data Generator was inserted before `Create Category - POST`, emitted `CATEGORY_NAME` through `customColumn.customColumnName`, and the downstream REST request body consumed that value at the primitive `name` leaf with `${CATEGORY_NAME}`.
+- API readback preserved the Data Generator config plus the literal-token REST body shape, while the persisted local `.tst` materialized the same flow as `virtualDSCreator.writableColumns.customName: CATEGORY_NAME` on the generator side and structured `formJson` leaf wiring (`mode: 3`, `columnName: CATEGORY_NAME`) on the REST body side.
+- This validates primitive-leaf downstream request-body consumption from Data Generator output, even when the leaf lives inside a larger JSON object. It does not yet validate arbitrary complex-object or whole-subtree substitution.
+- Runtime execution is not a required default step of this skill. Structural API/local readback remains sufficient unless the caller or owning workflow explicitly requests runtime verification.
+- Project history note: the Parasoft Demo App category-name flow was manually runtime-validated successfully after authoring, confirming that the generated unique value was consumed by the downstream create call.
+
 ## 8) Failure Modes
 - `400` create/update for invalid payload shape, multiple destination branches in one extract, or missing required `id`/parent.
 - `404` when source/target ids do not exist.

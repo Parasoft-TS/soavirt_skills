@@ -108,6 +108,14 @@ Do not call create/update endpoints until required fields for the selected mode 
 - Do not reroute into referenced-environment or other concealment branches solely to avoid persisting credentials in the `.tst`; protecting the generated asset before source-control commit remains the user's responsibility unless the user explicitly asks for another safeguard.
 - Stop rather than guess when the active transport branch cannot be resolved to `http10` or `http11`.
 
+### 4.6) Request-Payload Parameterization Rule
+- When a REST request body needs datasource-backed parameterization, target the primitive leaf value that should vary, not the enclosing object or array subtree.
+- Validated pattern: place `${TOKEN}` directly at the intended primitive leaf inside `payload.input.literal.text` / beautified JSON.
+- In SOAtest/Virtualize terminology, the referenced "data source column" may come from either a true datasource-backed column or a tool-produced custom column such as Data Bank or Data Generator output.
+- API readback may preserve the literal `${TOKEN}` body text, while the persisted local `.tst` may normalize that same leaf into structured `formJson` datasource wiring such as `mode: 3` with `columnName: TOKEN`.
+- Keep the surrounding request-body shape intact around the parameterized leaf.
+- Do not generalize this evidence to complex-object or whole-subtree substitution; primitive leaf values are the validated boundary for this card today.
+
 ## 5) Preconditions
 - API reachable and authenticated.
 - Target suite exists.

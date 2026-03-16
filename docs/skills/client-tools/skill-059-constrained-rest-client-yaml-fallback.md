@@ -58,6 +58,14 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
 - The local `.tst` is readable.
 - For update branches, API readback plus local YAML confirm the target is already a constrained REST Client.
 - For create/copy/delete/API-body branches, Skill 050 confirms the needed API route before mutation.
+
+### 5.1) Constrained JSON Request-Body Parameterization Rule
+- For same-operation constrained JSON bodies, inherit Skill 020's validated request-body parameterization rule: parameterize primitive leaf values, not enclosing object or array subtrees.
+- Place `${TOKEN}` at the intended primitive leaf positions in the JSON body submitted through REST Client `GET/PUT/GET` normalization.
+- In SOAtest/Virtualize terminology, the referenced "data source column" may come from either a true datasource-backed column or a tool-produced custom column such as Data Bank or Data Generator output.
+- API readback may preserve literal `${TOKEN}` text while the persisted local `.tst` may normalize the same leaf into constrained `formJson` datasource wiring.
+- Do not treat current evidence as support for substituting whole object or array subtrees.
+
 ## 6) Procedure
 0. Resolve the branch before mutation:
    - read existing constrained client

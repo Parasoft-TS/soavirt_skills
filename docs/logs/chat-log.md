@@ -2,6 +2,42 @@
 
 Purpose: chronological working log of our skill-building sessions.
 
+## Session 2026-03-16 (Data Generator custom-column payload-parameterization hardening)
+
+### Context
+- Goal: capture contributor learnings from the Parasoft Demo App Data Generator trial in canonical workflow and skill docs without turning runtime execution into a required default step of the normal Data Generator lifecycle.
+
+### Actions Completed
+- Re-read the affected workflow, client-tool, data-exchange, status-ledger, and contributor-log surfaces before editing:
+  - `docs/workflow/agent-workflow.md`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/data-exchange/skill-075-data-generator-lifecycle.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated the runtime-global workflow guidance so it now explicitly:
+  - treats API-returned ids as authoritative normalized runtime ids
+  - documents the overloaded SOAtest/Virtualize "data source column" terminology globally
+- Updated Skills 020, 034, and 059 so they now explicitly:
+  - parameterize request payloads at primitive leaf values with `${TOKEN}`
+  - allow datasource-backed tokens sourced from true datasource columns or tool-produced custom columns
+  - keep complex-object or whole-subtree substitution out of scope
+- Updated Skill 075 so it now explicitly:
+  - documents `customColumn.customColumnName` as a valid downstream "data source column"
+  - explains the API-vs-local-YAML serialization differences for custom-column bindings and downstream REST-body leaf bindings
+  - records the Parasoft Demo App category-name flow as structural and manual runtime evidence
+  - states that runtime execution remains optional unless the caller or owning workflow asks for it
+- Synced contributor rationale/status surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- The validated downstream pattern is primitive-leaf request-payload parameterization, even when the leaf lives inside a larger object or array.
+- Skill 075 remains `Defined` because broader CRUD/runtime coverage is still incomplete even though the create/reorder/custom-column downstream-consumption path now has project-history evidence.
+
 ## Session 2026-03-16 (Skill 065 template synchronization for phase/accounting visibility)
 
 ### Context

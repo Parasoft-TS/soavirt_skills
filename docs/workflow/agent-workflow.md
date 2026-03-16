@@ -119,6 +119,8 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - Runtime object targeting policy (mandatory for runtime-object tasks):
   - treat the localhost API as the source of truth for runtime object ids (`testSuite`, tool, datasource, environment, output-provider, execution target, and similar in-file runtime identities).
   - resolve runtime object identity via API discovery when the task depends on those ids.
+  - once the API returns an id, treat that exact returned id as the authoritative normalized runtime id for subsequent calls.
+  - do not prepend local workspace/repository roots to API-returned ids or rewrite them to match filesystem path assumptions.
   - do not infer runtime object ids from local files alone.
 - API-first mutation policy:
   - if a supported API write path exists, use the smallest validated API-backed owner for that mutation class.
@@ -130,6 +132,14 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - Exemplar-lookup efficiency guard:
   - when the selected skill already provides sufficient canonical payload-shape guidance, do not scan the workspace for same-type tool exemplars before create/update.
   - prefer user inputs + endpoint schema + skill guidance; use workspace exemplars only as optional troubleshooting evidence after a concrete payload-shape issue appears.
+
+### SOAtest Data-Source Column Terminology Rule (Global)
+- In SOAtest/Virtualize, `data source column` is overloaded terminology and does not mean only a column from a standalone Data Source asset.
+- Treat the term as potentially referring to either:
+  - a true datasource-backed column, or
+  - a tool-produced custom column surfaced through SOAtest's virtual-datasource model (for example Data Bank or Data Generator output columns).
+- When a skill or endpoint uses `dataSourceColumn`, do not assume the downstream consumer requires a standalone datasource file or table-backed column if a tool-produced custom column already satisfies the binding.
+- Use the exact branch/schema names required by the owning endpoint (`customColumn`, `suiteVariable`, `writableDataSource`), but remember that downstream request/payload parameterization may still consume these values through the broader SOAtest `data source column` concept.
 
 ### Approved-Plan Preservation Rule (Global)
 - When a composite/orchestration card presents a per-target execution plan and the user explicitly approves it, downstream leaf skills must treat that plan as binding for that branch.
