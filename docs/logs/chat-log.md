@@ -2386,6 +2386,36 @@ Purpose: chronological working log of our skill-building sessions.
 - Standard-negative planning is dynamic and evidence-backed; five families is a ceiling, not a target.
 - Security branches are explicitly modeled as a Penetration Testing Tool exception under REST Client `Traffic Object`, not as ordinary business-validation chaining.
 
+## Session 2026-03-16
+
+### Context
+- Goal: harden Skill 064 so future agents do not have to infer `.env` versus `.envs` file-authoring mechanics from repo examples alone.
+
+### Actions Completed
+- Re-read the contributor workflow and the environment/bootstrap surfaces before implementation:
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Compared the current card wording with live repo exemplars:
+  - single-environment example: `TestAssets/parasoftdemoapp/environments/QA.env`
+  - multi-environment example: `TestAssets/parabank/environments/parabank.envs`
+- Hardened `docs/skills/structure/skill-064-soatest-environment-lifecycle.md` to encode:
+  - canonical `.env` XML shape
+  - canonical `.envs` XML shape
+  - explicit create-from-scratch rules for one-environment versus multi-environment projects
+  - explicit validation rules for root shape, namespace, and `product="SOAtest"`
+  - single-environment `.env` to multi-environment `.envs` conversion mechanics with a Skill 063 ownership boundary for project-record path updates
+- Added a reusable rationale entry in `docs/logs/decision-log.md`.
+
+### Notes
+- The main gap was not only naming/location; it was that Skill 064 previously left the XML root shape implicit.
+- The hardening keeps Skill 063 as the semantic/bootstrap owner while making Skill 064 the explicit source of truth for file-shape mechanics.
+
 ---
 
 ## Session Template

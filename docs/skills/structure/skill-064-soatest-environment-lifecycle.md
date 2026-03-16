@@ -80,7 +80,51 @@ Conservative v1 runtime rule:
 - changing the active environment is a separate explicit action after new environments are added to a `.tst`.
 - until a branch verifies active-environment behavior explicitly, treat the `.tst`'s verified active environment as the runtime authority.
 
-## 4.1) Shared Generation Modes
+## 4.1) Canonical External File Shapes
+External project environment files use Parasoft environment XML even though the filenames end in `.env` or `.envs`.
+- Namespace for both formats: `http://www.parasoft.com/schema/environment/1.0`
+- Single-environment external file:
+  - canonical path: `TestAssets/<slug>/environments/<environment>.env`
+  - root element: `<Environment xmlns="http://www.parasoft.com/schema/environment/1.0" name="<environment>">`
+- Multi-environment external file:
+  - canonical path: `TestAssets/<slug>/environments/<slug>.envs`
+  - root element: `<Environments xmlns="http://www.parasoft.com/schema/environment/1.0" product="SOAtest">`
+  - one child `<Environment name="...">` per semantic environment
+- Variable node shape in both formats:
+  - `<Variable><Name>KEY</Name><Value mask="false">value</Value></Variable>`
+- Do not treat `.env` / `.envs` here as shell-style dotenv files, and do not infer the wrong XML root shape from filename habit alone.
+
+Single-environment `.env` example:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Environment xmlns="http://www.parasoft.com/schema/environment/1.0" name="QA">
+  <Variable>
+    <Name>BASEURL</Name>
+    <Value mask="false">http://localhost:8080</Value>
+  </Variable>
+</Environment>
+```
+
+Multi-environment `.envs` example:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Environments xmlns="http://www.parasoft.com/schema/environment/1.0" product="SOAtest">
+  <Environment name="QA">
+    <Variable>
+      <Name>BASEURL</Name>
+      <Value mask="false">http://localhost:8080</Value>
+    </Variable>
+  </Environment>
+  <Environment name="DEV">
+    <Variable>
+      <Name>BASEURL</Name>
+      <Value mask="false">http://localhost:8081</Value>
+    </Variable>
+  </Environment>
+</Environments>
+```
+
+## 4.2) Shared Generation Modes
 Use these conceptual modes across Skills 022-025:
 - `disabled`
   - no environment generation
@@ -137,27 +181,49 @@ API-shape note:
 2. Do not silently override explicit user path/project/environment choices with stored defaults.
 
 ### 7.1) External Environment-File Rules
-3. Canonical file location:
+3. Determine the canonical external-file shape from the resolved semantic-environment count, not from filename habit:
    - one environment -> `TestAssets/<slug>/environments/<environment>.env`
    - multiple environments -> `TestAssets/<slug>/environments/<slug>.envs`
-4. Preserve:
+4. If creating a file from scratch, use the canonical XML root shape exactly:
+   - one environment -> one root `<Environment xmlns="http://www.parasoft.com/schema/environment/1.0" name="<environment>">`
+   - multiple environments -> one root `<Environments xmlns="http://www.parasoft.com/schema/environment/1.0" product="SOAtest">` containing one child `<Environment name="...">` per semantic environment
+5. For single-environment `.env` writes:
+   - keep exactly one semantic environment in the file
+   - keep the root `Environment` `name` equal to the semantic environment name
+   - place `Variable` nodes directly under that root
+6. For multi-environment `.envs` writes:
+   - keep the `Environments` namespace on the root element
+   - keep `product="SOAtest"` on that root
+   - represent each semantic environment as its own child `<Environment name="...">`
+   - preserve existing sibling environment ordering unless the branch explicitly requires reordering
+7. Preserve:
    - existing namespace,
    - existing environment names,
    - unchanged variables,
    - existing variable ordering when the branch does not explicitly require reordering.
-5. When service definitions are known, prefer confirmed project-record mappings for `BASE_URL` and related environment-specific values over re-asking or re-deriving them.
-6. Verify after write:
+8. When service definitions are known, prefer confirmed project-record mappings for `BASE_URL` and related environment-specific values over re-asking or re-deriving them.
+9. If a project transitions from one semantic environment to multiple semantic environments, convert the external file shape instead of leaving a single-environment `.env` as the canonical shared file:
+   - read the existing `<environment>.env`
+   - create or update `TestAssets/<slug>/environments/<slug>.envs`
+   - copy the original environment into a child `<Environment name="...">` while preserving variables, `mask` attributes, and ordering where possible
+   - add the additional environment entries
+   - if the caller also owns project-record updates (for example Skill 063), update the project-record environment-file references from the old `.env` path to the new `.envs` path before cleanup
+   - do not delete or orphan the original `.env` until the new `.envs` file is verified and any required project-record reference updates are handled by the owning caller
+10. Verify after write:
    - file exists,
-   - parse succeeds,
+   - XML parse succeeds,
+   - root shape matches file type (`Environment` for `.env`, `Environments` for `.envs`),
+   - namespace is correct,
+   - `.envs` root still includes `product="SOAtest"`,
    - expected environment entries/variables are present,
    - unchanged content was not accidentally removed.
 
 ### 7.2) Internal / Referenced Environment Lifecycle
-7. For `.tst` environment-node branches, use `/v6/environments` as the API authority for internal/referenced environment identity and state.
-8. Create/update branches:
+11. For `.tst` environment-node branches, use `/v6/environments` as the API authority for internal/referenced environment identity and state.
+12. Create/update branches:
    - local/internal environment -> use the `local` payload branch
    - referenced environment -> use the `reference` payload branch with external file location
-9. Required readback after any `.tst` environment mutation:
+13. Required readback after any `.tst` environment mutation:
    - intended node exists,
    - node type is correct (`local` vs `reference`),
    - referenced location is correct when applicable,
@@ -167,55 +233,55 @@ Boundary note:
 - use this card for env-driven auth indirection only when the user explicitly asks for environment-based runtime handling
 
 ### 7.3) Active-Environment Rule
-10. Treat active-environment state as a first-class verification target.
-11. If the branch depends on runtime switching:
+14. Treat active-environment state as a first-class verification target.
+15. If the branch depends on runtime switching:
    - confirm which environment is active after mutation,
    - do not assume active state changed because a reference node was created or because an external file contains a matching environment name.
-12. If a runtime-sensitive branch still cannot prove active-environment behavior from supported readback:
+16. If a runtime-sensitive branch still cannot prove active-environment behavior from supported readback:
    - stop and report the branch as structurally updated but runtime-unverified,
    - do not silently represent that branch as a confirmed runtime switch.
 
 ### 7.4) Local-to-External Consolidation Branch
-13. For requests such as “fold the internal environment into the external project environment and make the reference active”:
+17. For requests such as “fold the internal environment into the external project environment and make the reference active”:
    - inspect the current internal environment contents,
    - inspect the target external environment file and target semantic environment entry,
    - merge values into the external file using explicit override rules:
      - explicit user direction wins,
      - otherwise preserve unchanged external values and add missing internal values,
      - do not silently drop colliding values without reporting the resolution policy.
-14. After the external file is updated, attach or update the referenced environment node in the `.tst`.
-15. Verify:
+18. After the external file is updated, attach or update the referenced environment node in the `.tst`.
+19. Verify:
    - external file contents,
    - referenced node presence and target file location,
    - active-environment state.
-16. Delete the redundant internal environment only when:
+20. Delete the redundant internal environment only when:
    - external-file write succeeded,
    - reference attachment succeeded,
    - active-environment verification succeeded for the branch's required level of confidence,
    - the user explicitly asked for or approved deleting the redundant local environment.
-17. If runtime activation remains unverified, keep the internal environment unless the user explicitly accepts a structural-only result.
+21. If runtime activation remains unverified, keep the internal environment unless the user explicitly accepts a structural-only result.
 
 ### 7.5) Generation-Mode Handshake for Skills 022-025
-18. When a generation card needs environment strategy:
+22. When a generation card needs environment strategy:
    - prefer explicit user choice,
    - otherwise use project context and this default rule:
      - `local_managed` is the safe v1 default,
      - `reference_external` is supported but behavior-sensitive,
      - `disabled` is valid only when the user explicitly wants no environment generation or the calling branch requires it.
-19. For Skills 022-025 creating a brand-new `.tst`, `local_managed` means the generator-owned local-environment path:
+23. For Skills 022-025 creating a brand-new `.tst`, `local_managed` means the generator-owned local-environment path:
    - rely on the service-definition generator's built-in local environment behavior,
    - inspect/read back the generated environment after create and reuse it as the initial environment context,
    - do not perform a separate `/v6/environments` create/update as part of initial generation unless the user explicitly requested a follow-on environment task.
-20. Treat `createEnvironment` / `restCreateEnvironment` as configuration surfaces, not agent-discretion surfaces:
+24. Treat `createEnvironment` / `restCreateEnvironment` as configuration surfaces, not agent-discretion surfaces:
    - include them only when the current request, or already-confirmed upstream context for this exact branch, explicitly resolves a non-default environment path,
    - examples include `disabled`, `reference_external`, or a local-environment branch requiring concrete request fields such as `prefix` or WSDL/XSD `variableTypes`.
-21. Generation cards should reference this skill for environment-mode semantics rather than redefining those modes locally.
-22. When a caller immediately follows brand-new generation with template normalization, this card owns the generated local-environment variable mechanics only:
+25. Generation cards should reference this skill for environment-mode semantics rather than redefining those modes locally.
+26. When a caller immediately follows brand-new generation with template normalization, this card owns the generated local-environment variable mechanics only:
    - inspect the generated local environment
    - create or update caller-requested variables such as `BASEURL` using confirmed project-context or service-definition values
    - verify the variable via environment readback before downstream client rewrites continue
    - leave generated REST Client URL rewriting to the caller and Skill 020 rather than absorbing that mutation into environment ownership
-23. Evidence-backed OpenAPI rule for `reference_external` generation:
+27. Evidence-backed OpenAPI rule for `reference_external` generation:
    - the request field name remains `createEnvironment`; the value shape is `restCreateEnvironment`
    - attached external environment files are not consulted to resolve `location.url=${...}` during the create request itself; probes with `${OPENAPI}` and `${PARABANK_SWAGGER}` in `location.url` failed before generation
    - when the create call instead uses a concrete OpenAPI URL and the attached external environment file contains matching OpenAPI/base-url variables, the generator may emit those external variable names into the generated `.tst`
@@ -224,7 +290,11 @@ Boundary note:
    - therefore callers must inspect both the external environment contents and the generated `.tst` readback before deciding whether further local-variable insertion or REST Client URL rewrite is still required
 
 ## 8) Validation
-- External environment-file writes are verified by file existence + parseability + expected content presence.
+- External environment-file writes are verified by file existence + XML parseability + expected content presence.
+- External environment-file validation must also confirm the correct root shape and namespace:
+  - `.env` -> single `Environment` root with the expected `name`
+  - `.envs` -> `Environments` root with `product="SOAtest"` plus the expected child `Environment` entries
+- Single-environment to multi-environment conversion is not complete until the original environment is preserved in the new `.envs` file and any caller-owned project-record path updates are handled.
 - Internal environment writes are verified by `/v6/environments` readback.
 - Caller-owned post-generation local-variable insertion (for example `BASEURL`) is verified by readback of the generated local environment before downstream client normalization continues.
 - Referenced-environment attachment is verified by readback of the reference node and target file location.
@@ -233,8 +303,12 @@ Boundary note:
 
 ## 9) Failure Modes
 - Semantic project environments, external environment files, internal environments, referenced nodes, and active environments are treated as synonyms.
+- The agent treats `.env` / `.envs` as shell-style dotenv syntax instead of Parasoft environment XML.
+- A single-environment `.env` is authored with an `Environments` root, or a multi-environment `.envs` is authored with only a single top-level `Environment` root.
+- A multi-environment `.envs` file is written without the required `product="SOAtest"` root attribute.
 - A referenced environment node is created and the agent incorrectly reports that runtime must now be using the external file.
 - External-file updates overwrite unrelated environment entries or variables.
+- A project expands from one environment to multiple environments and the agent leaves the single-environment `.env` as the canonical shared file instead of converting to `.envs`.
 - Internal-environment values are folded into the wrong semantic environment entry in the external file.
 - Redundant internal environments are deleted before reference attachment and active-environment verification succeed.
 - Environment mechanics are misused as the default workaround for keeping supported auth secrets out of a generated `.tst`.
@@ -253,6 +327,6 @@ Boundary note:
 
 ## 11) Reuse Notes
 - Use this skill whenever a task needs environment mechanics, even if the broader workflow was reached through another orchestration card.
-- Skill 063 should remain the semantic/bootstrap owner and should reference this card for external environment-file mechanics rather than embedding the full XML/mutation procedure itself.
+- Skill 063 should remain the semantic/bootstrap owner and should reference this card for external environment-file mechanics, `.env` versus `.envs` XML shape selection, and file-conversion behavior rather than embedding the full XML/mutation procedure itself.
 - Skill 055 remains an important validated evidence source for WSDL-specific behavior, but generalized environment rules should be read from this card first.
 - Skill 065 may use this card immediately after Skill 022 generation to add a local `BASEURL` variable before the caller normalizes generated template-suite REST Client URLs.
