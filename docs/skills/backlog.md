@@ -27,7 +27,7 @@ Do not use this file as the primary operator-facing routing surface.
   - `docs/skills/skill-index.md`
 - Harden and validate Skill 033 so template-backed approval/completion artifacts, autonomous defaults, dynamic standard-negative planning, separate interactive security intake, and always-on validation sequencing behave consistently:
   - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
-- Implement and harden the additive explicit opt-in experimental exploration-first broad-authoring lane so direct API exploration, exploration-backed validation, and bounded post-authoring correction have clear owners without weakening stable `033/057/058`:
+- Implement and harden the additive explicit opt-in experimental exploration-first broad-authoring lane so direct API exploration, exploration-backed validation, broad operation-level security targeting, and bounded post-authoring correction have clear owners without weakening stable `033/057/058`:
   - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
   - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
   - `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
@@ -44,6 +44,14 @@ Do not use this file as the primary operator-facing routing surface.
 - Validate the rewritten TestAssets-backed project bootstrap and repair flow so registry self-heal, active-project routing, environment-file naming, and sensitive-reference handling behave consistently:
   - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
   - `TestAssets/project-index.yaml`
+- Define and thread the canonical secret-reference consumption + write-time auth materialization boundary so bootstrap stays reference-oriented while supported runtime auth branches may resolve approved gitignored secrets and materialize them into authored `.tst` assets:
+  - `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md`
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
 - Validate and extend the new API-preferred mutation owners for ordinary rename, generic tool lifecycle operations, and broader disabled-state mutation:
   - `docs/skills/structure/skill-068-rename-object.md`
   - `docs/skills/structure/skill-070-copy-tool.md`
@@ -92,7 +100,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** empty `.tst` create/reuse path is stable.
 - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
   - **State:** Validated
-  - **Notes:** OpenAPI/Swagger generation path is validated and hardened for ambiguous write recovery.
+  - **Notes:** OpenAPI/Swagger generation path is validated and hardened for ambiguous write recovery; caller-owned post-generation `BASEURL` normalization remains outside this card.
 - `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
   - **State:** Validated
   - **Notes:** WSDL generation path validated.
@@ -144,13 +152,13 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** reviewed in wave 2 as a hybrid card: local `.tst` path/YAML anchor first, API runtime move branch only when runtime ids are resolved safely, with local YAML fallback through Skill 006.
 - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
   - **State:** Defined
-  - **Notes:** broad suite lifecycle card exists; targeted runtime validation can continue incrementally.
+  - **Notes:** broad suite lifecycle card exists; it now also serves as the structural owner used by cluster-oriented orchestrations such as Skill 065 for canonical suite skeleton creation and exact child-order realization.
 - `docs/skills/structure/skill-055-testsuite-create-from-wsdl.md`
   - **State:** Validated
   - **Notes:** suite-level WSDL generation workflow validated for `disabled`, collision-aware `local_managed`, post-generation environment normalization into the original active environment, nested-parent placement readback, and a validated but non-default `reference_external` branch that can add referenced environment nodes without implicitly switching the active environment.
 - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
   - **State:** Defined
-  - **Notes:** canonical v1 owner for SOAtest environment terminology, external project environment-file authoring, internal/referenced environment lifecycle, active-environment verification, local-to-external consolidation, and shared generation-mode semantics across Skills 022-025.
+  - **Notes:** canonical v1 owner for SOAtest environment terminology, external project environment-file authoring, internal/referenced environment lifecycle, active-environment verification, local-to-external consolidation, shared generation-mode semantics across Skills 022-025, and caller-owned generated-local-variable insertion such as `BASEURL`, while explicitly keeping auth-concealment workarounds out of the default environment-mechanics lane.
 - `docs/skills/structure/skill-047-generated-subset-prune.md`
   - **State:** Validated
   - **Notes:** generated-suite prune workflow is validated and reusable.
@@ -161,13 +169,13 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** DB Tool lifecycle validated.
 - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
   - **State:** Validated
-  - **Notes:** unconstrained REST Client creation/configuration is the current recommended path, including validated read-merge-write Basic-auth updates on existing clients through the native `httpAuthentication` subtree with readback confirmation of the persisted auth subtree; schema-visible `ntlm`/`kerberos`/`digest` remain unvalidated.
+  - **Notes:** unconstrained REST Client creation/configuration is the current recommended path, including validated read-merge-write Basic-auth updates on existing clients through the native `httpAuthentication` subtree with readback confirmation of the persisted auth subtree and caller-owned concrete-host normalization of generated template clients to `${BASEURL}` plus relative path/query; approved gitignored secret references may now be resolved and materialized directly into supported Basic-auth writes, while schema-visible `ntlm`/`kerberos`/`digest` remain unvalidated.
 - `docs/skills/client-tools/skill-034-soap-client-http-lifecycle.md`
   - **State:** Defined
   - **Notes:** first-pass SOAP Client lifecycle card covering the API-exposed HTTP request/transport/misc surface; validated on scaffold/readback, WSDL-originated-compatible copy/update preservation, and `Response SOAP Envelope` output mapping, while full WSDL-tab parity and non-HTTP transport authoring remain pending.
 - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
   - **State:** Validated
-  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work; reviewed in wave 2 and clarified as a hybrid card with local `.tst`/YAML authority for asset structure and API-only entry for runtime ids, tool lifecycle routes, constrained JSON body normalization, and constrained-client Basic-auth updates through the native REST Client auth subtree. Future OAuth2/YAML-auth editing remains out of scope.
+  - **Notes:** validated v1 owner for single constrained REST Client lifecycle work; reviewed in wave 2 and clarified as a hybrid card with local `.tst`/YAML authority for asset structure and API-only entry for runtime ids, tool lifecycle routes, constrained JSON body normalization, and constrained-client Basic-auth updates through the native REST Client auth subtree, including approved secret-reference-backed plaintext auth materialization for supported branches. Future OAuth2/YAML-auth editing remains out of scope.
 - `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
   - **State:** Defined
   - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a hybrid one-client refactor leaf: local `.tst` slice and copied-target structure first, Skill 050 only when runtime ids or API-normalized body branches are required.
@@ -195,12 +203,12 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** XML Data Bank extraction validated.
 - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
   - **State:** Defined
-  - **Notes:** JSON Data Bank card exists; runtime validation remains pending.
+  - **Notes:** JSON Data Bank card exists; runtime validation remains pending. The experimental lane now also depends on this card's ability to reuse and extend an existing producer-local databank for validation-only extracts rather than creating a sibling databank by default.
 
 ### 8) Execution Diagnostics
 - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
   - **State:** Validated
-  - **Notes:** canonical execution payload/results/traffic baseline.
+  - **Notes:** canonical execution payload/results/traffic baseline, including the documented constraint that `testNames` is coarse and should be secondary to structural isolation in richer orchestrations.
 - `docs/skills/execution-diagnostics/skill-014-test-failure-diagnostics-from-traffic.md`
   - **State:** Validated
   - **Notes:** focused failure diagnosis from runtime traffic is validated.
@@ -211,7 +219,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** policy card for XPath-over-JSON selector semantics.
 - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
   - **State:** Defined
-  - **Notes:** deterministic naming policy is established.
+  - **Notes:** deterministic naming policy is established, with a generic pattern plus a branch-aware extension for clustered orchestrations such as Skill 065.
 - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - **State:** Validated
   - **Notes:** core chaining semantics are established and referenced broadly.
@@ -221,6 +229,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/cross-cutting/skill-032-client-header-ownership.md`
   - **State:** Defined
   - **Notes:** policy-level card for tool-managed request headers and native auth ownership; REST Client Basic-auth preference for the native auth subtree over literal `Authorization` header injection is now validated.
+- `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md`
+  - **State:** Defined
+  - **Notes:** canonical boundary card separating bootstrap secret-reference storage from later runtime consumption; approved gitignored secret refs may be resolved for exploration/execution and materialized into supported `.tst` auth writes, while source-control protection after generation remains the user's responsibility.
 - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
   - **State:** Validated
   - **Notes:** read-merge-write policy promoted from observed tool PUT behavior.
@@ -235,7 +246,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** centralizes XML scalar-selector `/text()` normalization guidance with explicit JSON boundary behavior.
 - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
   - **State:** In progress
-  - **Notes:** additive experimental owner for bounded direct endpoint exploration, CRUD reconciliation, transient exploration ledgers, and exploration-evidence legitimacy inside the explicit opt-in live-exploration lane only.
+  - **Notes:** additive experimental owner for bounded direct endpoint exploration, cluster-aware stateful ledgers, ordered authoring paths, prerequisite-expansion metadata, exploration-evidence legitimacy, and advisory negative-opportunity plus security-targeting hints with bounded extra discovery only when that improves downstream negative/security accounting inside the explicit opt-in live-exploration lane only.
 
 ### 10) Composite Orchestration
 - `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md`
@@ -255,18 +266,18 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** reviewed in wave 2 and aligned to the merged local-workspace model as a hybrid composite: local source/copy `.tst` authority for analysis and copied-target sequencing, grouped review ownership at the orchestration layer, and Skill 050 only for delegated runtime-id/API-normalized write branches.
 - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
   - **State:** In progress
-  - **Notes:** additive explicit opt-in top-level owner for the experimental exploration-first REST/OpenAPI broad-authoring lane that reuses Skill 033 intake strengths while delegating live exploration to Skill 066 and exploration-backed validation to Skill 067; generated or existing REST Clients can now delegate validated Basic-auth wiring to Skills 020/059 instead of being treated as automatically auth-blocked after generation.
+  - **Notes:** additive explicit opt-in top-level owner for the experimental exploration-first REST/OpenAPI broad-authoring lane that now centers on a disabled generated template suite, sibling `AI Generated Tests`, post-generation `BASEURL` template normalization before later copies inherit parameterized endpoints, cluster-local authored structure, stateful happy-path sequencing, phase-eligibility-aware required-phase accounting, autonomous continuation until no next safe in-scope action remains, required per-slice negative-accounting, required per-operation security-accounting with lifecycle-preferred source selection, final cleanup of empty happy-path child suites, explicit Skill 65 -> 67 validation handoff, narrow deferred handling, and Skill 074-focused verification sandboxing.
 - `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
   - **State:** In progress
-  - **Notes:** additive exploration-backed validation owner for the experimental lane; preserves the stable approval and schema-confirmation model while replacing the stable pre-attachment baseline run with trusted exploration evidence plus focused post-attachment verification.
+  - **Notes:** additive exploration-backed validation owner for the experimental lane; preserves stable leaf mechanics while replacing the stable pre-attachment baseline run with trusted exploration evidence plus a Skill 65-owned handoff packet, databank-reuse-first enrichment, posture inheritance from Skill 65, and focused post-attachment verification.
 - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
   - **State:** Defined
-  - **Notes:** canonical session-start owner for matching, loading, creating, repairing, and updating durable application project context under `TestAssets/`; encodes deterministic registry matching, active-project routing, canonical project environment-file locations and references, environment-aware service-definition intake with multi-environment disambiguation, service-definition readback plus BASE_URL confirmation, explicit sensitive-data storage choices with a gitignored `.soavirt/projects/<slug>/secrets.env` default, and the progressive load order `TestAssets/project-index.yaml -> TestAssets/<slug>/<slug>.yaml -> referenced files`.
+  - **Notes:** canonical session-start owner for matching, loading, creating, repairing, and updating durable application project context under `TestAssets/`; encodes deterministic registry matching, active-project routing, canonical project environment-file locations and references, environment-aware service-definition intake with multi-environment disambiguation, service-definition readback plus BASE_URL confirmation, explicit sensitive-data storage choices with a gitignored `.soavirt/projects/<slug>/secrets.env` default, the downstream reference-only bootstrap boundary for secrets, and the progressive load order `TestAssets/project-index.yaml -> TestAssets/<slug>/<slug>.yaml -> referenced files`.
 
 ### 11) Security Testing
 - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
   - **State:** Defined
-  - **Notes:** atomic lifecycle owner for Penetration Testing Tool create/read/update work under REST Client `Traffic Object`, including the explicit security-testing exception to normal business-validation chaining rules.
+  - **Notes:** atomic lifecycle owner for Penetration Testing Tool create/read/update work under REST Client `Traffic Object`, including the explicit security-testing exception to normal business-validation chaining rules; operation-level breadth and lifecycle-preferred seed selection remain caller-owned by the orchestrating workflow.
 
 ## Coverage Gaps / Planned New Cards
 - Newly added operation-centric owners close the main rename/copy/move/delete/disabled-state routing gap, but broader validation remains desirable for:

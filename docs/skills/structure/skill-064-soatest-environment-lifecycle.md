@@ -15,6 +15,7 @@ Provide one canonical v1 owner for environment terminology, mutation, verificati
   - explain or inspect the environment model for a project or `.tst`
   - create or update project-scoped external `.env` / `.envs` files under `TestAssets/<slug>/environments/`
   - create, read, update, copy, move, and delete internal SOAtest Environment objects through `/v6/environments`
+  - create or update caller-owned local environment variables in generated/local environments when downstream broad-authoring branches need normalized values such as `BASEURL`
   - attach referenced external environment files to `.tst` assets
   - verify active-environment state after environment mutation
   - consolidate/fold values from an internal environment into the canonical external project environment file
@@ -27,6 +28,7 @@ Provide one canonical v1 owner for environment terminology, mutation, verificati
   - session-start project bootstrap ownership (owned by Skill 063)
   - broad service-test authoring intake (owned by Skill 033 / Skill 056)
   - assuming runtime switched to an external environment file merely because a referenced environment node exists
+  - using referenced environment nodes or external environment files as the default workaround for keeping supported auth secrets out of tracked `.tst` assets during REST Client auth mutation
   - silently inventing environment names, active-environment choices, or merge conflict resolutions
 
 ## 3.1) Dependencies
@@ -50,7 +52,9 @@ Provide one canonical v1 owner for environment terminology, mutation, verificati
   - referenced-environment attachment mechanics,
   - active-environment verification and post-mutation readback rules,
   - local-to-external consolidation mechanics,
-  - shared environment-mode semantics for Skills 022-025.
+  - shared environment-mode semantics for Skills 022-025
+  - generated local-environment variable mechanics for caller-owned post-generation normalization branches such as Skill 065's `BASEURL` insertion.
+- `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md` owns the secret-reference-consumption boundary for downstream auth branches; this card must not invent environment indirection to override that policy.
 
 ## 4) Canonical Model
 Use these layers distinctly:
@@ -158,6 +162,9 @@ API-shape note:
    - node type is correct (`local` vs `reference`),
    - referenced location is correct when applicable,
    - active flag / active-environment state is read back explicitly rather than assumed.
+Boundary note:
+- referenced-environment attachment is for environment mechanics, not the default auth-concealment strategy for generated/client auth writes
+- use this card for env-driven auth indirection only when the user explicitly asks for environment-based runtime handling
 
 ### 7.3) Active-Environment Rule
 10. Treat active-environment state as a first-class verification target.
@@ -203,10 +210,16 @@ API-shape note:
    - include them only when the current request, or already-confirmed upstream context for this exact branch, explicitly resolves a non-default environment path,
    - examples include `disabled`, `reference_external`, or a local-environment branch requiring concrete request fields such as `prefix` or WSDL/XSD `variableTypes`.
 21. Generation cards should reference this skill for environment-mode semantics rather than redefining those modes locally.
+22. When a caller immediately follows brand-new generation with template normalization, this card owns the generated local-environment variable mechanics only:
+   - inspect the generated local environment
+   - create or update caller-requested variables such as `BASEURL` using confirmed project-context or service-definition values
+   - verify the variable via environment readback before downstream client rewrites continue
+   - leave generated REST Client URL rewriting to the caller and Skill 020 rather than absorbing that mutation into environment ownership
 
 ## 8) Validation
 - External environment-file writes are verified by file existence + parseability + expected content presence.
 - Internal environment writes are verified by `/v6/environments` readback.
+- Caller-owned post-generation local-variable insertion (for example `BASEURL`) is verified by readback of the generated local environment before downstream client normalization continues.
 - Referenced-environment attachment is verified by readback of the reference node and target file location.
 - Active-environment-dependent branches never infer runtime authority from structure alone.
 - Local-to-external consolidation never deletes the local/internal source environment before consolidation and reference verification succeed.
@@ -217,6 +230,8 @@ API-shape note:
 - External-file updates overwrite unrelated environment entries or variables.
 - Internal-environment values are folded into the wrong semantic environment entry in the external file.
 - Redundant internal environments are deleted before reference attachment and active-environment verification succeed.
+- Environment mechanics are misused as the default workaround for keeping supported auth secrets out of a generated `.tst`.
+- A caller rewrites generated REST Clients to `${BASEURL}` without first inserting and readback-confirming the local `BASEURL` variable in the generated environment.
 - Generation cards assume `reference_external` is runtime-equivalent to `local_managed` without verification.
 
 ## 10) Safety / Rollback
@@ -231,3 +246,4 @@ API-shape note:
 - Use this skill whenever a task needs environment mechanics, even if the broader workflow was reached through another orchestration card.
 - Skill 063 should remain the semantic/bootstrap owner and should reference this card for external environment-file mechanics rather than embedding the full XML/mutation procedure itself.
 - Skill 055 remains an important validated evidence source for WSDL-specific behavior, but generalized environment rules should be read from this card first.
+- Skill 065 may use this card immediately after Skill 022 generation to add a local `BASEURL` variable before the caller normalizes generated template-suite REST Client URLs.

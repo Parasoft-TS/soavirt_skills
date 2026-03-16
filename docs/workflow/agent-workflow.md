@@ -24,9 +24,16 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
 - When a skill lists cross-cutting dependencies, load them before executing the skill's procedure. If two skills address the same domain (for example JSON validation tools), load ALL listed dependencies from BOTH skills before proceeding.
 - Skill-declared dependencies are additive safeguards, not the only safeguards.
 - Do not allow missing dependency declarations in a target card to bypass mandatory prelude safeguards.
+### Session-Start Mode Classification Rule (Global)
+- After the session-start required reading defined in `AGENTS.md`, classify the user's bootstrap prompt before auto-entering Skill 063.
+- Treat explicit contributor-start cues (for example `Follow @AGENTS.md for skill contributor workflow`, `Follow @AGENTS.md for skill authoring workflow`, or other equally explicit skill-maintenance starts) as contributor bootstrap: load contributor-maintenance workflow surfaces and do not auto-run Skill 063 unless the user also asks for project context or later shifts into project-aware runtime work.
+- Treat explicit project/operator-start cues (for example naming a project, asking to load project context, or otherwise requesting project-aware SOAtest/Virtualize runtime work) as operator bootstrap.
+- Treat bare or under-specified `Follow @AGENTS.md`-style startup prompts as the operator default.
+- If explicit contributor and project/runtime cues conflict in the same startup prompt, ask one targeted clarification question before continuing.
 ### Session-Start Project Bootstrap Rule (Global)
-- For every new session under this repo that has loaded `AGENTS.md`, immediately after the session-start required reading defined there, load `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` and run project bootstrap before any further task work.
-- Treat loading `AGENTS.md` as explicit opt-in to SOAtest/Virtualize-oriented follow-on work, even when the next task appears contributor-facing, policy-oriented, or otherwise not yet clearly project-aware.
+- When session-start classification resolves to operator bootstrap, immediately after the session-start required reading defined in `AGENTS.md`, load `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` and run project bootstrap before any further project-aware task work.
+- This automatic entry includes bare or under-specified `Follow @AGENTS.md`-style starts and explicit project/operator starts.
+- Do not auto-run Skill 063 for explicit contributor-start prompts unless the user later asks to load/store/update project context or shifts into project-aware runtime work.
 - At a high level, bootstrap must either:
   - resolve one existing project and continue with that project's durable context
   - ask one disambiguation question when several close matches exist
@@ -58,6 +65,12 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
   - explicit current-task instructions outrank stored project defaults for target paths, project selection, environment choice, source location, and destination location.
   - active project context supplies defaults, durable references, and missing facts; it must not silently override explicit user scope.
   - intentional cross-project work is valid and must not be collapsed back into the currently active project.
+### Secret Reference Consumption and Auth Materialization Boundary (Global)
+- Skill 063 owns durable secret-reference storage and project-record path references; that storage rule does not prohibit later runtime consumption.
+- When a runtime branch needs credentials and an approved gitignored secret reference exists in project context, the owning workflow/leaf may resolve those values for direct exploration, execution, or supported `.tst` auth mutation.
+- For supported auth-write surfaces, materializing the resolved values into the `.tst` through the owning leaf is valid and is not by itself a `blocked-auth` condition.
+- Do not detour into referenced-environment or other concealment workarounds solely to avoid credential persistence unless the user explicitly asks for that strategy.
+- Protecting generated assets before source-control commit remains the user's responsibility unless an owning workflow explicitly states otherwise.
 ### SOAtest Environment Model and Owner (Global)
 - Use these terms distinctly:
   - `project environment`: semantic deployment/test context captured during bootstrap (for example `QA`, `DEV`)
@@ -128,6 +141,18 @@ Define the global runtime execution policy for SOAtest and Virtualize tasks hand
   - convert approved field/assertor intent into full-body diffing,
   - add ignored-difference rules.
 - If an approved tool cannot be created or configured, mark that target `blocked` or `partial`, report the reason, and return for explicit user decision rather than substituting another family automatically.
+
+### Mandatory-Phase Integrity Rule (Global)
+- When the selected workflow or skill defines in-scope phases as required or mandatory, treat those phases as part of the delivered scope regardless of whether the run is interactive, autonomous, or delegated through another card.
+- Required phases remain required unless:
+  - the user explicitly narrows scope, or
+  - the canonical card marks the phase `Optional / Deferred`, not applicable, or otherwise outside the selected branch.
+- Do not reinterpret early success, partial runtime success, task size, local uncertainty, representative coverage elsewhere, or "later phase not reached yet" as permission to skip a later required phase, to report the workflow as effectively complete, or to emit a terminal blocker state while a next deterministic in-scope action still exists.
+- Distinguish downstream required work that is still pending behind unfinished upstream authoring from a true terminal blocker:
+  - phase-pending work is still in scope and must remain visible, but it is not by itself a reason to stop,
+  - if some slices or targets are blocked while others still have a deterministic safe continuation path, keep the actionable slices moving and aggregate the unresolved blockers rather than stopping the whole workflow immediately,
+  - reserve terminal `partial`/`blocked` outcomes for cases where reasonable continuation has been attempted and no next safe in-scope action remains.
+- If a later required phase cannot be completed credibly after reasonable continuation, stop as `partial` or `blocked` and report the exact unfinished phase and reason rather than silently narrowing the workflow.
 
 ### Observed Payload Media-Type Authority (Global)
 - For validation-family selection and other payload-sensitive routing, classify response type from the observed semantic payload/body first.
@@ -226,5 +251,5 @@ This policy prevents API-first misrouting for file-backed assets while preservin
 - Treat the previously active project as still in scope after re-intake for project-aware branches unless the user explicitly changes projects or the resumed task is clearly project-agnostic.
 - If the user later names a different project, supplies an explicit path rooted in another project, or otherwise changes project scope mid-session, update active-project state through Skill 063 before continuing project-aware work.
 - If continuity resumes with only a partial project record loaded, reload the needed portions of the active project context instead of assuming either that all project context is known or that it has been lost entirely.
-- After `AGENTS.md`/startup re-intake in a resumed session under this repo, do not skip project-context reload merely because the resumed task looks contributor-facing or not yet clearly project-aware.
+- After `AGENTS.md`/startup re-intake in a resumed session under this repo, re-apply the session-start mode classification rule: operator/default resumes that still need project-aware runtime work should reload project context, while explicit contributor-start resumes do not auto-enter Skill 063 unless project context is requested.
 - Optionally review latest transient run artifacts under `work/runs/<date>/<run-name>/` when runtime context is relevant, but treat them as supplementary evidence only; they must not replace API-first target resolution when the active workflow requires server-side discovery.

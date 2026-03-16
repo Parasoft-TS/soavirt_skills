@@ -208,6 +208,7 @@ Less-common options (explicit intent required):
   - enforce deterministic non-default names for created suites.
   - `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
   - use GET -> merge -> PUT for suite updates to avoid sparse PUT regressions.
+- Orchestrations such as Skill 065 may also use this card to build cluster-local suite skeletons, create copyable scenario sub-suites, and reorder immediate children so the physical `.tst` structure matches an exploration-owned authoring order exactly.
 ## 11) Cross-Skill Handoff for New `.tst` Creation
 - For new-file creation skills (`skill-021` through `skill-025`):
   - generation/create endpoints focus on file creation and do not provide a robust create-time requirements-tracking tag surface for root-suite tagging.

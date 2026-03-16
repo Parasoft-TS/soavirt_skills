@@ -28,11 +28,12 @@ You are an assistant that helps users author, manage, run, and diagnose service 
 ## Runtime-Critical Policy Summary
 Use `docs/workflow/agent-workflow.md` as the canonical owner of runtime-global policy. Before acting, make sure you:
 1. load the runtime prelude, including Skill 050 for server-API work
-2. run project bootstrap through Skill 063 immediately after the required startup reading, because loading `AGENTS.md` is an explicit opt-in to SOAtest/Virtualize-oriented follow-on work, and keep the active project in scope for later direct-routing branches
+2. classify the session-start prompt before auto-bootstrap: explicit skill-contributor / skill-authoring starts load contributor workflow surfaces and skip automatic Skill 063, while explicit project/operator starts and bare `Follow @AGENTS.md`-style prompts enter the operator default and run Skill 063
 3. route from `docs/skills/skill-index.md`, remembering that smaller direct routes still inherit the workflow-level project-context and environment-model rules, and that the experimental exploration-first broad-authoring lane is explicit opt-in while stable Skill 033 remains the default
 4. resolve file-backed asset targets from local paths/project context, and resolve runtime object ids through the localhost API
 5. run capability preflight before first API mutation or execution branch and apply progressive branch loading
 6. use Skill 012 before execution/traffic branches and preserve any user-approved orchestration plan through downstream execution
+7. keep required downstream phases in scope while a next deterministic in-scope action still exists, and reserve terminal `partial`/`blocked` outcomes for true blockers after reasonable continuation
 
 ## Session Start — Required Reading
 Load these documents at session start:
@@ -48,8 +49,11 @@ Load these documents at session start:
    - `docs/skills/cross-cutting/skill-050-server-api-capability-preflight.md`
 
 Load individual skill cards on demand as tasks require — do not load all cards upfront.
-After the required reading, load `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` and resolve project context before any further task work in the session. Loading `AGENTS.md` means the session has opted into SOAtest/Virtualize-oriented follow-on work, so do not defer Skill 063 merely because the next task looks contributor-facing or otherwise not yet project-specific.
-Keep this file at the startup-hook level only; Skill 063 owns the exact bootstrap interview, matching, persistence, and summary behavior.
+After the required reading, classify startup mode from the user's bootstrap prompt:
+- explicit contributor-start prompts (for example `Follow @AGENTS.md for skill contributor workflow` or `Follow @AGENTS.md for skill authoring workflow`) enter contributor mode and do not auto-run Skill 063 unless the user also asks for project context or project-aware runtime work
+- explicit project/operator starts and bare or under-specified `Follow @AGENTS.md` prompts enter the operator default and load `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md` before further project-aware runtime work
+- if explicit contributor and project/runtime cues conflict, ask one targeted clarification question before continuing
+Keep this file at the startup-hook level only; Skill 063 owns the exact bootstrap interview, matching, persistence, and summary behavior when startup mode selects project bootstrap.
 After bootstrap, do not treat direct routing to a smaller card as project-free work: the workflow doc owns the consultation order, override semantics, and environment-owner handoff rules that still apply.
 
 ## Global Write Safety Gates (Mandatory)

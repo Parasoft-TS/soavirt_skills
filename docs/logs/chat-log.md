@@ -1,6 +1,435 @@
 # Agent Build Chat Log
 
 Purpose: chronological working log of our skill-building sessions.
+
+## Session 2026-03-16 (Skill 065 template synchronization for phase/accounting visibility)
+
+### Context
+- Goal: update the Skill 065 approval and completion templates so they visibly enforce the newer phase-integrity, negative-accounting, and flatter single-step negative-structure expectations already encoded in the owning card.
+
+### Actions Completed
+- Re-read the owning template and orchestration surfaces before editing:
+  - `docs/templates/skill-065-approval-artifact-template.md`
+  - `docs/templates/skill-065-completion-artifact-template.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated the Skill 065 approval artifact template so it now explicitly:
+  - shows required in-scope phases in the scope section
+  - requires negative/security accounting to be rendered per eligible slice or operation rather than broad representative summaries
+  - reflects the flatter single-step negative structure directly in the planning section
+- Updated the Skill 065 completion artifact template so it now explicitly:
+  - reports required-phase status in the outcome summary
+  - renders negative/security/validation outcomes per eligible slice or operation
+  - prevents `complete` from being reported when a required in-scope phase still has unresolved blocked or partial work
+  - preserves explicit `delivered-valid-finding` reporting for genuine validation findings
+- Synced contributor rationale/history surfaces:
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass keeps the template changes aligned to the existing Skill 065 behavior rather than introducing a new orchestration model.
+- The goal is to make under-delivery harder to hide in the user-visible artifact shape itself.
+
+## Session 2026-03-16 (Runtime-global phase-integrity policy and Skill 065 negative-structure refinement)
+
+### Context
+- Goal: move required-phase completion integrity out of a Skill 065-only no-shortcut rule and into the runtime-global policy surface, while also refining Skill 065 so single-step negatives default to flatter operation-oriented structure instead of extra bundle hierarchy.
+
+### Actions Completed
+- Re-read the runtime-policy, experimental-lane, and contributor-sync surfaces before editing:
+  - `docs/workflow/agent-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated the runtime-global workflow policy so it now explicitly:
+  - treats all card-defined mandatory phases as required regardless of whether the run is interactive, autonomous, or delegated
+  - allows phase omission only when the user narrows scope or the canonical card marks a branch optional/deferred or not applicable
+  - requires `partial` or `blocked` reporting when a later required phase cannot be completed credibly
+- Updated Skill 065 so the experimental lane now explicitly:
+  - echoes the new global mandatory-phase-integrity rule locally while keeping autonomous no-reopen behavior as the card-specific delta
+  - keeps negative accounting visible per eligible slice rather than as an implicit mental tally
+  - defaults single-step negatives to directly named REST Clients under `Negative Coverage`
+  - reserves grouped negative bundles plus `Setup` / `Negative Cases` / `Cleanup` hierarchy for `minimal-prefix` or `full-sequence` negatives that genuinely need grouped dependent steps
+  - verifies either a direct negative REST Client or a grouped negative bundle, depending on the authored structure
+  - reports negative-accounting outcomes for every eligible slice in completion reporting
+- Synced contributor rationale/history surfaces:
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally keeps the new phase-integrity rule general rather than framing it as autonomous-only or as a personality-coded anti-laziness rule.
+- The goal is to make required-phase completion more explicit across complex workflows while also reducing structural overhead that may itself encourage under-delivery of negative breadth.
+
+## Session 2026-03-16 (Experimental Skills 065/067 execution-discipline and validation-finding refinement)
+
+### Context
+- Goal: incorporate contributor feedback from the latest Skill 065 operator run so the experimental lane strips inherited happy-path enrichment from copied negative/security branches, keeps valid validator findings instead of deleting them, makes autonomous no-shortcut phase ownership explicit, and clarifies that happy-path enrichment should normally deliver validator + diff/assertor rather than validator-only attachment.
+
+### Actions Completed
+- Re-read the contributor workflow, documentation-sync workflow, Skill 065, Skill 067, backlog, and contributor tracking surfaces before editing:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated Skill 065 so the experimental lane now explicitly:
+  - treats all in-scope downstream phases as mandatory in autonomous mode rather than permitting shortcut completion after partial success
+  - requires copied negative/security branches to remove inherited happy-path validators/assertors/diff tools and unnecessary databanks before branch-local tooling is attached
+  - reports validation slices that end in genuine findings as `delivered-valid-finding` instead of forcing those outcomes into silent repair or deletion logic
+- Updated Skill 067 so the experimental validation lane now explicitly:
+  - requires non-empty JSON/XML happy-path validation to target schema validator plus content-validation tool by default
+  - distinguishes validation misconfiguration from genuine service/contract findings during post-attachment verification
+  - preserves correctly configured failing validators as valid findings rather than deleting or weakening them to force a pass
+  - treats validator-only completion drift and valid-finding deletion as explicit failure modes
+- Synced contributor rationale/history surfaces:
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally strengthens execution discipline and validation behavior inside the experimental lane without weakening the stable default orchestration path.
+- The goal is to reduce shortcut drift under autonomous pressure while preserving the value of real validator findings and making the expected happy-path validation bundle more explicit.
+
+## Session 2026-03-16 (Experimental Skill 065 reference-only cross-TST lookup refinement)
+
+### Context
+- Goal: implement Refinement 1 so Skill 065 may inspect other `.tst` assets for reference-only context, but must not shortcut the lane by copying authored suites/tools/tests from those foreign assets into a fresh host `.tst`.
+
+### Actions Completed
+- Re-read the contributor workflow, documentation-sync workflow, Skill 065, and contributor tracking surfaces before editing:
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated Skill 065 so the experimental lane now explicitly:
+  - allows other `.tst` lookup only as reference evidence for orientation, completeness checks, troubleshooting, or high-level shape comparison
+  - forbids copying authored suites, tests, REST Clients, databanks, or validation tools from another `.tst` into the new host asset
+  - keeps the disabled generated template suite in the current host `.tst` as the only normal happy-path copy source
+  - keeps negative and security derivation inside the same host asset rather than widening to foreign `.tst` copy shortcuts
+- Synced contributor rationale/history surfaces:
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally tightens Skill 065's source-of-copy boundary without changing the broader experimental lane routing or the generated-template-first architecture.
+- The goal is to preserve reference-aware troubleshooting while preventing cross-asset copy drift during new-file authoring.
+
+## Session 2026-03-16 (Experimental Skill 065 empty-suite cleanup refinement)
+
+### Context
+- Goal: implement Refinement 5 so the experimental Skill 065 lane performs a final cleanup pass that deletes empty `Happy Path` child suites when a cluster never produced viable content for that slice, such as an empty `Lifecycle Flow` in a lookup-only cluster.
+
+### Actions Completed
+- Re-read the affected orchestration, suite-lifecycle, and contributor-sync surfaces before editing:
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated Skill 065 so the experimental lane now explicitly:
+  - keeps `Baseline Snapshot`, `Safe Reference Reads`, and `Lifecycle Flow` as the initial `Happy Path` skeleton during authoring
+  - runs a final cleanup pass through Skill 009 delete flow after happy-path authoring is materially complete for a cluster
+  - deletes any direct `Happy Path` child suite that remained empty, rather than preserving empty placeholders in the final authored result
+  - keeps non-empty child suites and intentionally meaningful preserved branches intact
+- Synced contributor tracking/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally keeps the refinement scoped to direct `Happy Path` child-suite cleanup in the experimental lane.
+- The goal is to avoid misleading empty structural placeholders, not to prune non-empty authored branches or narrow the initial authoring skeleton.
+
+## Session 2026-03-16 (Experimental Skill 065 security-coverage accounting refinement)
+
+### Context
+- Goal: implement Refinement 4 so the experimental Skill 065 lane treats security coverage as a broad operation-level accounting pass, with lifecycle-flow copies preferred as the security seed for each target operation rather than settling for one representative branch per cluster.
+
+### Actions Completed
+- Re-read the contributor/bootstrap/runtime and experimental-lane surfaces needed for the refinement analysis:
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
+  - `docs/templates/skill-065-approval-artifact-template.md`
+  - `docs/templates/skill-065-completion-artifact-template.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated Skill 065 so the experimental lane now explicitly:
+  - performs a required per-operation security-accounting pass across every eligible authored operation in each approved cluster
+  - records security-accounting outcomes as `delivered`, `no-credible-target`, `deferred`, or `blocked`
+  - prefers lifecycle-flow copies of the exact operation as the security seed, with safe-read and baseline fallback only when that same operation has no stronger lifecycle candidate
+  - rejects representative same-cluster substitution as a security-breadth shortcut
+  - reports security-accounting results explicitly in completion reporting
+- Updated Skill 066 so exploration may now:
+  - emit advisory security-targeting hints for downstream Skill 065 accounting
+  - perform bounded additional exploration specifically to improve that advisory when existing evidence is too thin
+  - keep that extra work narrow rather than turning the exploration phase into broad pen testing or unrelated representative-seed hunting
+- Tightened supporting surfaces:
+  - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
+  - `docs/templates/skill-065-approval-artifact-template.md`
+  - `docs/templates/skill-065-completion-artifact-template.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally keeps the refinement scoped to the experimental lane and does not update Skill 033.
+- The goal is broader operation-level security coverage with explicit accounting, not ad hoc security mutation branches or a change to Skill 062's leaf ownership.
+
+## Session 2026-03-16 (Experimental Skill 065 negative-coverage accounting refinement)
+
+### Context
+- Goal: implement Refinement 3 so the experimental Skill 065 lane produces broader, explicitly accounted negative coverage in autonomous runs, while Skill 066 can provide advisory negative-opportunity hints and bounded extra exploration when existing evidence is too thin.
+
+### Actions Completed
+- Re-read the contributor/bootstrap/runtime and experimental-lane surfaces needed for the refinement analysis:
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/workflow/documentation-sync-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated Skill 065 so the experimental lane now explicitly:
+  - performs a required per-slice negative-accounting pass instead of treating a few strong negatives somewhere in the tree as sufficient
+  - records negative-accounting outcomes as `delivered`, `no-credible-family`, `deferred`, or `blocked`
+  - treats the five-family rule as a late-stage per-slice ceiling rather than as a run-wide budget or early stopping cue
+  - keeps ordinary negative uncertainty non-blocking in autonomous posture unless a true dependency gap exists
+  - reports negative-accounting results explicitly in completion reporting
+- Updated Skill 066 so exploration may now:
+  - emit advisory negative-opportunity hints for downstream Skill 065 accounting
+  - perform bounded additional exploration specifically to improve that advisory when the existing evidence is too thin
+  - keep that extra work narrow rather than turning the exploration phase into open-ended negative probing
+- Synced contributor tracking/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally keeps the refinement scoped to the experimental lane and does not update Skill 033.
+- The goal is broader autonomous negative coverage with explicit accounting, not forcing five negatives everywhere or weakening the fail-closed standard against fake negatives.
+
+## Session 2026-03-16 (Experimental Skills 065/067 validation synchronization refinement)
+
+### Context
+- Goal: implement Refinement 2 so the experimental Skill 065 lane has a real exploration-backed happy-path validation phase, a caller-owned handoff into Skill 067, and a clean databank-reuse-first model for enrichment-only extracts.
+
+### Actions Completed
+- Re-read the affected orchestration, validation, databank, and contributor-sync surfaces before editing:
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-067-experimental-validation-enrichment-orchestration.md`
+  - `docs/skills/validation/skill-010-json-assertor-workflow.md`
+  - `docs/skills/validation/skill-016-xml-assertor-workflow.md`
+  - `docs/skills/validation/skill-029-json-validator-workflow.md`
+  - `docs/skills/validation/skill-030-xml-validator-workflow.md`
+  - `docs/skills/validation/skill-031-diff-tool-workflow.md`
+  - `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
+  - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated Skill 065 so the experimental lane now explicitly:
+  - treats happy-path validation enrichment as a required phase
+  - separates execution-critical databanks/authoring-integrity assertions from later enrichment-oriented validation
+  - emits a per-slice Skill 65 -> 67 handoff packet with payload/media classification, expected-content basis, schema/source candidates, databank context, candidate cross-step comparisons, and completion-state guidance
+  - keeps delegated validation posture aligned with the top-level experimental posture
+- Rewrote Skill 067 so it now:
+  - consumes the Skill 065 handoff packet rather than rediscovering validation context from scratch
+  - treats exploration evidence as baseline authority for family selection and candidate expected content
+  - preserves Skill 065 posture, including no separate autonomous validation approval artifact by default
+  - blocks validator attachment only when schema/source remains unresolved while still allowing assertor/diff delivery when justified
+  - reuses an existing producer-local databank before creating a new one for validation-only extracts
+  - auto-adds cross-step semantic comparisons only when provenance, relationship strength, volatility, and verification-scope support are all strong enough
+  - reports per-slice validation completion as `delivered`, `no-tool exception`, `validator-blocked-but-assertor/diff-delivered`, or `blocked`
+- Updated the validation leaves symmetrically so JSON/XML Assertor, JSON/XML Validator, and Diff Tool may accept upstream experimental-lane resolution of family selection, target parent, and candidate expected-content basis from Skill 067 while keeping leaf-level create/update/readback/verification mechanics local.
+- Updated the JSON/XML databank lifecycle cards so enrichment-only extracts prefer updating the existing producer-local databank instead of creating a sibling databank by default.
+- Synced contributor tracking/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally kept the Skill 066 ledger advisory rather than redefining it into a rigid validation schema.
+- The new synchronization point is the Skill 065 -> Skill 067 handoff, not a broader rewrite of exploration ownership.
+
+## Session 2026-03-16 (Experimental Skill 065 BASEURL template-normalization refinement)
+
+### Context
+- Goal: codify Refinement 1 so the experimental Skill 065 lane adds a local `BASEURL` environment variable immediately after OpenAPI `.tst` creation and normalizes generated template-suite REST Clients to `${BASEURL}` before later copies inherit those endpoints.
+
+### Actions Completed
+- Re-read the affected orchestration, generation, environment, REST Client, and contributor-sync surfaces before editing:
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated Skill 065 so the broad new-file experimental lane now explicitly:
+  - reads back the generated local environment immediately after Skill 022 create/readback
+  - adds or updates a local `BASEURL` variable through Skill 064 using confirmed project/service-definition base-URL evidence
+  - rewrites matching generated template-suite REST Clients through Skill 020 from concrete hosts to `${BASEURL}` plus preserved relative path/query
+  - freezes the generated suite as disabled source-of-copy only after that normalization step completes
+  - copies normalized template REST Clients into authored happy-path branches so later copies inherit the parameterized endpoint form
+- Updated Skill 022 to keep ownership narrow:
+  - generation plus create/readback verification stay in scope
+  - caller-owned post-generation `BASEURL` normalization remains outside the card
+- Updated Skill 064 to make generated-local variable insertion explicit for caller-owned post-generation normalization branches.
+- Updated Skill 020 to make caller-owned concrete-host -> `${BASEURL}` normalization an explicit reuse of its read-merge-write REST Client update path.
+- Synced the contributor ledger/rationale surfaces:
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass keeps the refinement primarily owned by Skill 065 rather than expanding Skill 022 into caller-specific post-generation customization.
+- `BASEURL` insertion and generated-client URL rewrite are intentionally split across existing owners: Skill 064 for environment mechanics and Skill 020 for REST Client mutation.
+
+## Session 2026-03-16 (Experimental Skill 065 stateful cluster-authoring implementation pass)
+
+### Context
+- Goal: implement the approved plan that upgrades the experimental Skill 065 lane from per-operation exploration-backed authoring into a cluster-aware, stateful authored-structure workflow with deterministic verification isolation.
+
+### Actions Completed
+- Re-read the approved plan plus the affected cards and contributor-sync surfaces before implementation:
+  - plan `6e225e16-0219-4e18-9c93-523a96fe91b6`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
+  - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+  - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+  - `docs/templates/skill-065-approval-artifact-template.md`
+  - `docs/templates/skill-065-completion-artifact-template.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Rewrote Skill 065 so the experimental lane now canonically:
+  - preserves the generated OpenAPI suite as a disabled template/source-of-copy
+  - authors a sibling `AI Generated Tests` root
+  - creates cluster-local `Happy Path`, narrow `Optional / Deferred`, `Negative Coverage`, and `Security Coverage`
+  - models `Happy Path` as `Baseline Snapshot`, `Safe Reference Reads`, and `Lifecycle Flow`
+  - uses copyable scenario sub-suites as the structural unit for multi-step derivation
+  - treats Skill 074 disable-run-restore as the default focused-verification mechanism
+- Rewrote Skill 066 so exploration now canonically emits:
+  - per-operation dossiers plus a stateful resource/workflow-cluster overlay
+  - baseline plans, bindings, role/semantic tags, and ordered `authoringPaths`
+  - prerequisite-expansion metadata for out-of-scope support work
+  - preserve/defer signals for non-credible in-scope endpoints
+- Updated the supporting canonical surfaces:
+  - `docs/skills/cross-cutting/skill-013-test-naming-policy.md`
+  - `docs/skills/security-testing/skill-062-penetration-testing-tool-workflow.md`
+  - `docs/skills/structure/skill-009-testsuite-creation-and-configuration.md`
+  - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
+  - `docs/templates/skill-065-approval-artifact-template.md`
+  - `docs/templates/skill-065-completion-artifact-template.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally translated the approved plan into canonical card language rather than trying to fully validate the upgraded runtime behavior in the same session.
+- The remaining open questions are now secondary implementation-tightening questions rather than blockers to beginning implementation from the canonical docs.
+
+## Session 2026-03-15 (Secret-reference vs runtime auth-materialization boundary)
+
+### Actions Completed
+- Re-read the affected bootstrap, exploration, auth-mutation, environment, routing, status, and contributor-sync surfaces before editing:
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Added the new canonical boundary card:
+  - `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md`
+- Updated the bootstrap, exploration, auth-mutation, and environment owners so approved gitignored secret references stay reference-only in project context but may be resolved and materialized into supported `.tst` auth writes when runtime work requires them:
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
+  - `docs/workflow/agent-workflow.md`
+- Updated the canonical routing/status/rationale surfaces:
+  - `docs/skills/skill-index.md`
+  - `docs/skills/backlog.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally keeps secret protection in durable project context and secret materialization in authored `.tst` assets as separate concerns.
+- Preventing committed secret leakage from generated `.tst` files remains user responsibility unless a future workflow explicitly introduces a stronger safeguard.
+## Session 2026-03-15 (Generated REST Client family clarification for OpenAPI broad authoring)
+
+### Actions Completed
+- Re-read the broad-authoring and constrained-client ownership surfaces before editing:
+  - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
+  - `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md`
+  - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/client-tools/skill-059-constrained-rest-client-yaml-fallback.md`
+  - `docs/skills/client-tools/skill-060-single-constrained-rest-client-openapi-refactor.md`
+  - `docs/skills/composite-orchestration/skill-061-change-advisor-bulk-openapi-refactor.md`
+  - `docs/skills/composite-orchestration/skill-056-single-client-authoring-intent-orchestration.md`
+  - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
+  - `docs/skills/skill-index.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Updated `docs/skills/platform/skill-022-tst-create-from-openapi.md` to make the generated client family explicit: OpenAPI `.tst` generation yields the standard unconstrained / None-mode generated REST Client branch used by broad authoring in this repo.
+- Updated `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md` so the broad new-file exploration-first lane treats Skill 022 output as that standard generated branch and routes post-generation request/auth mutation through Skill 020 only.
+- Removed the now-superfluous Skill 059 dependency/reference from Skill 065's broad generated-client handoff.
+- Recorded the clarification in:
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- This pass intentionally did not narrow Skill 059's standalone constrained-client-from-scratch posture or reduce constrained REST Client prominence in the single-client authoring workflow.
+- The clarification is specifically about the family produced by broad OpenAPI `.tst` generation and the downstream owner used by Skill 065 for that generated branch.
+## Session 2026-03-15 (Startup-mode classification split for contributor bootstrap)
+
+### Actions Completed
+- Re-read the bootstrap, routing, and contributor-maintenance surfaces before editing:
+  - `AGENTS.md`
+  - `docs/workflow/agent-workflow.md`
+  - `docs/skills/skill-index.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+- Revised the startup contract so explicit contributor-start prompts skip automatic Skill 063, while explicit project/operator starts and bare `Load AGENTS.md` prompts still enter operator-default project bootstrap.
+- Updated the canonical workflow/bootstrap/routing surfaces to encode startup-mode classification before project bootstrap:
+  - `docs/workflow/agent-workflow.md`
+  - `AGENTS.md`
+  - `docs/skills/skill-index.md`
+  - `docs/workflow/skill-authoring-workflow.md`
+  - `docs/skills/composite-orchestration/skill-063-project-context-bootstrap-orchestration.md`
+- Recorded the superseding rationale in:
+  - `docs/logs/decision-log.md`
+  - `docs/logs/chat-log.md`
+
+### Notes
+- `README.md` already described the contributor/operator bootstrap split and was intentionally left unchanged in this pass.
+- Skill 063 remains the default for explicit project/operator starts and bare `Load AGENTS.md`, but no longer auto-runs for explicit skill-contributor / skill-authoring startup prompts.
 ## Session 2026-03-15 (API-preferred mutation ownership hardening)
 
 ### Actions Completed

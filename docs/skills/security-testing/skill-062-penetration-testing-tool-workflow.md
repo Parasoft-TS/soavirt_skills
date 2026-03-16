@@ -15,7 +15,9 @@ Provide an endpoint-accurate lifecycle for SOAtest Penetration Testing Tools usi
   - readback verification of id, parent relationship, and persisted settings
 - Out of scope:
   - deciding whether security coverage is in scope for a workflow
-  - copying the happy-path REST Client into a security suite before tool creation
+  - copying the happy-path REST Client or scenario subtree into a security suite before tool creation
+  - choosing single-step vs minimal-prefix vs full-sequence derivation for the branch
+  - performing operation-level security breadth/accounting or choosing the lifecycle-preferred seed when the caller has several credible copies of the same operation
   - chaining validator/assertor/diff tools onto the same security branch
   - treating `Traffic Object` as a default business-validation parent
 
@@ -45,8 +47,8 @@ Provide an endpoint-accurate lifecycle for SOAtest Penetration Testing Tools usi
 1. Before the first write, run branch-aware capability preflight (Skill 050).
 2. Resolve the correct parent id using Skill 018.
 3. Valid parent rule:
-   - if the caller supplies a REST Client id, construct the canonical parent id as `<rest-client-id>/Traffic Object`.
-   - if the caller supplies an output-provider id directly, verify that it is the REST Client `Traffic Object` output-provider path.
+   - if the caller supplies a REST Client id, construct the canonical parent id as `<rest-client-id>/Traffic Object`
+   - if the caller supplies an output-provider id directly, verify that it is the REST Client `Traffic Object` output-provider path
 4. Do not guess or infer other request-side or diagnostics-side parents.
 
 ### 6.2 Create
@@ -57,9 +59,9 @@ Provide an endpoint-accurate lifecycle for SOAtest Penetration Testing Tools usi
 6. Execute `POST /v6/tools/penTestTools`.
 7. Read back the created tool with `GET /v6/tools/penTestTools?id=<created-id>`.
 8. Verify:
-   - returned id is stable,
-   - `relationships.parentRel.id` points at the intended REST Client `Traffic Object` parent,
-   - intended `name` and `toolSettings` persisted.
+   - returned id is stable
+   - `relationships.parentRel.id` points at the intended REST Client `Traffic Object` parent
+   - intended `name` and `toolSettings` persisted
 
 ### 6.3 Read
 9. Use `GET /v6/tools/penTestTools?id=<id>`.
@@ -71,6 +73,34 @@ Provide an endpoint-accurate lifecycle for SOAtest Penetration Testing Tools usi
 13. Merge only the intended changes into the full payload shape.
 14. Execute `PUT /v6/tools/penTestTools?id=<id>`.
 15. Read back again and verify the updated settings persisted.
+
+### 6.5 Payload-Shape Usage Guard (Disambiguation Only)
+The example payloads below are shape references, not semantic defaults.
+
+Rules:
+- Replace all placeholders from caller-approved parent/name/settings intent.
+- Create payloads use `parent.id`; update payloads do not invent create-only wrappers or relocation intent.
+- For updates, start from live GET readback and mutate only the intended fields before PUT.
+- Do not guess alternate response-side or request-side parent paths; the only approved parent for this skill is the REST Client `Traffic Object`.
+
+Minimal create shape:
+```json
+{
+  "parent": {
+    "id": "<rest-client-id>/Traffic Object"
+  },
+  "name": "<pen-test-name>",
+  "toolSettings": {}
+}
+```
+
+Minimal update shape:
+```json
+{
+  "name": "<pen-test-name>",
+  "toolSettings": {}
+}
+```
 
 ## 7) Canonical Endpoint Notes
 - `POST /v6/tools/penTestTools`
@@ -93,6 +123,7 @@ Provide an endpoint-accurate lifecycle for SOAtest Penetration Testing Tools usi
 - Penetration Testing Tool is attached directly under the REST Client id instead of the `Traffic Object` output-provider.
 - `Traffic Object` is treated as a generic business-validation parent.
 - Sparse `PUT` drops settings because overwrite semantics were ignored.
+- Create-shape vs update-shape confusion can introduce unsupported parent/move semantics or silently discard intended settings.
 - Security-tool creation is followed by invalid extra chaining of validator/assertor/diff tools.
 
 ## 10) Safety / Rollback
@@ -103,5 +134,5 @@ Provide an endpoint-accurate lifecycle for SOAtest Penetration Testing Tools usi
 
 ## 11) Reuse Notes
 - Primary target: SOAtest.
-- Typical caller: Skill 033 after it has copied a finalized happy-path REST Client into a security suite.
+- Typical callers: Skill 033 and upgraded Skill 065 after the calling workflow has already performed any required security accounting and copied the intended exact-operation REST Client or minimal scenario subtree into a security branch.
 - Treat this skill as the canonical exception that authorizes REST Client `Traffic Object` chaining for security testing.

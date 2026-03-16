@@ -75,11 +75,12 @@ This serves the same data-exchange purpose as XML Data Bank, but for JSON payloa
   - keep this branch only when copy is subordinate to broader JSON Data Bank lifecycle/configuration work
   - `POST /v6/tools/copy` with `from.id`, `to.parent.id`, optional `to.name`
   - verify copied JSON Data Bank via `GET /v6/tools/jsonDataBanks?id=<new-id>`.
-7. Optional delete flow (substep only):
+7. When this card is called from Skill 067 for enrichment-only extracts, prefer updating the existing producer-local JSON Data Bank with additional extraction entries instead of creating a sibling databank; create a new databank only when no suitable producer-local databank exists.
+8. Optional delete flow (substep only):
   - for pure delete-only intent, prefer `docs/skills/structure/skill-072-delete-tool.md`
   - keep this branch only when delete is subordinate to broader JSON Data Bank lifecycle/configuration work
   - `DELETE /v6/tools?id=<databank-id>` and verify absence in descendants/children.
-8. Execute focused run by following the Skill 012 execution-triad contract and confirm extraction is stable.
+9. Execute focused run by following the Skill 012 execution-triad contract and confirm extraction is stable.
 
 ## 6.0) Authoring Rule (API-First)
 - Follow global authoring + exemplar-efficiency policy in `docs/workflow/agent-workflow.md` (Decision Rule).
@@ -153,3 +154,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
 - For pure rename/copy/delete/enable-disable prompts on an existing JSON Data Bank, prefer the centralized operation-centric owners; keep Skill 028 for broader databank lifecycle/configuration work.
+- When called from Skill 067, prefer reusing and updating the existing producer-local JSON Data Bank with additional extraction entries instead of creating a sibling databank; create a new databank only when none exists.

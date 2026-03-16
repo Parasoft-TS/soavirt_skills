@@ -26,6 +26,7 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- When called from Skill 067, this card may rely on upstream exploration-backed payload classification, target parent selection, approved validator-family intent, and candidate schema-source basis, while still owning local validator create/update/readback/verification mechanics.
 
 ## 4) Inputs
 - Required:
@@ -36,6 +37,7 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
   - explicit validator configuration settings (validation type, schema/service-definition location)
   - schema/service-definition hints from prior user prompts
   - schema/service-definition hints from environment variables
+  - caller-supplied operation identity or validator message-mapping basis
   - execution filter (`testNames`) for focused runtime checks
 
 ## 5) Preconditions
@@ -43,7 +45,7 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
 - Parent output channel emits JSON payloads.
 - Parent id resolves to an output-provider location that accepts chained tools.
 - Target producer is an API client tool response output (REST Client today; SOAP/Messaging client outputs when those skills are available).
-- Runtime response media type for target output is JSON and must be confirmed from baseline run evidence before family selection.
+- In the stable lane, runtime response media type for target output is JSON and must be confirmed from baseline run evidence before family selection. When this card is called from Skill 067 in the experimental lane, upstream exploration-backed payload classification, approved validator family, target parent selection, and candidate schema-source basis may satisfy that family-selection gate before attachment, but post-attachment focused verification remains required.
 - JSON selector/query rule must be loaded when selector fields are used:
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
   - use XPath-style selectors for JSON fields, not JSONPath.
@@ -62,10 +64,11 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring JSON Validator.
   - do not guess or locally invent parent-path mappings.
 1.2 Fail-closed media-type gate:
-  - run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
-  - if observed payload is JSON, continue JSON Validator flow.
-  - if observed payload is XML, route to Skill 030 instead of creating/updating JSON Validator.
-  - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating JSON Validator.
+  - in the stable lane, run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
+  - when this card is called from Skill 067, accept upstream exploration-backed payload classification, approved validator-family intent, target parent selection, and candidate schema-source basis as authoritative for family-selection purposes instead of rerunning baseline work only to rediscover them.
+  - if observed or upstream-authoritative payload is JSON, continue JSON Validator flow.
+  - if observed or upstream-authoritative payload is XML, route to Skill 030 instead of creating/updating JSON Validator.
+  - if observed or upstream-authoritative payload is plain text, route to Skill 031 in text mode instead of creating/updating JSON Validator.
   - do not select JSON Validator only because the producer is a REST Client or other API client tool.
 2. Resolve validator identity before writes (idempotent upsert rule):
   - derive deterministic target id as `<parent-id>/<validator-name>`,
@@ -111,8 +114,13 @@ When adding a JSON Validator to tools such as REST Clients, default behavior is 
     - `toolSettings.schemaValidationSettings.definitionSettings.openapi.message.path=<resolved response path>`
     - `toolSettings.schemaValidationSettings.definitionSettings.openapi.message.method=<resolved HTTP method>`
     - `toolSettings.schemaValidationSettings.definitionSettings.openapi.message.responseCode=<expected code, default 200>`
-  - resolve message path/method from the chained producer context and use runtime response context to confirm.
+  - derive message mapping in this order:
+    1. exact authored producer operation identity or caller-supplied message-mapping basis
+    2. confirmed OpenAPI path template and method for that exact operation
+    3. expected response-code basis from the authored test intent or approved calibration context
+  - treat observed concrete runtime URLs as confirmation evidence only; do not invent message paths from paraphrased resource names, response semantics, or hand-written approximations.
   - for path-parameter operations, keep service-definition template placeholders in message mapping (for example `/customers/{customerId}`), not concretized runtime values (for example `/customers/12212`).
+  - if the exact operation identity cannot be reconciled to one confirmed OpenAPI template path/method, stop and return blocked/partial rather than guessing.
   - use `checkWellFormednessOnly` only when user explicitly requests it.
   - do not use `checkWellFormednessOnly` when rule 4.1 conditions are satisfied.
 7. If selector-expression fields are present, apply Skill 011 semantics (XPath over JSON).
@@ -170,6 +178,7 @@ Rules:
 - Repeat executions/update passes do not create additional validators for the same parent/name intent.
 - Readback confirms default `validationType` is `validateAgainstSchema` unless user explicitly selected `checkWellFormednessOnly`.
 - For OpenAPI-backed setup, readback confirms explicit message mapping fields are populated (direction/path/method/responseCode) with `autoDetectMessage=false`.
+- Explicit OpenAPI message mapping is derived from one confirmed operation template rather than from concretized runtime URLs or semantic guesswork.
 - Inferred schema/service-definition values are only applied when confidence gate conditions are met and the user explicitly confirms the candidate source.
 - When definition inputs are not inferable with high confidence, workflow blocks on user prompt rather than downgrading validation mode.
 - Environment-variable-backed candidates are echoed using both variable form and resolved value before they are used.
@@ -192,11 +201,13 @@ Rules:
 - Incorrect downgrade risk: using well-formedness mode despite known OpenAPI location and JSON response.
 - OpenAPI auto-detect picks the wrong message/schema node for the runtime response when auto-detect is explicitly enabled as an override.
 - Incomplete explicit OpenAPI message mapping (for example missing `direction`) causes payload validation setup errors.
+- Message mapping is guessed from a paraphrased resource label or concrete runtime URL instead of being reconciled to one confirmed OpenAPI operation template.
 - Wrong schema/service-definition inferred from ambiguous context.
 - Environment-variable-backed or tool-inferred schema source is applied without explicit user confirmation.
 - Synthetic schema generation used instead of user-provided/verified schema location.
 - Input-binding mismatch if chained to diagnostics-only output instead of semantic JSON output.
 - Approved JSON Validator coverage is silently dropped or replaced with content-only tooling without fresh user approval.
+- Experimental-lane drift risk: this card ignores Skill 067's upstream exploration-backed family selection, target parent, or candidate schema-source basis and redoes family-selection work from scratch.
 
 ## 9) Safety / Rollback
 - Write skill (adds/modifies validator tool nodes).
@@ -213,3 +224,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- When called from Skill 067, this card may rely on upstream exploration-backed payload classification, target parent selection, approved validator-family intent, and candidate schema-source basis, while still owning local validator create/update/readback/verification mechanics.

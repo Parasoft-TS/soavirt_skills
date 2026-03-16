@@ -43,7 +43,7 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
 - Target test/tool produces XML output at runtime.
 - Parent id resolves to an output-provider location that accepts assertor children.
 - Runtime response media type for target output is XML and must be confirmed from baseline run evidence before family selection.
-- Baseline execution evidence is required before assertion authoring decisions.
+- In the stable lane, baseline execution evidence is required before assertion authoring decisions. When this card is called from Skill 067 in the experimental lane, upstream exploration-backed payload classification, approved family selection, target parent selection, and candidate expected-content basis may satisfy that family-selection gate before attachment, but post-attachment focused verification remains required.
 
 ## 6) Procedure
 0. Apply capability preflight before first write:
@@ -56,10 +56,11 @@ Create a reusable lifecycle pattern for XML Assertors on tool output and validat
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating the XML Assertor.
   - do not guess or locally invent parent-path mappings.
 1.2 Fail-closed media-type gate:
-  - run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
-  - if observed payload is XML, continue XML Assertor flow.
-  - if observed payload is JSON, route to Skill 010/029 instead of creating/updating XML Assertor.
-  - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating XML Assertor.
+  - in the stable lane, run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
+  - when this card is called from Skill 067, accept upstream exploration-backed payload classification, approved family selection, candidate expected-content basis, and target parent selection as authoritative for family-selection purposes instead of rerunning baseline work only to rediscover them.
+  - if observed or upstream-authoritative payload is XML, continue XML Assertor flow.
+  - if observed or upstream-authoritative payload is JSON, route to Skill 010/029 instead of creating/updating XML Assertor.
+  - if observed or upstream-authoritative payload is plain text, route to Skill 031 in text mode instead of creating/updating XML Assertor.
   - do not select XML Assertor only because the producer is a REST Client, DB Tool, or other tool that often emits XML.
   - if the caller/orchestration already approved XML Assertor for this target, treat that family as binding and do not reopen XML Assertor vs Diff Tool selection inside this card.
 2. If observed payload is XML and family selection has not already been fixed by the caller, select between XML Assertor and Diff Tool XML mode based on response data volatility:
@@ -162,6 +163,7 @@ Rules:
 2. Chain XML Assertor under semantic response output anchor:
   - `<producer-tool-id>/Response Traffic` (or other Skill 018-mapped semantic XML output channel)
 3. Apply the fail-closed media-type gate from Procedure step 1.2 before authoring assertion logic.
+3a. If family selection has not already been fixed by the caller, prefer XML Assertor over Diff Tool XML mode when the expected semantic content is inferred from earlier business responses or mutable shared/business state likely to drift across runs; reserve whole-response Diff for cases where stable whole-payload equality is truly the approved intent.
 4. Configure selectors with XPath expressions against observed XML payload structure.
 5. Select assertion type to match data semantics:
   - string/domain/pattern -> `stringComparisonAssertion` / `regularExpressionAssertion`
@@ -201,6 +203,7 @@ Rules:
 - copy placement/name collisions can produce unintended target placement unless readback is performed.
 - Over-softening risk: relaxing strict assertion intent after first failure can hide real regressions.
 - Approved XML Assertor intent can be silently weakened if this card reopens Assertor-vs-Diff selection after orchestration approval.
+- Experimental-lane drift risk: this card ignores Skill 067's upstream exploration-backed payload classification, approved family, or target parent and redoes family-selection work from scratch.
 
 ## 8.1) Failure Handling Rule (No Ignore Branch)
 - XML Assertor has no ignored-differences feature and should remain strict by default.
@@ -228,3 +231,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
 - For pure rename/copy/delete/enable-disable prompts on an existing XML Assertor, prefer the centralized operation-centric owners; keep Skill 016 for broader assertor lifecycle/configuration work.
+- When called from Skill 067, this card may rely on upstream exploration-backed family selection, target parent selection, and candidate expected-content basis, while still owning local assertor create/update/readback/verification mechanics.

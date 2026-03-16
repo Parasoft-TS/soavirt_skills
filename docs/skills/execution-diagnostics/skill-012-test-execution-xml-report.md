@@ -182,6 +182,7 @@ When in doubt, complete all three steps before drawing conclusions about failure
 - Duplicate test names are all selected when names match.
 - Setup tests can still execute with filtered runs when they are part of suite execution flow.
 - Practical mitigation: adopt unique test names across the workspace so `testNames.value` remains deterministic.
+- In multi-branch orchestrations that can isolate execution structurally, prefer Skill 074 disable-run-restore sandboxing first and use `testNames` only as a fallback when structural isolation is unnecessary or impractical.
 
 ## 8.2) Known Traffic Retrieval Constraints
 - Endpoint used: `GET /v6/testExecutions/{id}/traffic?entityId=...`

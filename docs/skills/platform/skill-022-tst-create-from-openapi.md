@@ -4,17 +4,19 @@
 Create a new SOAtest `.tst` from OpenAPI/Swagger.
 
 ## 2) Objective
-Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger using `POST /v6/files/tsts/swagger`.
+Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger using `POST /v6/files/tsts/swagger`. In this repo's broad-authoring model, that generated REST Client family is the standard unconstrained / None-mode branch, and downstream generated-client request/auth mutation routes through Skill 020 rather than Skill 059. Caller-owned post-generation template normalization, such as adding `BASEURL` and rewriting generated client hosts to `${BASEURL}` plus relative path/query, remains outside this card.
 
 ## 3) Scope
 - In scope:
   - create `.tst` from OpenAPI/Swagger URL or file-system path
   - verify resulting test file and root suite creation
   - deterministic handling of the optional environment-creation request
+  - canonical identification of the generated REST Client family as the standard unconstrained / None-mode branch used by broad authoring in this repo
   - optional cleanup via file delete
 - Out of scope:
   - traffic-based generation
-  - post-generation test customization
+  - post-generation test customization beyond identifying the generated client family for downstream handoff
+  - caller-owned post-generation template normalization such as adding `BASEURL` to the generated local environment or rewriting generated REST Client hosts to `${BASEURL}` plus relative path/query
   - WSDL/RAML generation (separate endpoints)
 
 ## 3.2) Routing Boundary (Required)
@@ -148,5 +150,6 @@ Run this guard only when target name uncertainty exists (for example after ambig
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
 - Use Skill 064 for `restCreateEnvironment` selection and any follow-on environment mechanics; v1 default generation mode is `local_managed`, which for brand-new `.tst` generation means relying on the generator's built-in local environment behavior unless the user or already-confirmed upstream context explicitly selects another supported branch.
 - When invoked directly from routing, this card may be the full workflow for generation-only intent.
-- When invoked from `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` during broad authoring, this card owns only initial `.tst` generation plus create/readback verification.
-- In that caller context, readiness remediation, negative/security authoring, calibration, and validation enrichment remain owned by Skill 033 and its downstream orchestration/leaf skills.
+- In this repo's generation model, the REST Clients created by this OpenAPI generator are the standard unconstrained / None-mode generated branch; do not reinterpret Skill 022 broad generation as creating constrained REST Clients by default.
+- When invoked from `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` or `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md` during broad authoring, this card owns only initial `.tst` generation plus create/readback verification.
+- In that caller context, downstream generated-client request/auth mutation and readiness work remain with Skill 020 plus the caller's later orchestration phases; readiness remediation, negative/security authoring, calibration, validation enrichment, and any post-generation `BASEURL` normalization remain owned by the caller and its downstream orchestration/leaf skills.

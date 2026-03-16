@@ -29,12 +29,12 @@ This repository supports two primary workflows:
 - **Operators / SOAtest-Virtualize users**
   - use the repo to create, inspect, run, diagnose, extend, and refactor test assets
   - common session bootstrap prompts:
-    - `Load AGENTS.md`
-    - `Load AGENTS.md for project <project_name>`
+    - `Follow @AGENTS.md`
+    - `Follow @AGENTS.md for project <project_name>`
 - **Contributors / skill authors**
   - use the repo to design, refine, validate, and document the skills/policies themselves
   - common session bootstrap prompt:
-    - `Load AGENTS.md for skill contributor workflow`
+    - `Follow @AGENTS.md for skill contributor workflow`
 
 Keeping those two workflows distinct helps avoid mixing runtime task execution guidance with contributor-only governance and maintenance rules.
 

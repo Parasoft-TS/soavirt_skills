@@ -29,6 +29,7 @@ Create a reusable workflow for chaining a Diff Tool to live semantic runtime out
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- When called from Skill 067, this card may rely on upstream exploration-backed mode selection, target parent selection, and candidate expected-content basis, while still owning local Diff Tool create/update/readback/verification mechanics.
 
 ## 4) Inputs
 - Required:
@@ -44,7 +45,7 @@ Create a reusable workflow for chaining a Diff Tool to live semantic runtime out
 - API reachable and authenticated.
 - Parent output channel provides stable semantic runtime output content.
 - Parent id resolves to an output-provider location that accepts chained tools.
-- Baseline execution evidence is required before mode selection, and observed runtime output type must drive the selected Diff Tool mode.
+- In the stable lane, baseline execution evidence is required before mode selection, and observed runtime output type must drive the selected Diff Tool mode. When this card is called from Skill 067 in the experimental lane, upstream exploration-backed payload classification, approved Diff Tool family selection, target parent selection, and candidate expected-content basis may satisfy that mode-selection gate before attachment, but post-attachment focused verification remains required.
 
 ## 6) Procedure
 0. Apply capability preflight before first write:
@@ -56,20 +57,20 @@ Create a reusable workflow for chaining a Diff Tool to live semantic runtime out
 1.1 Fail-closed guard:
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring Diff Tool.
   - do not guess or locally invent parent-path mappings.
-2. Run baseline execution first and capture observed semantic runtime output + type from the producer's canonical evidence source.
-  - for API-client response outputs, baseline source must be the executed test's response traffic payload (`/testExecutions/{id}/traffic` -> selected `Traffic Viewer`).
+2. In the stable lane, run baseline execution first and capture observed semantic runtime output + type from the producer's canonical evidence source. When this card is called from Skill 067, accept upstream exploration-backed payload classification, approved Diff Tool family selection, target parent selection, and candidate expected-content basis as authoritative for mode-selection purposes instead of rerunning baseline work only to rediscover them.
+  - for API-client response outputs, baseline source must be the executed test's response traffic payload (`/testExecutions/{id}/traffic` -> selected `Traffic Viewer`) when stable-lane baseline discovery is still needed.
   - for DB Tool outputs, baseline source must be the canonical semantic result output from Skill 018 (for example `Results as XML`), not diagnostic traffic.
   - do not seed expected values from ad-hoc external endpoint calls or non-canonical diagnostics because they may not match the configured parent tool's actual runtime output.
   - classify payload type from the observed semantic payload/body first; use response headers such as `Content-Type` only as supporting evidence.
   - if response headers and observed payload disagree, select diff mode from the observed payload/body rather than the header value.
-3. Select diff mode from observed runtime output type:
-  - this gate is fail-closed: do not infer mode from producer class or apply a user-preferred mode when runtime evidence shows a different payload type.
+3. Select diff mode from observed or upstream-authoritative runtime output type:
+  - this gate is fail-closed: do not infer mode from producer class or apply a user-preferred mode when runtime evidence or upstream-authoritative classification shows a different payload type.
   - XML output -> `xml`
   - JSON output -> `json`
   - plain text output -> `text`
   - binary payload -> `binary`
-  - For JSON outputs, Diff Tool is preferred when payload data is mostly static (few volatile fields). If many fields are dynamic (timestamps, generated ids, session tokens), consider JSON Assertor (Skill 010) instead — Diff Tool would require many ignored differences, reducing its value since those elements are not tested anyway.
-  - For XML outputs, apply the same static/dynamic heuristic between Diff Tool XML mode and XML Assertor (Skill 016).
+  - For JSON outputs, prefer Diff Tool only when the approved intent is stable whole-payload equality and the payload has few volatile fields. If many fields are dynamic (timestamps, generated ids, session tokens), or if the expected semantic content is inferred from earlier business responses or mutable shared/business state likely to drift across runs, prefer JSON Assertor (Skill 010) or caller-owned cross-step semantic checks instead.
+  - For XML outputs, apply the same rule between Diff Tool XML mode and XML Assertor (Skill 016).
   - if the caller/orchestration has already approved JSON/XML Assertor or Validator coverage for this target, do not use Diff Tool as a silent substitute; use Diff Tool only when it is the approved family for that target or when plain-text fallback applies.
 4. Resolve Diff Tool identity before writes (idempotent upsert rule):
   - derive deterministic target id as `<parent-id>/<diff-name>` for the selected comparison intent,
@@ -101,6 +102,8 @@ Rules:
 - Do not copy expected-content literals from examples.
 - Choose mode from baseline runtime media type (Section 6, steps 2-3), not from preference.
 - For updates, use GET -> mutate -> PUT read-merge-write per Skill 049.
+- Do not transpose the XML `literal.editor.text` wrapper into JSON or text mode; each mode's `regressionControl` envelope in Section 6.2 is intentionally different and must be authored mode-by-mode.
+- After PUT, compare the persisted `toolSettings.diffMode` subtree against the intended mode-specific envelope before concluding configuration succeeded.
 - Keep strict comparison by default; apply ignored differences only after explicit user confirmation.
 
 ### 6.2 Canonical PUT Payload Shapes (Mode-Safe)
@@ -192,6 +195,7 @@ Text mode baseline:
 - Over-broad ignore risk: ignoring unstable fields without user confirmation can mask real regressions.
 - Skipping baseline capture for text mode can leave expected-value seed empty or stale.
 - Approved JSON/XML Assertor or Validator coverage can be silently replaced by Diff Tool if this card is used outside its intended target-specific fallback boundary.
+- Experimental-lane drift risk: this card ignores Skill 067's upstream exploration-backed mode selection, target parent, or candidate expected-content basis and redoes mode-selection work from scratch.
 
 ## 8.1) Plain-Text Fallback Rule
 - When validation intent is requested but observed runtime output is plain text:
@@ -214,6 +218,7 @@ Text mode baseline:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md` (JSON mode selector semantics when selector-like ignore paths are used)
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- When called from Skill 067, this card may rely on upstream exploration-backed mode selection, target parent selection, and candidate expected-content basis, while still owning local Diff Tool create/update/readback/verification mechanics.
 
 ### User Interaction Rule (Diff Failures)
 - On diff failure, provide a concise human-readable summary before any config mutation:

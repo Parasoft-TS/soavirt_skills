@@ -38,6 +38,7 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
 - Additive:
   - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md` when runtime execution/traffic verification is explicitly in scope
   - `docs/skills/client-tools/skill-020-rest-client-none-mode-workflow.md`
+  - `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md`
   - `docs/skills/cross-cutting/skill-052-tst-configuration-analysis-dataflow-trace.md`
   - `docs/skills/composite-orchestration/skill-058-request-readiness-remediation-orchestration.md`
 ## 4) Inputs
@@ -51,6 +52,7 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
   - REST Client/test name
   - caller-supplied variable tokens for base URL or schema URL
   - intended path/query/body request values
+  - auth configuration or approved secret reference path when auth mutation is in scope
   - focused verification test name when runtime verification is explicitly in scope
 ## 5) Preconditions
 - The local `.tst` is readable.
@@ -103,6 +105,8 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
    - set `value.authenticationType.type = basic`
    - set `value.authenticationType.basic.username` with a `complexValueFP` wrapper
    - set `value.authenticationType.basic.password` with a `complexValueMP` wrapper
+   - if auth input came from an approved secret reference, resolve the plaintext credential values and write them directly into the native auth subtree for this supported branch
+   - do not divert to referenced-environment or other concealment workarounds solely to avoid persisting those values in the `.tst`
    - do not attempt constrained-client auth changes through ad hoc YAML edits
    - do not assume `ntlm`, `kerberos`, or `digest` are runtime-valid until a future validation effort proves them
    - write the full object back with `PUT /v6/tools/restClients?id=<tool-id>`
@@ -133,6 +137,7 @@ Operation identity is defined by OpenAPI path plus HTTP method, not by `operatio
 - Constrained-client auth drift occurs because YAML edits or literal `Authorization` headers are used instead of the native REST Client auth subtree.
 - Transport-branch ambiguity causes auth to be written under the wrong `http10`/`http11` subtree.
 - Unsupported-auth drift occurs when `ntlm`, `kerberos`, or `digest` are assumed runtime-valid without validation evidence.
+- Auth-materialization drift occurs when a supported constrained-client Basic-auth write branch detours into referenced-environment or concealment workarounds instead of using the native auth subtree with resolved approved-secret values.
 - Broad regex or whole-file replacement causes unrelated tool drift.
 ## 9) Safety / Rollback
 - Always route local YAML rollback-preserving handling through Skill 006.

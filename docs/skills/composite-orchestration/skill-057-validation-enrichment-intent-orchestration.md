@@ -167,9 +167,15 @@ Conversation-first default: favor natural-language solicitation and interpretati
   - XML response -> XML Validator + (XML Assertor or Diff Tool XML mode).
 30. Do not ask the user to choose validator vs assertor vs diff as the first intake decision.
 31. Resolve the content-validation side of the bundle from the observed response using a one-pass heuristic:
-  - mostly static-looking response -> prefer Diff Tool,
+  - mostly static-looking response whose approved intent is stable whole-response equality -> prefer Diff Tool,
   - response with obvious volatile fields (for example generated ids, timestamps, tokens, session artifacts) -> prefer targeted Assertor,
+  - when the expected semantic content is inferred from earlier business responses or mutable shared/business state likely to drift across runs (for example balances, positions, transaction collections, or post-update echoes), prefer targeted Assertor or explicit cross-step semantic comparisons over whole-response Diff even when the payload looks structurally stable,
   - when uncertain, the agent may choose either Diff Tool or Assertor, but must not run repeated executions solely to prove volatility in v1.
+31a. Validation/source ordering rule:
+  - decide payload/body family first,
+  - choose content-validation family second,
+  - confirm schema/service-definition source for any validator branch third,
+  - do not let missing validator-source confirmation force Diff Tool when Assertor remains the semantically correct content-validation family.
 32. For non-JSON/XML happy-path responses:
   - if the observed payload/body is HTML, treat it as the same no-tool exception and rely on the REST Client expected response code alone,
   - otherwise, do not attach JSON/XML validators by default,

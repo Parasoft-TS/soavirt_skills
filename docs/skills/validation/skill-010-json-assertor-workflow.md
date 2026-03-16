@@ -46,7 +46,7 @@ This skill supports case-by-case assertion authoring composed from user intent (
 - Parent tool/suite exists.
 - For REST-client chaining, parent must be valid output-provider anchor.
 - Runtime response media type for target output is JSON and must be confirmed from baseline run evidence before family selection.
-- Baseline execution evidence is required before assertion authoring decisions.
+- In the stable lane, baseline execution evidence is required before assertion authoring decisions. When this card is called from Skill 067 in the experimental lane, upstream exploration-backed payload classification, approved family selection, target parent selection, and candidate expected-content basis may satisfy that family-selection gate before attachment, but post-attachment focused verification remains required.
 - JSON selector rule must be loaded:
   - `docs/skills/cross-cutting/skill-011-xpath-over-json-query-semantics.md`
   - use XPath-style selectors for JSON fields, not JSONPath.
@@ -65,10 +65,11 @@ This skill supports case-by-case assertion authoring composed from user intent (
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/modifying JSON Assertor chains.
   - do not guess or locally invent parent-path mappings.
 2.2 Fail-closed media-type gate:
-  - run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
-  - if observed payload is JSON, continue JSON Assertor flow.
-  - if observed payload is XML, route to Skill 016/030 instead of creating/updating JSON Assertor.
-  - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating JSON Assertor.
+  - in the stable lane, run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
+  - when this card is called from Skill 067, accept upstream exploration-backed payload classification, approved family selection, candidate expected-content basis, and target parent selection as authoritative for family-selection purposes instead of rerunning baseline work only to rediscover them.
+  - if observed or upstream-authoritative payload is JSON, continue JSON Assertor flow.
+  - if observed or upstream-authoritative payload is XML, route to Skill 016/030 instead of creating/updating JSON Assertor.
+  - if observed or upstream-authoritative payload is plain text, route to Skill 031 in text mode instead of creating/updating JSON Assertor.
   - do not select JSON Assertor only because the producer is a REST Client or other API client tool.
   - if the caller/orchestration already approved JSON Assertor for this target, treat that family as binding and do not reopen JSON Assertor vs Diff Tool selection inside this card.
 3. Create JSON Assertor with `POST /v6/tools/jsonAssertors` using:
@@ -151,9 +152,10 @@ Rules:
 2. Chain JSON Assertor under semantic response output anchor:
   - `<rest-client-id>/Response Traffic`
 3. Apply the fail-closed media-type gate from Procedure step 2.2 before authoring assertion logic.
-  - if observed payload is JSON and family selection has not already been fixed by the caller, select between JSON Assertor and Diff Tool JSON mode based on response data volatility:
+  - if observed payload is JSON and family selection has not already been fixed by the caller, select between JSON Assertor and Diff Tool JSON mode based on response data volatility and semantic intent:
     - significant dynamic/volatile fields (timestamps, generated ids, session tokens) -> prefer JSON Assertor with targeted assertions on stable fields,
-    - mostly static response data -> prefer Diff Tool JSON mode for simpler full-response comparison (see Skill 031),
+    - expected semantic content inferred from earlier business responses or mutable shared/business state likely to drift across runs -> prefer JSON Assertor or caller-owned cross-step semantic checks instead of whole-response Diff,
+    - mostly static response data with approved whole-response equality intent -> prefer Diff Tool JSON mode for simpler full-response comparison (see Skill 031),
     - when unsure, start with Diff Tool; switch to JSON Assertor if the ignored-differences list grows large.
   - if the caller/orchestration already approved JSON Assertor for this target, execute that approved assertor branch rather than substituting Diff Tool locally.
 4. Configure selectors with XPath-style expressions (Skill 011), not JSONPath.
@@ -173,6 +175,10 @@ Rules:
     - `numericDifferenceAssertion`, `dateDifferenceAssertion`, and `dateTimeDifferenceAssertion` appear in the JSON assertion-type enum, but the cached schema does not expose matching assertion/configuration objects in `assertionJson`; treat those families as contract-ambiguous until the server schema is clarified.
 6. Configure assertions based on user intent against observed payload.
   - when expected values come from datasource columns, set tool-level `dataSource` to the datasource name available in the current object context and encode expected-value fields as parameterized column references rather than fixed `${column}` literals.
+6a. Anti-pattern guard for authoring-integrity use cases:
+  - do not default to broad container-level `hasContentAssertion` checks on wrapper nodes such as `/root`, `/root/data`, or similar envelope containers merely because they are easy to target
+  - prefer the smallest semantically meaningful field or relationship that proves the intended scenario coherence, such as status fields, ids, echoed business values, post-state flags, or targeted counts
+  - if the real intent is broad payload-content verification rather than narrow scenario coherence, route that intent back to the validation-enrichment bundle instead of encoding it as a weak authoring-integrity assertor
 7. Validate with focused verification run and collect run-results-traffic evidence triad.
 
 ## 7) Validation
@@ -193,11 +199,13 @@ Rules:
 - Header/body disagreement risk: trusting `Content-Type` over the observed payload/body can route plain-text or XML payloads into the JSON Assertor family incorrectly.
 - False mismatch risk from string-vs-number comparisons if assertion type does not match response value type.
 - False mismatch risk when `hasContentAssertion` uses `selectedElement.extractionType=contentOnly`; use `entireElement` for this assertion type.
+- Weak-authoring-integrity risk: broad wrapper-level `hasContentAssertion` checks can pass while failing to prove meaningful scenario coherence.
 - `Variable "<column>" could not be resolved` usually means a datasource-backed expectation was modeled as a fixed literal/variable string instead of a parameterized datasource column reference.
 - `No Data Source column named <column>` usually means tool-level `dataSource` is missing, uses the wrong datasource name for the current object context, or uses a full asset id where the tool expects the local datasource name.
 - Secondary numeric/string formatting errors can appear after datasource-binding failures and should not be treated as the primary root cause until binding is corrected.
 - Over-softening risk: auto-relaxing strict assertions after failure can mask real regressions.
 - Approved JSON Assertor intent can be silently weakened if this card reopens Assertor-vs-Diff selection after orchestration approval.
+- Experimental-lane drift risk: this card ignores Skill 067's upstream exploration-backed payload classification, approved family, or target parent and redoes family-selection work from scratch.
 
 ## 8.1) Failure Handling Rule (No Ignore Branch)
 - JSON Assertor has no ignored-differences feature and should remain strict by default.
@@ -231,3 +239,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
 - For pure rename/copy/delete/enable-disable prompts on an existing JSON Assertor, prefer the centralized operation-centric owners; keep Skill 010 for broader assertor lifecycle/configuration work.
+- When called from Skill 067, this card may rely on upstream exploration-backed family selection, target parent selection, and candidate expected-content basis, while still owning local assertor create/update/readback/verification mechanics.

@@ -25,6 +25,7 @@ Important: schema-validation mode is only considered correctly configured when t
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- When called from Skill 067, this card may rely on upstream exploration-backed payload classification, target parent selection, approved validator-family intent, and candidate schema-source basis, while still owning local validator create/update/readback/verification mechanics.
 
 ## 4) Inputs
 - Required:
@@ -42,7 +43,7 @@ Important: schema-validation mode is only considered correctly configured when t
 - Parent output channel emits XML payloads.
 - Parent id resolves to an output-provider location that accepts chained tools.
 - Target producer is an API client tool response output (REST Client today; SOAP/Messaging client outputs when those skills are available).
-- Runtime response media type for target output is XML and must be confirmed from baseline run evidence before family selection.
+- In the stable lane, runtime response media type for target output is XML and must be confirmed from baseline run evidence before family selection. When this card is called from Skill 067 in the experimental lane, upstream exploration-backed payload classification, approved validator family, target parent selection, and candidate schema-source basis may satisfy that family-selection gate before attachment, but post-attachment focused verification remains required.
 
 ## 6) Procedure
 0. Apply capability preflight before first write:
@@ -58,10 +59,11 @@ Important: schema-validation mode is only considered correctly configured when t
   - if the producer/output pair is not mapped in Skill 018, stop and request a Skill 018 update before creating/configuring XML Validator.
   - do not guess or locally invent parent-path mappings.
 1.2 Fail-closed media-type gate:
-  - run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
-  - if observed payload is XML, continue XML Validator flow.
-  - if observed payload is JSON, route to Skill 029 instead of creating/updating XML Validator.
-  - if observed payload is plain text, route to Skill 031 in text mode instead of creating/updating XML Validator.
+  - in the stable lane, run baseline execution and inspect the observed semantic response payload/body first; use response headers such as `Content-Type` only as supporting evidence.
+  - when this card is called from Skill 067, accept upstream exploration-backed payload classification, approved validator-family intent, target parent selection, and candidate schema-source basis as authoritative for family-selection purposes instead of rerunning baseline work only to rediscover them.
+  - if observed or upstream-authoritative payload is XML, continue XML Validator flow.
+  - if observed or upstream-authoritative payload is JSON, route to Skill 029 instead of creating/updating XML Validator.
+  - if observed or upstream-authoritative payload is plain text, route to Skill 031 in text mode instead of creating/updating XML Validator.
   - do not select XML Validator only because the producer is a REST Client or other API client tool.
 2. Resolve validator identity before writes (idempotent upsert rule):
   - derive deterministic target id as `<parent-id>/<validator-name>`,
@@ -169,6 +171,7 @@ Rules:
 - Synthetic schema generation used instead of user-provided/verified schema location.
 - Input-binding mismatch if chained to diagnostics-only output instead of semantic XML output.
 - Approved XML Validator coverage is silently dropped or replaced with content-only tooling without fresh user approval.
+- Experimental-lane drift risk: this card ignores Skill 067's upstream exploration-backed family selection, target parent, or candidate schema-source basis and redoes family-selection work from scratch.
 
 ## 9) Safety / Rollback
 - Write skill (adds/modifies validator tool nodes).
@@ -184,3 +187,4 @@ Rules:
   - `docs/skills/cross-cutting/skill-017-output-chaining-model.md`
   - `docs/skills/cross-cutting/skill-018-tool-output-map-cheat-sheet.md`
   - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
+- When called from Skill 067, this card may rely on upstream exploration-backed payload classification, target parent selection, approved validator-family intent, and candidate schema-source basis, while still owning local validator create/update/readback/verification mechanics.

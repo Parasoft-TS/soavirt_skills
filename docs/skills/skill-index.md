@@ -29,8 +29,8 @@ Preferred prompts:
 - `remember this project for future sessions`
 
 Workflow note:
-- `docs/workflow/agent-workflow.md` invokes this skill automatically immediately after the AGENTS/bootstrap required reading for sessions that loaded `AGENTS.md`.
-- Loading `AGENTS.md` is the opt-in signal for SOAtest/Virtualize-oriented follow-on work, so do not skip Skill 063 merely because the next task appears contributor-facing or otherwise not yet project-specific.
+- `docs/workflow/agent-workflow.md` invokes this skill automatically immediately after the AGENTS/bootstrap required reading only when startup classification resolves to operator bootstrap (explicit project/operator starts or the bare `Follow @AGENTS.md` default).
+- Explicit contributor-start prompts skip automatic Skill 063 entry and continue in contributor mode unless the user also asks to load/store/update project context or later shifts into project-aware runtime work.
 - This file routes to Skill 063; the card owns the exact bootstrap interview, matching, repair, and persistence procedure.
 - Once Skill 063 has resolved an active project, later direct routing to smaller cards still inherits the workflow-level project-context contract for placement, source/value selection, validation priorities, and environment-sensitive behavior.
 
@@ -352,6 +352,7 @@ Use these as required dependencies when a target skill calls for them. These are
 - `docs/skills/cross-cutting/skill-032-client-header-ownership.md`
 - `docs/skills/cross-cutting/skill-049-tool-put-read-merge-write-policy.md`
 - `docs/skills/cross-cutting/skill-053-object-put-read-merge-write-policy.md`
+- `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md`
 
 #### Capability / Compatibility
 - `docs/skills/cross-cutting/skill-066-experimental-direct-api-exploration-evidence-policy.md`
@@ -376,7 +377,7 @@ Use for security-testing tool lifecycle and security-branch attachment rules.
 
 ## Selection Heuristic
 1. For each new user prompt, re-run this routing heuristic before reusing any previously selected target card.
-2. If `AGENTS.md`/bootstrap has been loaded for the current session and Skill 063 has not yet completed its bootstrap, use Skill 063 first. If the user explicitly asks to load/store/update project context later in the session, use Skill 063 again.
+2. If `AGENTS.md`/bootstrap has been loaded for the current session, startup classification resolved to operator bootstrap, and Skill 063 has not yet completed its bootstrap, use Skill 063 first. Skip this automatic entry for explicit contributor-start sessions unless the user later asks to load/store/update project context or begins project-aware runtime work. If the user explicitly asks to load/store/update project context later in the session, use Skill 063 again.
 2a. After Skill 063 has completed, treat the active project as in-scope runtime state for later direct routes whenever the branch still involves placement defaults, request/config synthesis, source resolution, validation priorities, or environment-sensitive behavior.
 3. Determine whether the request is:
    - authoring/generation

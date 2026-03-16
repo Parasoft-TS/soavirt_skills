@@ -63,6 +63,10 @@ Use the layering model for dependency reasoning and long-term decomposition. Use
 8. Update the canonical docs/logs required by `docs/workflow/documentation-sync-workflow.md`.
 9. Link the card in `docs/skills/skill-index.md` with the right operator-facing family and dependency references.
 
+## Contributor-Start Bootstrap Boundary
+- For explicit contributor-start session prompts (for example `Follow @AGENTS.md for skill contributor workflow` or equivalent skill-authoring starts), load contributor-maintenance workflow surfaces first and do not auto-enter Skill 063.
+- Enter Skill 063 only if the user explicitly asks to load/store/update project context or later shifts into project-aware SOAtest/Virtualize runtime work.
+
 ## Suggested Authoring Session Cadence
 - Session start: identify the single skill, workflow, or doc surface being changed.
 - During session: keep concise action notes in `docs/logs/chat-log.md`.

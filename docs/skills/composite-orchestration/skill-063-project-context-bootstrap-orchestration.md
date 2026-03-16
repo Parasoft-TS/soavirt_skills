@@ -3,13 +3,13 @@
 Identify, load, create, repair, update, and persist durable application project context before project-aware application-under-test work begins.
 Conversation-first default: ask short natural-language questions and keep stored context compact enough for progressive loading.
 ## 2) Objective
-- Resolve the active application-under-test project immediately after `AGENTS.md` startup loading so follow-on SOAtest/Virtualize work begins with project context already in scope.
+- Resolve the active application-under-test project when session-start classification or later user intent selects project bootstrap, so follow-on project-aware SOAtest/Virtualize work begins with project context already in scope.
 - Reuse durable project-specific context when the project is already known.
 - Create, repair, or update durable project records when it is not.
 - Keep later skills on the load path `TestAssets/project-index.yaml -> TestAssets/<slug>/<slug>.yaml -> environment file(s) -> referenced files only as needed`.
 ## 3) Scope
 - In scope:
-  - session-start project identification immediately after `AGENTS.md`/bootstrap required reading
+  - session-start project identification when startup classification resolves to operator/project bootstrap after `AGENTS.md`/bootstrap required reading
   - deterministic existing-project matching against `TestAssets/project-index.yaml`
   - ambiguous-match disambiguation
   - new-project interview and normalization
@@ -36,11 +36,12 @@ Conversation-first default: ask short natural-language questions and keep stored
   - `docs/workflow/agent-workflow.md`
   - `TestAssets/project-index.yaml`
 ## 3.2) Ownership Boundaries
-- `AGENTS.md` owns the startup hook and required-reading reminder that hands off to this card immediately after startup reading for sessions that loaded `AGENTS.md`.
+- `AGENTS.md` owns the startup hook, startup-mode split, and required-reading reminder that hand off to this card when startup classification selects project bootstrap.
 - `docs/workflow/agent-workflow.md` owns when bootstrap runs and how progressive loading is preserved.
 - `docs/skills/skill-index.md` owns routing to this skill.
 - This card owns prompts, matching, repair/update rules, persistence, and summary behavior for application-under-test project context.
 - Skill 064 owns external environment-file authoring mechanics, internal/referenced environment mutation, and active-environment verification once bootstrap has established the semantic project environment context and canonical file locations.
+- `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md` owns the downstream runtime-consumption boundary once an approved gitignored secret reference exists.
 ## 4) Inputs
 - Required:
   - a project name, project hint, or permission to ask for one
@@ -53,7 +54,7 @@ Conversation-first default: ask short natural-language questions and keep stored
 ## 5) Preconditions
 - `TestAssets/` is writable.
 - If the user approves the default sensitive-data path, `.gitignore` must protect `.soavirt/projects/` before any secret file is written.
-- This skill runs immediately after the required startup reading for any session under this repo that has loaded `AGENTS.md`.
+- This skill runs immediately after the required startup reading only when session-start classification selects operator/project bootstrap; it may also be invoked later when the user explicitly asks for project context or shifts into project-aware runtime work.
 ## 6) Procedure
 ### 6.1 Session-start entry
 1. If the user already named the project, use that as the initial match input.
@@ -145,6 +146,9 @@ projects: []
 32. If the user chooses a different path:
    - follow that choice
    - record the path reference in the project record
+Boundary note:
+- this card governs durable secret-reference storage and project-record path references only
+- downstream runtime workflows may later resolve an approved gitignored secret reference for live exploration, execution, or supported `.tst` auth mutation under `docs/skills/cross-cutting/skill-069-secret-reference-auth-materialization-policy.md`
 ### 6.7 Durable storage contract
 33. Use `TestAssets/` as the canonical durable store.
 34. Use this structure:
