@@ -4,13 +4,13 @@
 Create a new SOAtest `.tst` from OpenAPI/Swagger.
 
 ## 2) Objective
-Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger using `POST /v6/files/tsts/swagger`. In this repo's broad-authoring model, that generated REST Client family is the standard unconstrained / None-mode branch, and downstream generated-client request/auth mutation routes through Skill 020 rather than Skill 059. Caller-owned post-generation template normalization, such as adding `BASEURL` and rewriting generated client hosts to `${BASEURL}` plus relative path/query, remains outside this card.
+Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger using `POST /v6/files/tsts/swagger`. In this repo's broad-authoring model, that generated REST Client family is the standard unconstrained / None-mode branch, and downstream generated-client request/auth mutation routes through Skill 020 rather than Skill 059. Caller-owned post-generation normalization remains outside this card, but current workspace evidence is nuanced: referenced-external-environment generation does not let the create request resolve `location.url` from an attached env-file variable such as `${OPENAPI}` or `${PARABANK_SWAGGER}`, yet when the create call uses a concrete OpenAPI URL and the attached external environment file contains matching OpenAPI/base-url variables, the generator may emit those discovered variable names directly into the generated `.tst` (for example `${OPENAPI}` / `${BASEURL}` or `${PARABANK_SWAGGER}` / `${PARABANK_BASEURL}`).
 
 ## 3) Scope
 - In scope:
   - create `.tst` from OpenAPI/Swagger URL or file-system path
   - verify resulting test file and root suite creation
-  - deterministic handling of the optional environment-creation request
+  - deterministic handling of the optional `createEnvironment` request field
   - canonical identification of the generated REST Client family as the standard unconstrained / None-mode branch used by broad authoring in this repo
   - optional cleanup via file delete
 - Out of scope:
@@ -39,7 +39,7 @@ Create a brand-new `.tst` whose initial tests are generated from OpenAPI/Swagger
 - Conditional required (must be resolved before create):
   - service-definition source location (user-provided URL or file-system path)
 - Optional:
-  - `restCreateEnvironment` object, but only when the environment branch was already explicitly resolved using Skill 064 generation modes (`disabled`, `local_managed`, `reference_external`)
+  - `createEnvironment` request field, whose value follows the `restCreateEnvironment` schema, but only when the environment branch was already explicitly resolved using Skill 064 generation modes (`disabled`, `local_managed`, `reference_external`)
 
 ## 4.1) Required Input Resolution Rule
 - Resolve service-definition input using this precedence:
@@ -90,8 +90,8 @@ Run this guard only when target name uncertainty exists (for example after ambig
    - `parent.id=<directory-id>`
    - `name=<file-base-name>`
    - `location.url=<openapi-url>` or `location.id=<workspace-file-id>`
-   - default v1 branch: omit `restCreateEnvironment`, rely on the generator's built-in local environment behavior, and do not plan a separate post-create environment creation step
-   - include `restCreateEnvironment` only when the current request or already-confirmed upstream context explicitly resolves a non-default or explicitly parameterized environment branch from Skill 064
+   - default v1 branch: omit `createEnvironment`, rely on the generator's built-in local environment behavior, and do not plan a separate post-create environment creation step
+   - include `createEnvironment` only when the current request or already-confirmed upstream context explicitly resolves a non-default or explicitly parameterized environment branch from Skill 064
 4. Create file from service definition:
    - `POST /v6/files/tsts/swagger`
 5. Verify response:
@@ -148,8 +148,8 @@ Run this guard only when target name uncertainty exists (for example after ambig
 - API-first rule:
   - Build payload from `tstsSwaggerRequest` schema directly; do not require pre-existing generated files as templates.
 - If requirements traceability or tagging is requested, run Skill 009 on the root test suite immediately after creation.
-- Use Skill 064 for `restCreateEnvironment` selection and any follow-on environment mechanics; v1 default generation mode is `local_managed`, which for brand-new `.tst` generation means relying on the generator's built-in local environment behavior unless the user or already-confirmed upstream context explicitly selects another supported branch.
+- Use Skill 064 for `createEnvironment` selection and any follow-on environment mechanics; for OpenAPI generation the request field is named `createEnvironment`, and its value follows the `restCreateEnvironment` schema. The v1 default generation mode is `local_managed`, which for brand-new `.tst` generation means relying on the generator's built-in local environment behavior unless the user or already-confirmed upstream context explicitly selects another supported branch.
 - When invoked directly from routing, this card may be the full workflow for generation-only intent.
 - In this repo's generation model, the REST Clients created by this OpenAPI generator are the standard unconstrained / None-mode generated branch; do not reinterpret Skill 022 broad generation as creating constrained REST Clients by default.
 - When invoked from `docs/skills/composite-orchestration/skill-033-service-test-intent-orchestration.md` or `docs/skills/composite-orchestration/skill-065-experimental-live-exploration-service-test-orchestration.md` during broad authoring, this card owns only initial `.tst` generation plus create/readback verification.
-- In that caller context, downstream generated-client request/auth mutation and readiness work remain with Skill 020 plus the caller's later orchestration phases; readiness remediation, negative/security authoring, calibration, validation enrichment, and any post-generation `BASEURL` normalization remain owned by the caller and its downstream orchestration/leaf skills.
+- In that caller context, downstream generated-client request/auth mutation and readiness work remain with Skill 020 plus the caller's later orchestration phases; readiness remediation, negative/security authoring, calibration, validation enrichment, and any post-generation normalization remain owned by the caller and its downstream orchestration/leaf skills. Current workspace probes show three distinct cases: `location.url=${...}` does not resolve from an attached external env file during create; an attached external env file using `BASE_URL` without a matching generator-recognized base-url variable did not parameterize generated REST Clients; and attached external env files containing matching variable names such as `OPENAPI` / `BASEURL` or `PARABANK_SWAGGER` / `PARABANK_BASEURL` did cause the generator to emit those names into the generated `.tst`.

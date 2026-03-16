@@ -325,10 +325,11 @@ Use for validators, assertors, and diff-based comparison.
 - `docs/skills/validation/skill-031-diff-tool-workflow.md`
 
 ### 7) Data Exchange Tools
-Use for databank extraction and data propagation.
+Use for databank extraction, random test-data generation, and data propagation.
 
 - `docs/skills/data-exchange/skill-019-xml-databank-extraction-workflow.md`
 - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
+- `docs/skills/data-exchange/skill-075-data-generator-lifecycle.md`
 
 ### 8) Execution Diagnostics
 Use for running tests, retrieving results, and diagnosing failures.

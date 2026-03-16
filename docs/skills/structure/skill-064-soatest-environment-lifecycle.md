@@ -91,8 +91,8 @@ Use these conceptual modes across Skills 022-025:
   - attach a referenced external environment file
 
 API-shape note:
-- OpenAPI and RAML generation use `restCreateEnvironment`.
-- WSDL and XSD generation use `createEnvironment` with `variableTypes`.
+- OpenAPI and RAML generation use a request field named `createEnvironment`; the value follows the `restCreateEnvironment` schema.
+- WSDL and XSD generation also use `createEnvironment`, but with the `createEnvironment` / `variableTypes` schema branch.
 - The conceptual modes are shared even though the payload schemas differ.
 
 ## 5) Inputs
@@ -215,6 +215,13 @@ Boundary note:
    - create or update caller-requested variables such as `BASEURL` using confirmed project-context or service-definition values
    - verify the variable via environment readback before downstream client rewrites continue
    - leave generated REST Client URL rewriting to the caller and Skill 020 rather than absorbing that mutation into environment ownership
+23. Evidence-backed OpenAPI rule for `reference_external` generation:
+   - the request field name remains `createEnvironment`; the value shape is `restCreateEnvironment`
+   - attached external environment files are not consulted to resolve `location.url=${...}` during the create request itself; probes with `${OPENAPI}` and `${PARABANK_SWAGGER}` in `location.url` failed before generation
+   - when the create call instead uses a concrete OpenAPI URL and the attached external environment file contains matching OpenAPI/base-url variables, the generator may emit those external variable names into the generated `.tst`
+   - observed emitted-name cases in this workspace include `${OPENAPI}` / `${BASEURL}` and `${PARABANK_SWAGGER}` / `${PARABANK_BASEURL}`
+   - attached external env files that did not present a generator-recognized matching base-url variable still produced concrete generated REST Client URLs in this workspace
+   - therefore callers must inspect both the external environment contents and the generated `.tst` readback before deciding whether further local-variable insertion or REST Client URL rewrite is still required
 
 ## 8) Validation
 - External environment-file writes are verified by file existence + parseability + expected content presence.
@@ -233,6 +240,8 @@ Boundary note:
 - Environment mechanics are misused as the default workaround for keeping supported auth secrets out of a generated `.tst`.
 - A caller rewrites generated REST Clients to `${BASEURL}` without first inserting and readback-confirming the local `BASEURL` variable in the generated environment.
 - Generation cards assume `reference_external` is runtime-equivalent to `local_managed` without verification.
+- OpenAPI generation branches assume `BASE_URL` versus `BASEURL` alone determines parameterization without inspecting the generated `.tst` readback.
+- Callers assume generic `${OPENAPI}` / `${BASEURL}` names are always the correct replacements instead of reading the attached external environment file and preserving any already-generated prefixed names.
 
 ## 10) Safety / Rollback
 - Fail closed on ambiguous environment selection when the branch is environment-sensitive.

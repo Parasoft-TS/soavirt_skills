@@ -100,7 +100,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** empty `.tst` create/reuse path is stable.
 - `docs/skills/platform/skill-022-tst-create-from-openapi.md`
   - **State:** Validated
-  - **Notes:** OpenAPI/Swagger generation path is validated and hardened for ambiguous write recovery; caller-owned post-generation `BASEURL` normalization remains outside this card.
+  - **Notes:** OpenAPI/Swagger generation path is validated and hardened for ambiguous write recovery. Current evidence shows attached external env files are not used to resolve `location.url=${...}` during create, but concrete-URL generation can emit matched external variable names into the generated `.tst` when the env file contains recognized OpenAPI/base-url variables (including prefixed names such as `PARABANK_SWAGGER` / `PARABANK_BASEURL`). Caller-owned post-generation normalization therefore depends on generated readback, not a fixed `${BASEURL}` assumption.
 - `docs/skills/platform/skill-023-tst-create-from-wsdl.md`
   - **State:** Validated
   - **Notes:** WSDL generation path validated.
@@ -158,7 +158,7 @@ Do not use this file as the primary operator-facing routing surface.
   - **Notes:** suite-level WSDL generation workflow validated for `disabled`, collision-aware `local_managed`, post-generation environment normalization into the original active environment, nested-parent placement readback, and a validated but non-default `reference_external` branch that can add referenced environment nodes without implicitly switching the active environment.
 - `docs/skills/structure/skill-064-soatest-environment-lifecycle.md`
   - **State:** Defined
-  - **Notes:** canonical v1 owner for SOAtest environment terminology, external project environment-file authoring, internal/referenced environment lifecycle, active-environment verification, local-to-external consolidation, shared generation-mode semantics across Skills 022-025, and caller-owned generated-local-variable insertion such as `BASEURL`, while explicitly keeping auth-concealment workarounds out of the default environment-mechanics lane.
+  - **Notes:** canonical v1 owner for SOAtest environment terminology, external project environment-file authoring, internal/referenced environment lifecycle, active-environment verification, local-to-external consolidation, shared generation-mode semantics across Skills 022-025, and caller-owned generated-local-variable insertion/inspection. Current OpenAPI evidence shows attached external env files do not resolve `location.url=${...}` during create, but concrete-URL generation can emit matched external variable names into the generated `.tst`, so callers must inspect both the env file and generated readback before normalizing.
 - `docs/skills/structure/skill-047-generated-subset-prune.md`
   - **State:** Validated
   - **Notes:** generated-suite prune workflow is validated and reusable.
@@ -204,6 +204,9 @@ Do not use this file as the primary operator-facing routing surface.
 - `docs/skills/data-exchange/skill-028-json-databank-extraction-workflow.md`
   - **State:** Defined
   - **Notes:** JSON Data Bank card exists; runtime validation remains pending. The experimental lane now also depends on this card's ability to reuse and extend an existing producer-local databank for validation-only extracts rather than creating a sibling databank by default.
+- `docs/skills/data-exchange/skill-075-data-generator-lifecycle.md`
+  - **State:** Defined
+  - **Notes:** full CRUD lifecycle card for Data Generator Tools defined from the local OpenAPI schema plus a local `.tst` exemplar; string-generator `&` / `#` semantics are documented, while runtime create/update validation is still pending.
 
 ### 8) Execution Diagnostics
 - `docs/skills/execution-diagnostics/skill-012-test-execution-xml-report.md`
